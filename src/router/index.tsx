@@ -4,7 +4,10 @@ import { PublicRoute } from "./PublicRoute";
 import AppLayout from "@/components/layout/AppLayout";
 import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
-import HomePage from "@/pages/HomePage";
+
+import { DashboardPage } from "@/pages/Dashboard";
+import { RodeoPage } from "@/pages/Rodeo";
+import { EvaluacionesPage } from "@/pages/Evaluaciones";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard
@@ -21,7 +24,11 @@ export const router = createBrowserRouter([
     children: [
       {
         element: <AppLayout />,
-        children: [{ path: "/dashboard", element: <HomePage /> }],
+        children: [
+          { path: "/dashboard", element: <DashboardPage /> },
+          { path: "/rodeo", element: <RodeoPage /> },
+          { path: "/evaluaciones", element: <EvaluacionesPage /> },
+        ],
       },
     ],
   },
