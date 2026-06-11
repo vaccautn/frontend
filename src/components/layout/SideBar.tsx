@@ -10,7 +10,9 @@ const navItems = [
 export function Sidebar() {
   return (
     <aside className="sidebar">
-      <div className="sidebar__brand">VACCA</div>
+      <div className="sidebar__brand">
+        <p>VACCA</p> <span>Gestión bovina</span>
+      </div>
       <nav className="sidebar__nav">
         {navItems.map(({ label, to, icon }) => (
           <NavLink

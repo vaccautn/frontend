@@ -6,8 +6,9 @@ import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 
 import { DashboardPage } from "@/pages/Dashboard";
-import { RodeoPage } from "@/pages/Rodeo";
+import { RodeoPage } from "@/pages/rodeo/Rodeo";
 import { EvaluacionesPage } from "@/pages/Evaluaciones";
+import RodeoNuevoPage from "@/pages/rodeo/RodeoNuevoPage";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard
@@ -27,6 +28,7 @@ export const router = createBrowserRouter([
         children: [
           { path: "/dashboard", element: <DashboardPage /> },
           { path: "/rodeo", element: <RodeoPage /> },
+          { path: "/rodeo/nuevo", element: <RodeoNuevoPage /> },
           { path: "/evaluaciones", element: <EvaluacionesPage /> },
         ],
       },

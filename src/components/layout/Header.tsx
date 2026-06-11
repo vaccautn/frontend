@@ -4,6 +4,7 @@ import { useLocation } from "react-router-dom";
 const pageTitles: Record<string, string> = {
   "/dashboard": "Panel general",
   "/rodeo": "Información del rodeo",
+  "/rodeo/nuevo": "Registrar nuevo animal",
   "/evaluaciones": "Evaluaciones de condición corporal",
 };
 
@@ -16,6 +17,7 @@ export function Header() {
   return (
     <header className="header">
       <h1 className="header__title">{title}</h1>
+
       <div className="header__actions">
         {/* Aca va los toggles Escala 1-5 / 1-9 y notificaciones */}
         {user && (

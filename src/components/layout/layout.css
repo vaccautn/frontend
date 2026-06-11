@@ -17,6 +17,12 @@
   padding: 0 1.5rem 2rem;
   font-weight: 700;
   color: #fff;
+
+  span {
+    font-weight: 400;
+    font-size: 0.8rem;
+    color: #eee;
+  }
 }
 
 .sidebar__link {
