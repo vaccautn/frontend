@@ -8,12 +8,13 @@ import {
   type RodeoNuevoFieldErrors,
   type RodeoNuevoValues,
 } from "@/features/rodeo/utils/rodeoValidation";
+import { normalizeBackendDetail } from "@/features/auth";
 
 // TODO: confirmar si las razas vienen de la API
 const RAZAS = ["Angus", "Hereford", "Braford", "Brahman", "Holando", "Otra"];
 const SEXOS = [
-  { value: "macho", label: "Macho" },
-  { value: "hembra", label: "Hembra" },
+  { value: "MACHO", label: "Macho" },
+  { value: "HEMBRA", label: "Hembra" },
 ];
 
 function RodeoNuevoPage() {
@@ -47,15 +48,19 @@ function RodeoNuevoPage() {
 
     try {
       await registerAnimal({
-        id_caravana: values.id_caravana.trim(),
+        caravana: values.caravana.trim(),
         raza: values.raza,
         sexo: values.sexo,
         fecha_nacimiento: values.fecha_nacimiento,
+        lote_id: null,
       });
       navigate("/rodeo");
     } catch (error) {
       if (error instanceof ApiError) {
-        setFormError(error.detail ?? "Error al registrar el animal.");
+        setFormError(
+          normalizeBackendDetail(error.detail) ??
+            "Error al registrar el animal.",
+        );
       } else {
         setFormError("No se pudo registrar el animal. Probá nuevamente.");
       }
@@ -76,20 +81,19 @@ function RodeoNuevoPage() {
 
       <form onSubmit={handleSubmit} noValidate>
         <div className="field">
-          <label htmlFor="id-caravana">ID caravana</label>
+          <label htmlFor="id-caravana">Caravana</label>
+
           <input
-            id="id-caravana"
-            name="id_caravana"
+            id="caravana"
+            name="caravana"
             type="text"
-            value={values.id_caravana}
-            onChange={updateField("id_caravana")}
-            aria-describedby={
-              errors.id_caravana ? "id-caravana-error" : undefined
-            }
+            value={values.caravana}
+            onChange={updateField("caravana")}
           />
-          {errors.id_caravana && (
+
+          {errors.caravana && (
             <span id="id-caravana-error" className="field-error">
-              {errors.id_caravana}
+              {errors.caravana}
             </span>
           )}
         </div>

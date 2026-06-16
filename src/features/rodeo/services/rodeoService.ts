@@ -2,15 +2,24 @@ import { postJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 
 export type RegisterAnimalPayload = {
-  id_caravana: string;
+  caravana: string;
   raza: string;
   sexo: string;
-  fecha_nacimiento: string; // ISO 8601: 'YYYY-MM-DD'
+  fecha_nacimiento: string;
+  lote_id: number | null;
 };
 
 export type RegisterAnimalResponse = {
-  message: string;
-  // falta completar con la respuesta del endpoint
+  id: number;
+  caravana: string | null;
+  sexo: string;
+  raza: string;
+  fecha_nacimiento: string | null;
+  estado: string;
+  observacion: string;
+  lote_id: number | null;
+  creado_en: string;
+  actualizado_en: string;
 };
 
 export function registerAnimal(
@@ -18,7 +27,7 @@ export function registerAnimal(
 ): Promise<RegisterAnimalResponse> {
   const token = getAccessToken();
   return postJson<RegisterAnimalResponse, RegisterAnimalPayload>(
-    "/rodeo/animales", // Cuando este el endpoint verificar si es igual a este
+    "/animales/registrar-animal",
     payload,
     token,
   );
