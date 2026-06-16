@@ -2,6 +2,7 @@ import "./layout.css";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./SideBar";
 import { Header } from "./Header";
+import { ToastContainer } from "react-toastify";
 
 export default function AppLayout() {
   return (
@@ -13,6 +14,7 @@ export default function AppLayout() {
           <Outlet />
         </main>
       </div>
+      <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
   );
 }
