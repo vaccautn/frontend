@@ -1,3 +1,4 @@
+import { useAuth } from "@/features/auth";
 import { NavLink } from "react-router-dom";
 import { DashboardIcon, RodeoIcon, EvaluacionesIcon } from "@/utils/icons";
 
@@ -8,6 +9,8 @@ const navItems = [
 ];
 
 export function Sidebar() {
+  const { logout } = useAuth();
+
   return (
     <aside className="sidebar">
       <div className="sidebar__brand">
@@ -26,6 +29,9 @@ export function Sidebar() {
           </NavLink>
         ))}
       </nav>
+      <button className="sidebar__logout" onClick={logout}>
+        Cerrar sesión
+      </button>
     </aside>
   );
 }
