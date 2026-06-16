@@ -4,7 +4,7 @@ import { useLocation } from "react-router-dom";
 const pageTitles: Record<string, string> = {
   "/dashboard": "Panel general",
   "/rodeo": "Información del rodeo",
-  "/rodeo/nuevo": "Registrar nuevo animal",
+  "/rodeo/nuevo": "Información del rodeo",
   "/evaluaciones": "Evaluaciones de condición corporal",
 };
 

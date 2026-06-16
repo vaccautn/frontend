@@ -27,7 +27,11 @@ export const router = createBrowserRouter([
         element: <AppLayout />,
         children: [
           { path: "/dashboard", element: <DashboardPage /> },
-          { path: "/rodeo", element: <RodeoPage /> },
+          {
+            path: "/rodeo",
+            element: <RodeoPage />,
+            children: [{ path: "nuevo", element: <RodeoNuevoPage /> }],
+          },
           { path: "/rodeo/nuevo", element: <RodeoNuevoPage /> },
           { path: "/evaluaciones", element: <EvaluacionesPage /> },
         ],
