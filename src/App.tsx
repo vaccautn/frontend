@@ -1,20 +1,11 @@
-import './App.css'
-import HomePage from './pages/HomePage'
-import LoginPage from './pages/LoginPage'
-import RegisterPage from './pages/RegisterPage'
+import { RouterProvider } from "react-router-dom";
+import { router } from "@/router";
+import { AuthProvider } from "@/features/auth";
 
-function App() {
-  const currentPath = window.location.pathname
-
-  if (currentPath === '/login') {
-    return <LoginPage />
-  }
-
-  if (currentPath === '/register') {
-    return <RegisterPage />
-  }
-
-  return <HomePage />
+export default function App() {
+  return (
+    <AuthProvider>
+      <RouterProvider router={router} />
+    </AuthProvider>
+  );
 }
-
-export default App
