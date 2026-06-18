@@ -2,10 +2,8 @@ import { useEffect, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import "./rodeo.css";
-import {
-  getAnimales,
-  type Animal,
-} from "@/features/rodeo/services/rodeoService";
+import { getAnimales } from "@/features/rodeo/services/rodeoService";
+import type { Animal } from "@/features/rodeo/types";
 
 export function RodeoPage() {
   const navigate = useNavigate();
