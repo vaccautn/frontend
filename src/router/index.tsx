@@ -9,6 +9,7 @@ import { DashboardPage } from "@/pages/Dashboard";
 import { RodeoPage } from "@/pages/rodeo/RodeoPage";
 import { EvaluacionesPage } from "@/pages/Evaluaciones";
 import RodeoNuevoPage from "@/pages/rodeo/RodeoNuevoPage";
+import RodeoEditarPage from "@/pages/rodeo/RodeoEditarPage";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard
@@ -30,7 +31,10 @@ export const router = createBrowserRouter([
           {
             path: "/rodeo",
             element: <RodeoPage />,
-            children: [{ path: "nuevo", element: <RodeoNuevoPage /> }],
+            children: [
+              { path: "nuevo", element: <RodeoNuevoPage /> },
+              { path: ":id/editar", element: <RodeoEditarPage /> },
+            ],
           },
           { path: "/rodeo/nuevo", element: <RodeoNuevoPage /> },
           { path: "/evaluaciones", element: <EvaluacionesPage /> },
