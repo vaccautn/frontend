@@ -37,3 +37,22 @@ export function getAnimales(): Promise<Animal[]> {
   const token = getAccessToken();
   return getJson<Animal[]>("/animales/", token);
 }
+
+export function getAnimal(id: number): Promise<Animal> {
+  const token = getAccessToken();
+  return getJson<Animal>(`/animales/${id}/`, token);
+}
+
+export type UpdateAnimalPayload = RegisterAnimalPayload;
+
+export function updateAnimal(
+  id: number,
+  payload: UpdateAnimalPayload,
+): Promise<Animal> {
+  const token = getAccessToken();
+  return postJson<Animal, UpdateAnimalPayload>(
+    `/animales/${id}/`,
+    payload,
+    token,
+  );
+}

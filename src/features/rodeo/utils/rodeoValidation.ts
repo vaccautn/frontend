@@ -1,5 +1,5 @@
 export type RodeoNuevoValues = {
-  caravana: string; // era id_caravana
+  caravana: string;
   raza: string;
   sexo: string;
   fecha_nacimiento: string;
