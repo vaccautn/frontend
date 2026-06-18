@@ -1,4 +1,4 @@
-import { postJson, getJson } from "@/services/httpClient";
+import { postJson, getJson, putJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 
 export type Animal = {
@@ -50,8 +50,8 @@ export function updateAnimal(
   payload: UpdateAnimalPayload,
 ): Promise<Animal> {
   const token = getAccessToken();
-  return postJson<Animal, UpdateAnimalPayload>(
-    `/animales/${id}/`,
+  return putJson<Animal, UpdateAnimalPayload>(
+    `/animales/${id}`,
     payload,
     token,
   );
