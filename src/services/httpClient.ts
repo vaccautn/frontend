@@ -1,7 +1,6 @@
 const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
 
-console.log("API_BASE_URL:", API_BASE_URL);
 type ApiErrorBody = {
   detail?: string;
 };
@@ -35,6 +34,33 @@ export async function postJson<TResponse, TPayload>(
     method: "POST",
     headers,
     body: payload === undefined ? undefined : JSON.stringify(payload),
+  });
+
+  const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
+
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      body.detail ?? "No se pudo completar la operación. Probá nuevamente.",
+    );
+  }
+
+  return body as TResponse;
+}
+
+export async function getJson<TResponse>(
+  path: string,
+  accessToken?: string | null,
+): Promise<TResponse> {
+  const headers: Record<string, string> = {};
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "GET",
+    headers,
   });
 
   const body = (await response.json().catch(() => ({}))) as ApiErrorBody;

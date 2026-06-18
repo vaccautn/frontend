@@ -6,7 +6,7 @@ import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 
 import { DashboardPage } from "@/pages/Dashboard";
-import { RodeoPage } from "@/pages/rodeo/Rodeo";
+import { RodeoPage } from "@/pages/rodeo/RodeoPage";
 import { EvaluacionesPage } from "@/pages/Evaluaciones";
 import RodeoNuevoPage from "@/pages/rodeo/RodeoNuevoPage";
 

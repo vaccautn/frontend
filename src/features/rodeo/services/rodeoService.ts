@@ -1,15 +1,7 @@
-import { postJson } from "@/services/httpClient";
+import { postJson, getJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 
-export type RegisterAnimalPayload = {
-  caravana: string;
-  raza: string;
-  sexo: string;
-  fecha_nacimiento: string;
-  lote_id: number | null;
-};
-
-export type RegisterAnimalResponse = {
+export type Animal = {
   id: number;
   caravana: string | null;
   sexo: string;
@@ -22,13 +14,26 @@ export type RegisterAnimalResponse = {
   actualizado_en: string;
 };
 
+export type RegisterAnimalPayload = {
+  caravana: string;
+  raza: string;
+  sexo: string;
+  fecha_nacimiento: string;
+  lote_id: number | null;
+};
+
 export function registerAnimal(
   payload: RegisterAnimalPayload,
-): Promise<RegisterAnimalResponse> {
+): Promise<Animal> {
   const token = getAccessToken();
-  return postJson<RegisterAnimalResponse, RegisterAnimalPayload>(
+  return postJson<Animal, RegisterAnimalPayload>(
     "/animales/registrar-animal",
     payload,
     token,
   );
+}
+
+export function getAnimales(): Promise<Animal[]> {
+  const token = getAccessToken();
+  return getJson<Animal[]>("/animales/", token);
 }
