@@ -75,7 +75,7 @@ export async function getJson<TResponse>(
   return body as TResponse;
 }
 
-export async function putJson<TResponse, TPayload>(
+export async function patchJson<TResponse, TPayload>(
   path: string,
   payload: TPayload,
   accessToken?: string | null,
@@ -89,7 +89,7 @@ export async function putJson<TResponse, TPayload>(
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
-    method: "PUT",
+    method: "PATCH",
     headers,
     body: JSON.stringify(payload),
   });

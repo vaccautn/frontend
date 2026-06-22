@@ -1,5 +1,5 @@
 import { useEffect, useState } from "react";
-import { Outlet, useNavigate } from "react-router-dom";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import "./rodeo.css";
 import { getAnimales } from "@/features/rodeo/services/rodeoService";
@@ -7,16 +7,29 @@ import type { Animal } from "@/features/rodeo/types";
 
 export function RodeoPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [animales, setAnimales] = useState<Animal[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
-  useEffect(() => {
+  const fetchAnimales = () => {
+    setLoading(true);
+    setError("");
     getAnimales()
       .then(setAnimales)
       .catch(() => setError("No se pudieron cargar los animales."))
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    fetchAnimales();
   }, []);
+
+  useEffect(() => {
+    if (location.state?.refresh) {
+      fetchAnimales();
+    }
+  }, [location.state]);
 
   return (
     <div>

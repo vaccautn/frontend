@@ -21,7 +21,7 @@ const RAZAS = [
   "Shorthorn",
   "Charolais",
   "Criolla",
-  "Otra",
+  "Otro",
 ];
 const SEXOS = [
   { value: "MACHO", label: "Macho" },
@@ -44,10 +44,9 @@ function RodeoNuevoPage() {
     return () => cancelAnimationFrame(id);
   }, []);
 
-  const close = () => {
+  const close = (refresh = false) => {
     setVisible(false);
-    // Espera a que termine la animación de salida antes de navegar
-    setTimeout(() => navigate("/rodeo"), 300);
+    setTimeout(() => navigate("/rodeo", { state: { refresh } }), 300);
   };
 
   const updateField =
@@ -77,7 +76,7 @@ function RodeoNuevoPage() {
       });
 
       toast.success("Animal registrado correctamente.");
-      close();
+      close(true);
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(
@@ -97,7 +96,7 @@ function RodeoNuevoPage() {
       {/* Overlay */}
       <div
         className={`drawer-overlay ${visible ? "drawer-overlay--visible" : ""}`}
-        onClick={close}
+        onClick={() => close()}
         aria-hidden="true"
       />
 
@@ -110,7 +109,7 @@ function RodeoNuevoPage() {
           <button
             type="button"
             className="drawer-close"
-            onClick={close}
+            onClick={() => close()}
             aria-label="Cerrar">
             ✕
           </button>
@@ -207,7 +206,7 @@ function RodeoNuevoPage() {
             </div>
 
             <div className="form-actions">
-              <button type="button" onClick={close}>
+              <button type="button" onClick={() => close()}>
                 Cancelar
               </button>
               <button type="submit" disabled={isSubmitting}>

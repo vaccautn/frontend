@@ -19,4 +19,12 @@ export type RegisterAnimalPayload = {
   lote_id: number | null;
 };
 
-export type UpdateAnimalPayload = RegisterAnimalPayload;
+export type UpdateAnimalPayload = {
+  caravana: string;
+  raza: string;
+  sexo: string;
+  fecha_nacimiento: string;
+  estado: string;
+  observacion: string;
+  lote_id: number | null;
+};

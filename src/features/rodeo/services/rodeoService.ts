@@ -1,6 +1,10 @@
-import { postJson, getJson, putJson } from "@/services/httpClient";
+import { postJson, getJson, patchJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
-import type { Animal, RegisterAnimalPayload } from "@/features/rodeo/types";
+import type {
+  Animal,
+  RegisterAnimalPayload,
+  UpdateAnimalPayload,
+} from "@/features/rodeo/types";
 
 export function registerAnimal(
   payload: RegisterAnimalPayload,
@@ -23,14 +27,12 @@ export function getAnimal(id: number): Promise<Animal> {
   return getJson<Animal>(`/animales/${id}/`, token);
 }
 
-export type UpdateAnimalPayload = RegisterAnimalPayload;
-
 export function updateAnimal(
   id: number,
   payload: UpdateAnimalPayload,
 ): Promise<Animal> {
   const token = getAccessToken();
-  return putJson<Animal, UpdateAnimalPayload>(
+  return patchJson<Animal, UpdateAnimalPayload>(
     `/animales/${id}`,
     payload,
     token,

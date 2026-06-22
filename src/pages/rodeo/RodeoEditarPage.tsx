@@ -7,24 +7,40 @@ import {
   updateAnimal,
 } from "@/features/rodeo/services/rodeoService";
 import {
-  validateRodeoNuevoForm,
-  type RodeoNuevoFieldErrors,
-  type RodeoNuevoValues,
+  validateRodeoEditarForm,
+  type RodeoEditarFieldErrors,
+  type RodeoEditarValues,
 } from "@/features/rodeo/utils/rodeoValidation";
 import { normalizeBackendDetail } from "@/features/auth";
 
-const RAZAS = ["Angus", "Hereford", "Braford", "Brahman", "Holando", "Otra"];
+const RAZAS = [
+  "Angus",
+  "Hereford",
+  "Brangus",
+  "Brahman",
+  "Limousin",
+  "Simmental",
+  "Shorthorn",
+  "Charolais",
+  "Criolla",
+  "Otro",
+];
 const SEXOS = [
   { value: "MACHO", label: "Macho" },
   { value: "HEMBRA", label: "Hembra" },
+];
+const ESTADOS = [
+  { value: "ACTIVO", label: "Activo" },
+  { value: "VENDIDO", label: "Vendido" },
+  { value: "MUERTO", label: "Muerto" },
 ];
 
 function RodeoEditarPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [visible, setVisible] = useState(false);
-  const [values, setValues] = useState<RodeoNuevoValues | null>(null);
-  const [errors, setErrors] = useState<RodeoNuevoFieldErrors>({});
+  const [values, setValues] = useState<RodeoEditarValues | null>(null);
+  const [errors, setErrors] = useState<RodeoEditarFieldErrors>({});
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
@@ -35,19 +51,30 @@ function RodeoEditarPage() {
         raza: animal.raza,
         sexo: animal.sexo,
         fecha_nacimiento: animal.fecha_nacimiento ?? "",
+        estado: animal.estado,
+        observacion: animal.observacion ?? "",
+        lote_id: animal.lote_id?.toString() ?? "",
       });
       requestAnimationFrame(() => setVisible(true));
     });
   }, [id]);
 
-  const close = () => {
+  const close = (refresh = false) => {
+    const shouldRefresh = typeof refresh === "boolean" ? refresh : false;
     setVisible(false);
-    setTimeout(() => navigate("/rodeo"), 300);
+    setTimeout(
+      () => navigate("/rodeo", { state: { refresh: shouldRefresh } }),
+      300,
+    );
   };
 
   const updateField =
-    (field: keyof RodeoNuevoValues) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
+    (field: keyof RodeoEditarValues) =>
+    (
+      event: ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >,
+    ) => {
       setValues((current) =>
         current ? { ...current, [field]: event.target.value } : current,
       );
@@ -59,7 +86,7 @@ function RodeoEditarPage() {
     event.preventDefault();
     if (isSubmitting || !values) return;
 
-    const nextErrors = validateRodeoNuevoForm(values);
+    const nextErrors = validateRodeoEditarForm(values);
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
@@ -70,10 +97,12 @@ function RodeoEditarPage() {
         raza: values.raza,
         sexo: values.sexo,
         fecha_nacimiento: values.fecha_nacimiento,
-        lote_id: null,
+        estado: values.estado,
+        observacion: values.observacion.trim(),
+        lote_id: values.lote_id ? Number(values.lote_id) : null,
       });
       toast.success("Animal actualizado correctamente.");
-      close();
+      close(true);
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(
@@ -88,13 +117,13 @@ function RodeoEditarPage() {
     }
   };
 
-  if (!values) return null; // Cargando datos antes de abrir el drawer
+  if (!values) return null;
 
   return (
     <>
       <div
         className={`drawer-overlay ${visible ? "drawer-overlay--visible" : ""}`}
-        onClick={close}
+        onClick={() => close()}
         aria-hidden="true"
       />
       <aside
@@ -105,7 +134,7 @@ function RodeoEditarPage() {
           <button
             type="button"
             className="drawer-close"
-            onClick={close}
+            onClick={() => close()}
             aria-label="Cerrar">
             ✕
           </button>
@@ -144,7 +173,8 @@ function RodeoEditarPage() {
                 id="raza"
                 name="raza"
                 value={values.raza}
-                onChange={updateField("raza")}>
+                onChange={updateField("raza")}
+                aria-describedby={errors.raza ? "raza-error" : undefined}>
                 <option value="">Seleccioná una raza</option>
                 {RAZAS.map((raza) => (
                   <option key={raza} value={raza}>
@@ -165,7 +195,8 @@ function RodeoEditarPage() {
                 id="sexo"
                 name="sexo"
                 value={values.sexo}
-                onChange={updateField("sexo")}>
+                onChange={updateField("sexo")}
+                aria-describedby={errors.sexo ? "sexo-error" : undefined}>
                 <option value="">Seleccioná el sexo</option>
                 {SEXOS.map(({ value, label }) => (
                   <option key={value} value={value}>
@@ -187,7 +218,11 @@ function RodeoEditarPage() {
                 name="fecha_nacimiento"
                 type="date"
                 value={values.fecha_nacimiento}
+                max={new Date().toISOString().split("T")[0]} // impide seleccionar fecha futura
                 onChange={updateField("fecha_nacimiento")}
+                aria-describedby={
+                  errors.fecha_nacimiento ? "fecha-nacimiento-error" : undefined
+                }
               />
               {errors.fecha_nacimiento && (
                 <span id="fecha-nacimiento-error" className="field-error">
@@ -196,8 +231,53 @@ function RodeoEditarPage() {
               )}
             </div>
 
+            <div className="field">
+              <label htmlFor="estado">Estado</label>
+              <select
+                id="estado"
+                name="estado"
+                value={values.estado}
+                onChange={updateField("estado")}
+                aria-describedby={errors.estado ? "estado-error" : undefined}>
+                <option value="">Seleccioná el estado</option>
+                {ESTADOS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+              {errors.estado && (
+                <span id="estado-error" className="field-error">
+                  {errors.estado}
+                </span>
+              )}
+            </div>
+
+            <div className="field">
+              <label htmlFor="observacion">Observación</label>
+              <textarea
+                id="observacion"
+                name="observacion"
+                value={values.observacion}
+                onChange={updateField("observacion")}
+                rows={3}
+              />
+            </div>
+
+            <div className="field">
+              <label htmlFor="lote-id">Lote</label>
+              <input
+                id="lote-id"
+                name="lote_id"
+                type="number"
+                min={1}
+                value={values.lote_id}
+                onChange={updateField("lote_id")}
+              />
+            </div>
+
             <div className="form-actions">
-              <button type="button" onClick={close}>
+              <button type="button" onClick={() => close()}>
                 Cancelar
               </button>
               <button type="submit" disabled={isSubmitting}>
