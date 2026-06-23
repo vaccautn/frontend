@@ -3,16 +3,22 @@ import { useLocation } from "react-router-dom";
 
 const pageTitles: Record<string, string> = {
   "/dashboard": "Panel general",
-  "/rodeo": "Información del rodeo",
-  "/rodeo/nuevo": "Información del rodeo",
   "/evaluaciones": "Evaluaciones de condición corporal",
 };
+
+function getPageTitle(pathname: string) {
+  if (pathname.startsWith("/rodeo")) {
+    return "Información del rodeo";
+  }
+
+  return pageTitles[pathname] ?? "Sin título";
+}
 
 export function Header() {
   const user = getStoredUser();
   const { pathname } = useLocation();
 
-  const title = pageTitles[pathname] ?? "";
+  const title = getPageTitle(pathname);
 
   return (
     <header className="header">
