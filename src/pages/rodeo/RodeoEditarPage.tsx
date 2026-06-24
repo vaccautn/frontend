@@ -12,6 +12,7 @@ import {
   type RodeoEditarValues,
 } from "@/features/rodeo/utils/rodeoValidation";
 import { normalizeBackendDetail } from "@/features/auth";
+import type { EstadoAnimal } from "@/features/rodeo/types";
 
 const RAZAS = [
   "Angus",
@@ -97,7 +98,7 @@ function RodeoEditarPage() {
         raza: values.raza,
         sexo: values.sexo,
         fecha_nacimiento: values.fecha_nacimiento,
-        estado: values.estado,
+        estado: values.estado as EstadoAnimal,
         observacion: values.observacion.trim(),
         lote_id: values.lote_id ? Number(values.lote_id) : null,
       });

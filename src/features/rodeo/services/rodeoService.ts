@@ -2,6 +2,7 @@ import { postJson, getJson, patchJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 import type {
   Animal,
+  AnimalListParams,
   RegisterAnimalPayload,
   UpdateAnimalPayload,
 } from "@/features/rodeo/types";
@@ -17,9 +18,17 @@ export function registerAnimal(
   );
 }
 
-export function getAnimales(): Promise<Animal[]> {
+export function getAnimales(params: AnimalListParams = {}): Promise<Animal[]> {
   const token = getAccessToken();
-  return getJson<Animal[]>("/animales/", token);
+  const searchParams = new URLSearchParams();
+
+  if (params.estado) {
+    searchParams.set("estado", params.estado);
+  }
+
+  const queryString = searchParams.toString();
+  const path = queryString ? `/animales/?${queryString}` : "/animales/";
+  return getJson<Animal[]>(path, token);
 }
 
 export function getAnimal(id: number): Promise<Animal> {
