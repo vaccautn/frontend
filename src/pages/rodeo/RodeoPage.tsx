@@ -4,18 +4,20 @@ import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import "./rodeo.css";
 import { getAnimales } from "@/features/rodeo/services/rodeoService";
 import type { Animal } from "@/features/rodeo/types";
+import { BajaAnimalModal } from "./BajaAnimalModal";
 
 export function RodeoPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [animales, setAnimales] = useState<Animal[]>([]);
+  const [animalParaBaja, setAnimalParaBaja] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
   const fetchAnimales = () => {
     setLoading(true);
     setError("");
-    getAnimales()
+    getAnimales({ estado: "ACTIVO" })
       .then(setAnimales)
       .catch(() => setError("No se pudieron cargar los animales."))
       .finally(() => setLoading(false));
@@ -49,12 +51,13 @@ export function RodeoPage() {
               <th>Fecha de nacimiento</th>
               <th>Estado</th>
               <th></th>
+              <th></th>
             </tr>
           </thead>
           <tbody>
             {animales.length === 0 ? (
               <tr>
-                <td colSpan={6}>No hay animales registrados.</td>
+                <td colSpan={7}>No hay animales activos registrados.</td>
               </tr>
             ) : (
               animales.map((animal) => (
@@ -70,6 +73,29 @@ export function RodeoPage() {
                       Editar
                     </button>
                   </td>
+                  <td>
+                    <button
+                      type="button"
+                      className="table-action table-action--danger"
+                      onClick={() => setAnimalParaBaja(animal)}>
+                      <span aria-hidden="true" className="table-action__icon">
+                        <svg
+                          viewBox="0 0 24 24"
+                          width="16"
+                          height="16"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="1.8"
+                          strokeLinecap="round"
+                          strokeLinejoin="round">
+                          <path d="M12 4v11" />
+                          <path d="m7 10 5 5 5-5" />
+                          <path d="M5 20h14" />
+                        </svg>
+                      </span>
+                      Dar de baja
+                    </button>
+                  </td>
                 </tr>
               ))
             )}
@@ -78,6 +104,14 @@ export function RodeoPage() {
       )}
 
       <Outlet />
+
+      {animalParaBaja && (
+        <BajaAnimalModal
+          animal={animalParaBaja}
+          onClose={() => setAnimalParaBaja(null)}
+          onSuccess={fetchAnimales}
+        />
+      )}
     </div>
   );
 }
