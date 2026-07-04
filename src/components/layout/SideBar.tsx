@@ -3,8 +3,8 @@ import { NavLink } from "react-router-dom";
 import { DashboardIcon, RodeoIcon, EvaluacionesIcon } from "@/utils/icons";
 
 const navItems = [
-  { label: "Panel general", to: "/dashboard", icon: <DashboardIcon /> },
-  { label: "Rodeo", to: "/rodeo", icon: <RodeoIcon /> },
+  { label: "Inicio", to: "/dashboard", icon: <DashboardIcon /> },
+  { label: "Animales", to: "/animales", icon: <RodeoIcon /> },
   { label: "Evaluaciones", to: "/evaluaciones", icon: <EvaluacionesIcon /> },
 ];
 
@@ -23,7 +23,8 @@ export function Sidebar() {
             to={to}
             className={({ isActive }) =>
               `sidebar__link${isActive ? " sidebar__link--active" : ""}`
-            }>
+            }
+          >
             <span className="sidebar__icon">{icon}</span>
             {label}
           </NavLink>

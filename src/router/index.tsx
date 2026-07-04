@@ -6,10 +6,10 @@ import LoginPage from "@/pages/LoginPage";
 import RegisterPage from "@/pages/RegisterPage";
 
 import { DashboardPage } from "@/pages/Dashboard";
-import { RodeoPage } from "@/pages/rodeo/RodeoPage";
+import { AnimalesPage } from "@/pages/animales/AnimalesPage";
 import { EvaluacionesPage } from "@/pages/Evaluaciones";
-import RodeoNuevoPage from "@/pages/rodeo/RodeoNuevoPage";
-import RodeoEditarPage from "@/pages/rodeo/RodeoEditarPage";
+import AnimalesNuevoPage from "@/pages/animales/AnimalesNuevoPage";
+import AnimalesEditarPage from "@/pages/animales/AnimalesEditarPage";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard
@@ -29,14 +29,14 @@ export const router = createBrowserRouter([
         children: [
           { path: "/dashboard", element: <DashboardPage /> },
           {
-            path: "/rodeo",
-            element: <RodeoPage />,
+            path: "/animales",
+            element: <AnimalesPage />,
             children: [
-              { path: "nuevo", element: <RodeoNuevoPage /> },
-              { path: ":id/editar", element: <RodeoEditarPage /> },
+              { path: "nuevo", element: <AnimalesNuevoPage /> },
+              { path: ":id/editar", element: <AnimalesEditarPage /> },
             ],
           },
-          { path: "/rodeo/nuevo", element: <RodeoNuevoPage /> },
+          { path: "/animales/nuevo", element: <AnimalesNuevoPage /> },
           { path: "/evaluaciones", element: <EvaluacionesPage /> },
         ],
       },
