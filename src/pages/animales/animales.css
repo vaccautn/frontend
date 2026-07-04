@@ -1,76 +1,6 @@
-/* Overlay */
-.drawer-overlay {
-  position: fixed;
-  inset: 0;
-  background-color: rgba(0, 0, 0, 0);
-  transition: background-color 0.3s ease;
-  z-index: 100;
-  pointer-events: none;
-}
-
-.drawer-overlay--visible {
-  background-color: rgba(0, 0, 0, 0.45);
-  pointer-events: auto;
-}
-
-/* Panel lateral */
-.drawer {
-  position: fixed;
-  top: 0;
-  right: 0;
-  height: 100%;
-  width: 700px;
-  max-width: 100vw;
-  background: var(--panel);
-  box-shadow: rgba(21, 32, 25, 0.15) -4px 0 24px;
-  transform: translateX(100%);
-  transition: transform 0.3s ease;
-  z-index: 101;
-  display: flex;
-  flex-direction: column;
-}
-
-.drawer--visible {
-  transform: translateX(0);
-}
-
-/* Header del drawer */
-.drawer-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  padding: 1.25rem 1.5rem;
-  border-bottom: 1px solid var(--border);
-}
-
-.drawer-header h2 {
-  margin: 0;
-  font-size: 1.25rem;
-}
-
-.drawer-close {
-  background: none;
-  border: none;
-  font-size: 1.25rem;
-  cursor: pointer;
-  color: var(--text);
-  line-height: 1;
-  padding: 0.25rem;
-}
-
-.drawer-close:hover {
-  color: var(--text-h);
-}
-
-/* Cuerpo scrolleable */
-.drawer-body {
-  flex: 1;
-  overflow-y: auto;
-  padding: 1.5rem;
-}
-
 .animales-table {
   width: 100%;
+  max-width: 1200px;
   border-collapse: collapse;
   margin-top: 1rem;
   background: var(--panel);
@@ -199,6 +129,67 @@
   background: var(--danger-bg);
   border-color: var(--danger);
   color: var(--danger);
+}
+
+.animal-form__backdrop {
+  background: rgba(21, 32, 25, 0.48);
+}
+
+.animal-form {
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.animal-form__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 1px solid var(--border);
+}
+
+.animal-form__close {
+  width: 32px;
+  height: 32px;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  cursor: pointer;
+}
+
+.animal-form__close:hover {
+  color: var(--text-h);
+  border-color: var(--text);
+}
+
+.animal-form__body {
+  flex: 0 1 auto;
+  overflow-y: auto;
+}
+
+.animal-form__fields {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.animal-form__footer {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  border-top: none;
+  padding-top: 0.5rem;
+}
+
+.animal-form__cancel {
+  border-color: var(--border);
+  color: var(--text-h);
+}
+
+.animal-form__cancel:hover {
+  border-color: var(--danger);
+  color: var(--danger);
+  background: var(--danger-bg);
 }
 
 .modal-backdrop {

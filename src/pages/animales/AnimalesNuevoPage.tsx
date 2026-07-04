@@ -1,5 +1,13 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import { useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  Button,
+  Drawer,
+  Field,
+  Input,
+  NativeSelect,
+  Portal,
+} from "@chakra-ui/react";
 import { registerAnimal } from "@/features/animales/services/animalesService";
 import { ApiError } from "@/services/httpClient";
 import {
@@ -30,7 +38,7 @@ const SEXOS = [
 
 function AnimalesNuevoPage() {
   const navigate = useNavigate();
-  const [visible, setVisible] = useState(false);
+  const [open, setOpen] = useState(true);
   const [values, setValues] = useState<RodeoNuevoValues>(
     initialRodeoNuevoValues,
   );
@@ -38,15 +46,9 @@ function AnimalesNuevoPage() {
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  // Dispara la animación de entrada en el siguiente frame
-  useEffect(() => {
-    const id = requestAnimationFrame(() => setVisible(true));
-    return () => cancelAnimationFrame(id);
-  }, []);
-
   const close = (refresh = false) => {
-    setVisible(false);
-    setTimeout(() => navigate("/animales", { state: { refresh } }), 300);
+    setOpen(false);
+    setTimeout(() => navigate("/animales", { state: { refresh } }), 250);
   };
 
   const updateField =
@@ -92,131 +94,119 @@ function AnimalesNuevoPage() {
   };
 
   return (
-    <>
-      {/* Overlay */}
-      <div
-        className={`drawer-overlay ${visible ? "drawer-overlay--visible" : ""}`}
-        onClick={() => close()}
-        aria-hidden="true"
-      />
+    <Drawer.Root
+      open={open}
+      onOpenChange={(details) => {
+        if (!details.open) close();
+      }}
+      placement="end"
+      size="md">
+      <Portal>
+        <Drawer.Backdrop className="animal-form__backdrop" />
+        <Drawer.Positioner>
+          <Drawer.Content className="animal-form">
+            <Drawer.Header className="animal-form__header">
+              <Drawer.Title>Registrar animal</Drawer.Title>
+              <Drawer.CloseTrigger asChild>
+                <button
+                  type="button"
+                  className="animal-form__close"
+                  aria-label="Cerrar">
+                  ✕
+                </button>
+              </Drawer.CloseTrigger>
+            </Drawer.Header>
 
-      {/* Panel */}
-      <aside
-        className={`drawer ${visible ? "drawer--visible" : ""}`}
-        aria-label="Registrar animal">
-        <div className="drawer-header">
-          <h2>Registrar animal</h2>
-          <button
-            type="button"
-            className="drawer-close"
-            onClick={() => close()}
-            aria-label="Cerrar">
-            ✕
-          </button>
-        </div>
-
-        <div className="drawer-body">
-          {formError && (
-            <p className="status-message error" role="alert">
-              {formError}
-            </p>
-          )}
-
-          <form onSubmit={handleSubmit} noValidate>
-            <div className="field">
-              <label htmlFor="caravana">Caravana</label>
-              <input
-                id="caravana"
-                name="caravana"
-                type="text"
-                value={values.caravana}
-                onChange={updateField("caravana")}
-                aria-describedby={
-                  errors.caravana ? "caravana-error" : undefined
-                }
-              />
-              {errors.caravana && (
-                <span id="caravana-error" className="field-error">
-                  {errors.caravana}
-                </span>
+            <Drawer.Body className="animal-form__body">
+              {formError && (
+                <p className="status-message error" role="alert">
+                  {formError}
+                </p>
               )}
-            </div>
 
-            <div className="field">
-              <label htmlFor="raza">Raza</label>
-              <select
-                id="raza"
-                name="raza"
-                value={values.raza}
-                onChange={updateField("raza")}
-                aria-describedby={errors.raza ? "raza-error" : undefined}>
-                <option value="">Seleccioná una raza</option>
-                {RAZAS.map((raza) => (
-                  <option key={raza} value={raza}>
-                    {raza}
-                  </option>
-                ))}
-              </select>
-              {errors.raza && (
-                <span id="raza-error" className="field-error">
-                  {errors.raza}
-                </span>
-              )}
-            </div>
+              <form
+                id="animal-nuevo-form"
+                onSubmit={handleSubmit}
+                noValidate
+                className="animal-form__fields">
+                <Field.Root invalid={!!errors.caravana}>
+                  <Field.Label>Caravana</Field.Label>
+                  <Input
+                    value={values.caravana}
+                    onChange={updateField("caravana")}
+                  />
+                  <Field.ErrorText>{errors.caravana}</Field.ErrorText>
+                </Field.Root>
 
-            <div className="field">
-              <label htmlFor="sexo">Sexo</label>
-              <select
-                id="sexo"
-                name="sexo"
-                value={values.sexo}
-                onChange={updateField("sexo")}
-                aria-describedby={errors.sexo ? "sexo-error" : undefined}>
-                <option value="">Seleccioná el sexo</option>
-                {SEXOS.map(({ value, label }) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              {errors.sexo && (
-                <span id="sexo-error" className="field-error">
-                  {errors.sexo}
-                </span>
-              )}
-            </div>
+                <Field.Root invalid={!!errors.raza}>
+                  <Field.Label>Raza</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={values.raza}
+                      onChange={updateField("raza")}>
+                      <option value="">Seleccioná una raza</option>
+                      {RAZAS.map((raza) => (
+                        <option key={raza} value={raza}>
+                          {raza}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.ErrorText>{errors.raza}</Field.ErrorText>
+                </Field.Root>
 
-            <div className="field">
-              <label htmlFor="fecha-nacimiento">Fecha de nacimiento</label>
-              <input
-                id="fecha-nacimiento"
-                name="fecha_nacimiento"
-                type="date"
-                value={values.fecha_nacimiento}
-                onChange={updateField("fecha_nacimiento")}
-                aria-describedby={
-                  errors.fecha_nacimiento ? "fecha-nacimiento-error" : undefined
-                }
-              />
-              {errors.fecha_nacimiento && (
-                <span id="fecha-nacimiento-error" className="field-error">
-                  {errors.fecha_nacimiento}
-                </span>
-              )}
-            </div>
+                <Field.Root invalid={!!errors.sexo}>
+                  <Field.Label>Sexo</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={values.sexo}
+                      onChange={updateField("sexo")}>
+                      <option value="">Seleccioná el sexo</option>
+                      {SEXOS.map(({ value, label }) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.ErrorText>{errors.sexo}</Field.ErrorText>
+                </Field.Root>
 
-            <div className="form-actions">
-              <button type="button" onClick={() => close()}>
+                <Field.Root invalid={!!errors.fecha_nacimiento}>
+                  <Field.Label>Fecha de nacimiento</Field.Label>
+                  <Input
+                    type="date"
+                    value={values.fecha_nacimiento}
+                    onChange={updateField("fecha_nacimiento")}
+                  />
+                  <Field.ErrorText>{errors.fecha_nacimiento}</Field.ErrorText>
+                </Field.Root>
+              </form>
+            </Drawer.Body>
+
+            <Drawer.Footer className="animal-form__footer">
+              <Button
+                type="button"
+                variant="outline"
+                className="animal-form__cancel"
+                onClick={() => close()}>
                 Cancelar
-              </button>
-              <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Registrando..." : "Registrar animal"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </aside>
-    </>
+              </Button>
+              <Button
+                type="submit"
+                form="animal-nuevo-form"
+                colorPalette="brand"
+                loading={isSubmitting}
+                loadingText="Registrando...">
+                Registrar animal
+              </Button>
+            </Drawer.Footer>
+          </Drawer.Content>
+        </Drawer.Positioner>
+      </Portal>
+    </Drawer.Root>
   );
 }
 

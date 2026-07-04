@@ -17,7 +17,9 @@ export default function AppLayout() {
           onOpenSidebar={() => setIsSidebarOpen(true)}
         />
         <main className="app-shell__content">
-          <Outlet />
+          <div className="app-shell__content-inner">
+            <Outlet />
+          </div>
         </main>
       </div>
       <ToastContainer position="bottom-right" autoClose={3000} />

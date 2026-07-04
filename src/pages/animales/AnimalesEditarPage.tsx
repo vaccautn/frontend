@@ -1,6 +1,15 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { toast } from "react-toastify";
+import {
+  Button,
+  Drawer,
+  Field,
+  Input,
+  NativeSelect,
+  Portal,
+  Textarea,
+} from "@chakra-ui/react";
 import { ApiError } from "@/services/httpClient";
 import {
   getAnimal,
@@ -39,7 +48,7 @@ const ESTADOS = [
 function RodeoEditarPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const [visible, setVisible] = useState(false);
+  const [open, setOpen] = useState(false);
   const [values, setValues] = useState<RodeoEditarValues | null>(null);
   const [errors, setErrors] = useState<RodeoEditarFieldErrors>({});
   const [formError, setFormError] = useState("");
@@ -56,16 +65,16 @@ function RodeoEditarPage() {
         observacion: animal.observacion ?? "",
         lote_id: animal.lote_id?.toString() ?? "",
       });
-      requestAnimationFrame(() => setVisible(true));
+      setOpen(true);
     });
   }, [id]);
 
   const close = (refresh = false) => {
     const shouldRefresh = typeof refresh === "boolean" ? refresh : false;
-    setVisible(false);
+    setOpen(false);
     setTimeout(
       () => navigate("/animales", { state: { refresh: shouldRefresh } }),
-      300,
+      250,
     );
   };
 
@@ -121,174 +130,157 @@ function RodeoEditarPage() {
   if (!values) return null;
 
   return (
-    <>
-      <div
-        className={`drawer-overlay ${visible ? "drawer-overlay--visible" : ""}`}
-        onClick={() => close()}
-        aria-hidden="true"
-      />
-      <aside
-        className={`drawer ${visible ? "drawer--visible" : ""}`}
-        aria-label="Editar animal">
-        <div className="drawer-header">
-          <h2>Editar animal</h2>
-          <button
-            type="button"
-            className="drawer-close"
-            onClick={() => close()}
-            aria-label="Cerrar">
-            ✕
-          </button>
-        </div>
+    <Drawer.Root
+      open={open}
+      onOpenChange={(details) => {
+        if (!details.open) close();
+      }}
+      placement="end"
+      size="md">
+      <Portal>
+        <Drawer.Backdrop className="animal-form__backdrop" />
+        <Drawer.Positioner>
+          <Drawer.Content className="animal-form">
+            <Drawer.Header className="animal-form__header">
+              <Drawer.Title>Editar animal</Drawer.Title>
+              <Drawer.CloseTrigger asChild>
+                <button
+                  type="button"
+                  className="animal-form__close"
+                  aria-label="Cerrar">
+                  ✕
+                </button>
+              </Drawer.CloseTrigger>
+            </Drawer.Header>
 
-        <div className="drawer-body">
-          {formError && (
-            <p className="status-message error" role="alert">
-              {formError}
-            </p>
-          )}
-
-          <form onSubmit={handleSubmit} noValidate>
-            <div className="field">
-              <label htmlFor="caravana">Caravana</label>
-              <input
-                id="caravana"
-                name="caravana"
-                type="text"
-                value={values.caravana}
-                onChange={updateField("caravana")}
-                aria-describedby={
-                  errors.caravana ? "caravana-error" : undefined
-                }
-              />
-              {errors.caravana && (
-                <span id="caravana-error" className="field-error">
-                  {errors.caravana}
-                </span>
+            <Drawer.Body className="animal-form__body">
+              {formError && (
+                <p className="status-message error" role="alert">
+                  {formError}
+                </p>
               )}
-            </div>
 
-            <div className="field">
-              <label htmlFor="raza">Raza</label>
-              <select
-                id="raza"
-                name="raza"
-                value={values.raza}
-                onChange={updateField("raza")}
-                aria-describedby={errors.raza ? "raza-error" : undefined}>
-                <option value="">Seleccioná una raza</option>
-                {RAZAS.map((raza) => (
-                  <option key={raza} value={raza}>
-                    {raza}
-                  </option>
-                ))}
-              </select>
-              {errors.raza && (
-                <span id="raza-error" className="field-error">
-                  {errors.raza}
-                </span>
-              )}
-            </div>
+              <form
+                id="animal-editar-form"
+                onSubmit={handleSubmit}
+                noValidate
+                className="animal-form__fields">
+                <Field.Root invalid={!!errors.caravana}>
+                  <Field.Label>Caravana</Field.Label>
+                  <Input
+                    value={values.caravana}
+                    onChange={updateField("caravana")}
+                  />
+                  <Field.ErrorText>{errors.caravana}</Field.ErrorText>
+                </Field.Root>
 
-            <div className="field">
-              <label htmlFor="sexo">Sexo</label>
-              <select
-                id="sexo"
-                name="sexo"
-                value={values.sexo}
-                onChange={updateField("sexo")}
-                aria-describedby={errors.sexo ? "sexo-error" : undefined}>
-                <option value="">Seleccioná el sexo</option>
-                {SEXOS.map(({ value, label }) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              {errors.sexo && (
-                <span id="sexo-error" className="field-error">
-                  {errors.sexo}
-                </span>
-              )}
-            </div>
+                <Field.Root invalid={!!errors.raza}>
+                  <Field.Label>Raza</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={values.raza}
+                      onChange={updateField("raza")}>
+                      <option value="">Seleccioná una raza</option>
+                      {RAZAS.map((raza) => (
+                        <option key={raza} value={raza}>
+                          {raza}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.ErrorText>{errors.raza}</Field.ErrorText>
+                </Field.Root>
 
-            <div className="field">
-              <label htmlFor="fecha-nacimiento">Fecha de nacimiento</label>
-              <input
-                id="fecha-nacimiento"
-                name="fecha_nacimiento"
-                type="date"
-                value={values.fecha_nacimiento}
-                max={new Date().toISOString().split("T")[0]} // impide seleccionar fecha futura
-                onChange={updateField("fecha_nacimiento")}
-                aria-describedby={
-                  errors.fecha_nacimiento ? "fecha-nacimiento-error" : undefined
-                }
-              />
-              {errors.fecha_nacimiento && (
-                <span id="fecha-nacimiento-error" className="field-error">
-                  {errors.fecha_nacimiento}
-                </span>
-              )}
-            </div>
+                <Field.Root invalid={!!errors.sexo}>
+                  <Field.Label>Sexo</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={values.sexo}
+                      onChange={updateField("sexo")}>
+                      <option value="">Seleccioná el sexo</option>
+                      {SEXOS.map(({ value, label }) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.ErrorText>{errors.sexo}</Field.ErrorText>
+                </Field.Root>
 
-            <div className="field">
-              <label htmlFor="estado">Estado</label>
-              <select
-                id="estado"
-                name="estado"
-                value={values.estado}
-                onChange={updateField("estado")}
-                aria-describedby={errors.estado ? "estado-error" : undefined}>
-                <option value="">Seleccioná el estado</option>
-                {ESTADOS.map(({ value, label }) => (
-                  <option key={value} value={value}>
-                    {label}
-                  </option>
-                ))}
-              </select>
-              {errors.estado && (
-                <span id="estado-error" className="field-error">
-                  {errors.estado}
-                </span>
-              )}
-            </div>
+                <Field.Root invalid={!!errors.fecha_nacimiento}>
+                  <Field.Label>Fecha de nacimiento</Field.Label>
+                  <Input
+                    type="date"
+                    value={values.fecha_nacimiento}
+                    max={new Date().toISOString().split("T")[0]}
+                    onChange={updateField("fecha_nacimiento")}
+                  />
+                  <Field.ErrorText>{errors.fecha_nacimiento}</Field.ErrorText>
+                </Field.Root>
 
-            <div className="field">
-              <label htmlFor="observacion">Observación</label>
-              <textarea
-                id="observacion"
-                name="observacion"
-                value={values.observacion}
-                onChange={updateField("observacion")}
-                rows={3}
-              />
-            </div>
+                <Field.Root invalid={!!errors.estado}>
+                  <Field.Label>Estado</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={values.estado}
+                      onChange={updateField("estado")}>
+                      <option value="">Seleccioná el estado</option>
+                      {ESTADOS.map(({ value, label }) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.ErrorText>{errors.estado}</Field.ErrorText>
+                </Field.Root>
 
-            <div className="field">
-              <label htmlFor="lote-id">Lote</label>
-              <input
-                id="lote-id"
-                name="lote_id"
-                type="number"
-                min={1}
-                value={values.lote_id}
-                onChange={updateField("lote_id")}
-              />
-            </div>
+                <Field.Root>
+                  <Field.Label>Observación</Field.Label>
+                  <Textarea
+                    value={values.observacion}
+                    onChange={updateField("observacion")}
+                    rows={3}
+                  />
+                </Field.Root>
 
-            <div className="form-actions">
-              <button type="button" onClick={() => close()}>
+                <Field.Root>
+                  <Field.Label>Lote</Field.Label>
+                  <Input
+                    type="number"
+                    min={1}
+                    value={values.lote_id}
+                    onChange={updateField("lote_id")}
+                  />
+                </Field.Root>
+              </form>
+            </Drawer.Body>
+
+            <Drawer.Footer className="animal-form__footer">
+              <Button
+                type="button"
+                variant="outline"
+                className="animal-form__cancel"
+                onClick={() => close()}>
                 Cancelar
-              </button>
-              <button type="submit" disabled={isSubmitting}>
-                {isSubmitting ? "Guardando..." : "Guardar cambios"}
-              </button>
-            </div>
-          </form>
-        </div>
-      </aside>
-    </>
+              </Button>
+              <Button
+                type="submit"
+                form="animal-editar-form"
+                colorPalette="brand"
+                loading={isSubmitting}
+                loadingText="Guardando...">
+                Guardar cambios
+              </Button>
+            </Drawer.Footer>
+          </Drawer.Content>
+        </Drawer.Positioner>
+      </Portal>
+    </Drawer.Root>
   );
 }
 

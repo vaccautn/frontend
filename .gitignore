@@ -44,3 +44,5 @@ _tmp_*
 *.njsproj
 *.sln
 *.sw?
+
+.claude
