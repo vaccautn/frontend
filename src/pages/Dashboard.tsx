@@ -1,3 +1,3 @@
 export function DashboardPage() {
-  return <div>Panel general</div>;
+  return <div>Inicio</div>;
 }
