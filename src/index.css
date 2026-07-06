@@ -1,21 +1,21 @@
 :root {
   /* Primarios - Verde (marca) */
-  --verde-bosque: #2E5339;
-  --verde-vacca: #4A7856;
-  --verde-pastel: #DCE9DE;
+  --verde-bosque: #2e5339;
+  --verde-vacca: #4a7856;
+  --verde-pastel: #dce9de;
 
   /* Secundarios - Ocre/Marrón (campo) */
-  --ocre-campo: #C08B3E;
-  --marron-cuero: #8A5A2B;
+  --ocre-campo: #c08b3e;
+  --marron-cuero: #8a5a2b;
 
   /* Terciarios - Azul grisáceo (datos/UI neutro) */
-  --azul-acero: #3E5C76;
-  --gris-niebla: #B8C4CC;
+  --azul-acero: #3e5c76;
+  --gris-niebla: #b8c4cc;
 
   /* Funcionales - Alertas del sistema */
-  --rojo-alerta: #C94C4C;
-  --ambar-aviso: #E0A83E;
-  --verde-confirmacion: #4A9163;
+  --rojo-alerta: #c94c4c;
+  --ambar-aviso: #e0a83e;
+  --verde-confirmacion: #4a9163;
 
   --text: #59645c;
   --text-h: #152019;
@@ -38,8 +38,8 @@
   --success-border: #bcd8c3;
   --shadow: rgba(21, 32, 25, 0.12) 0 18px 45px;
 
-  --sans: 'Bitter', Georgia, 'Times New Roman', serif;
-  --heading: 'Bitter', Georgia, 'Times New Roman', serif;
+  --sans: "Manrope", serif;
+  --heading: "Manrope", serif;
 
   font: 16px/145% var(--sans);
   letter-spacing: 0;
@@ -50,7 +50,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
 
+@font-face {
+  font-family: "Manrope";
+  src: url("/fonts/Manrope-VariableFont_wght.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
 }
 
 #root {
