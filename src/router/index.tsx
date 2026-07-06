@@ -17,7 +17,7 @@ export const router = createBrowserRouter([
     element: <PublicRoute />,
     children: [
       { path: "/login", element: <LoginPage /> },
-      { path: "/register", element: <RegisterPage /> },
+      // { path: "/register", element: <RegisterPage /> },
     ],
   },
   // Si no estas logeado la ruta privada te lleva directo al login
