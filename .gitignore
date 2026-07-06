@@ -45,4 +45,5 @@ _tmp_*
 *.sln
 *.sw?
 
+# claude 
 .claude

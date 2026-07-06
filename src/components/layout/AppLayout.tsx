@@ -1,25 +1,17 @@
 import "./layout.css";
-import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./SideBar";
 import { Header } from "./Header";
 import { ToastContainer } from "react-toastify";
 
 export default function AppLayout() {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(true);
-
   return (
     <div className="app-shell">
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar />
       <div className="app-shell__main">
-        <Header
-          isSidebarOpen={isSidebarOpen}
-          onOpenSidebar={() => setIsSidebarOpen(true)}
-        />
+        <Header />
         <main className="app-shell__content">
-          <div className="app-shell__content-inner">
-            <Outlet />
-          </div>
+          <Outlet />
         </main>
       </div>
       <ToastContainer position="bottom-right" autoClose={3000} />

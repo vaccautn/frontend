@@ -1,7 +1,6 @@
 import { useMemo, useState } from "react";
 import type { ChangeEvent, FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
-import { Alert, Button } from "@chakra-ui/react";
 import { useAuth } from "@/features/auth";
 import {
   initialLoginValues,
@@ -77,35 +76,23 @@ function LoginPage() {
     <main className="auth-shell">
       <section className="auth-panel" aria-labelledby="login-title">
         <div className="panel-heading">
-          {/*<p className="eyebrow">Acceso de productores</p>*/}
+          <p className="eyebrow">Acceso de productores</p>
           <h1 id="login-title">Iniciar sesión</h1>
-          {/*<p className="muted">
+          <p className="muted">
             Entrá con el correo electrónico y la contraseña de tu cuenta.
-          </p>*/}
+          </p>
         </div>
 
         {successMessage ? (
-          <Alert.Root
-            status="success"
-            colorPalette="success"
-            className="auth-alert">
-            <Alert.Indicator />
-            <Alert.Content>
-              <Alert.Description>{successMessage}</Alert.Description>
-            </Alert.Content>
-          </Alert.Root>
+          <p className="status-message success" role="status">
+            {successMessage}
+          </p>
         ) : null}
 
         {formError ? (
-          <Alert.Root
-            status="error"
-            colorPalette="danger"
-            className="auth-alert">
-            <Alert.Indicator />
-            <Alert.Content>
-              <Alert.Description>{formError}</Alert.Description>
-            </Alert.Content>
-          </Alert.Root>
+          <p className="status-message error" role="alert">
+            {formError}
+          </p>
         ) : null}
 
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
@@ -131,15 +118,12 @@ function LoginPage() {
             error={errors.password}
           />
 
-          <Button
+          <button
+            className="primary-action"
             type="submit"
-            colorPalette="brand"
-            size="lg"
-            className="auth-submit"
-            loading={isSubmitting}
-            loadingText="Ingresando...">
-            Continuar
-          </Button>
+            disabled={isSubmitting}>
+            {isSubmitting ? "Ingresando..." : "Iniciar sesión"}
+          </button>
         </form>
 
         {/* <p className="auth-footer">
