@@ -3,7 +3,7 @@ import { ProtectedRoute } from "./ProtectedRoute";
 import { PublicRoute } from "./PublicRoute";
 import AppLayout from "@/components/layout/AppLayout";
 import LoginPage from "@/pages/LoginPage";
-import RegisterPage from "@/pages/RegisterPage";
+// import RegisterPage from "@/pages/RegisterPage";
 
 import { DashboardPage } from "@/pages/Dashboard";
 import { AnimalesPage } from "@/pages/animales/AnimalesPage";
