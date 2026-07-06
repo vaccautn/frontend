@@ -142,9 +142,9 @@ function LoginPage() {
           </Button>
         </form>
 
-        <p className="auth-footer">
+        {/* <p className="auth-footer">
           ¿Todavía no tenés cuenta? <a href="/register">Creá una acá</a>
-        </p>
+        </p> */}
       </section>
     </main>
   );
