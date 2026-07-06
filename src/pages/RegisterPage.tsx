@@ -1,5 +1,6 @@
 import { useState } from 'react'
 import type { ChangeEvent, FormEvent } from 'react'
+import { Alert, Button } from '@chakra-ui/react'
 import {
   getRegisterBackendFieldError,
   initialRegisterValues,
@@ -88,15 +89,27 @@ function RegisterPage() {
         </div>
 
         {formError ? (
-          <p className="status-message error" role="alert">
-            {formError}
-          </p>
+          <Alert.Root
+            status="error"
+            colorPalette="danger"
+            className="auth-alert">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Description>{formError}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
         ) : null}
 
         {successMessage ? (
-          <p className="status-message success" role="status">
-            {successMessage}
-          </p>
+          <Alert.Root
+            status="success"
+            colorPalette="success"
+            className="auth-alert">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Description>{successMessage}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
         ) : null}
 
         <form className="auth-form" onSubmit={handleSubmit} noValidate>
@@ -155,9 +168,14 @@ function RegisterPage() {
             error={errors.confirmacion_password}
           />
 
-          <button className="primary-action" type="submit" disabled={isSubmitting}>
-            {isSubmitting ? 'Creando cuenta...' : 'Crear cuenta'}
-          </button>
+          <Button
+            type="submit"
+            colorPalette="brand"
+            size="lg"
+            loading={isSubmitting}
+            loadingText="Creando cuenta...">
+            Crear cuenta
+          </Button>
         </form>
 
         <p className="auth-footer">

@@ -5,7 +5,7 @@ import type {
   AnimalListParams,
   RegisterAnimalPayload,
   UpdateAnimalPayload,
-} from "@/features/rodeo/types";
+} from "@/features/animales/types";
 
 export function registerAnimal(
   payload: RegisterAnimalPayload,

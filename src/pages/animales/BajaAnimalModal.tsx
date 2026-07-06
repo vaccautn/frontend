@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from "react";
 import { toast } from "react-toastify";
 import { normalizeBackendDetail } from "@/features/auth";
-import { updateAnimal } from "@/features/rodeo/services/rodeoService";
-import type { Animal, BajaAnimalMotivo } from "@/features/rodeo/types";
+import { updateAnimal } from "@/features/animales/services/animalesService";
+import type { Animal, BajaAnimalMotivo } from "@/features/animales/types";
 import { ApiError } from "@/services/httpClient";
 
 const MOTIVOS: { value: BajaAnimalMotivo; label: string }[] = [

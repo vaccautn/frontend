@@ -1,4 +1,22 @@
 :root {
+  /* Primarios - Verde (marca) */
+  --verde-bosque: #2e5339;
+  --verde-vacca: #4a7856;
+  --verde-pastel: #dce9de;
+
+  /* Secundarios - Ocre/Marrón (campo) */
+  --ocre-campo: #c08b3e;
+  --marron-cuero: #8a5a2b;
+
+  /* Terciarios - Azul grisáceo (datos/UI neutro) */
+  --azul-acero: #3e5c76;
+  --gris-niebla: #b8c4cc;
+
+  /* Funcionales - Alertas del sistema */
+  --rojo-alerta: #c94c4c;
+  --ambar-aviso: #e0a83e;
+  --verde-confirmacion: #4a9163;
+
   --text: #59645c;
   --text-h: #152019;
   --bg: #f7f8f4;
@@ -6,19 +24,22 @@
   --border: #dfe4dc;
   --input-bg: #ffffff;
   --input-border: #c8d0c5;
-  --accent: #2f6d4f;
-  --accent-strong: #245840;
-  --focus: rgba(47, 109, 79, 0.22);
-  --danger: #b42318;
-  --danger-bg: #fff1f0;
-  --danger-border: #ffc9c4;
-  --success: #267246;
-  --success-bg: #edf8f0;
-  --success-border: #b9e3c6;
+  --accent: var(--verde-vacca);
+  --accent-strong: var(--verde-bosque);
+  --focus: rgba(74, 120, 86, 0.22);
+  --danger: var(--rojo-alerta);
+  --danger-bg: #fbeceb;
+  --danger-border: #eec3c1;
+  --warning: var(--ambar-aviso);
+  --warning-bg: #fdf3e2;
+  --warning-border: #f2dcae;
+  --success: var(--verde-confirmacion);
+  --success-bg: var(--verde-pastel);
+  --success-border: #bcd8c3;
   --shadow: rgba(21, 32, 25, 0.12) 0 18px 45px;
 
-  --sans: system-ui, 'Segoe UI', Roboto, sans-serif;
-  --heading: system-ui, 'Segoe UI', Roboto, sans-serif;
+  --sans: "Manrope", serif;
+  --heading: "Manrope", serif;
 
   font: 16px/145% var(--sans);
   letter-spacing: 0;
@@ -29,7 +50,14 @@
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
 
+@font-face {
+  font-family: "Manrope";
+  src: url("/fonts/Manrope-VariableFont_wght.woff2") format("woff2");
+  font-weight: 200 800;
+  font-style: normal;
+  font-display: swap;
 }
 
 #root {
@@ -45,7 +73,7 @@ h1 {
   font-family: var(--heading);
   font-size: 42px;
   line-height: 1.05;
-  font-weight: 760;
+  font-weight: 700;
   letter-spacing: 0;
   color: var(--text-h);
   margin: 0 0 12px;
