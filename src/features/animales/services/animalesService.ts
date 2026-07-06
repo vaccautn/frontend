@@ -33,7 +33,7 @@ export function getAnimales(params: AnimalListParams = {}): Promise<Animal[]> {
 
 export function getAnimal(id: number): Promise<Animal> {
   const token = getAccessToken();
-  return getJson<Animal>(`/animales/${id}/`, token);
+  return getJson<Animal>(`/animales/${id}`, token);
 }
 
 export function updateAnimal(
