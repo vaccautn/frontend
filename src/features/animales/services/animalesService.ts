@@ -25,6 +25,15 @@ export function getAnimales(params: AnimalListParams = {}): Promise<Animal[]> {
   if (params.estado) {
     searchParams.set("estado", params.estado);
   }
+  if (params.sexo) {
+    searchParams.set("sexo", params.sexo);
+  }
+  if (params.raza) {
+    searchParams.set("raza", params.raza);
+  }
+  if (params.caravana) {
+    searchParams.set("caravana", params.caravana);
+  }
 
   const queryString = searchParams.toString();
   const path = queryString ? `/animales/?${queryString}` : "/animales/";

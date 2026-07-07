@@ -10,6 +10,10 @@ export type BajaAnimalMotivo = Extract<
   "VENDIDO" | "MUERTO" | "DESCARTADO"
 >;
 
+export type SexoAnimal = "MACHO" | "HEMBRA" | "NO_INFORMADO";
+
+export type EstadoFiltro = Extract<EstadoAnimal, "ACTIVO" | "VENDIDO" | "MUERTO">;
+
 export type Animal = {
   id: number;
   caravana: string | null;
@@ -42,5 +46,8 @@ export type UpdateAnimalPayload = {
 };
 
 export type AnimalListParams = {
-  estado?: EstadoAnimal;
+  estado?: EstadoFiltro;
+  sexo?: SexoAnimal;
+  raza?: string;
+  caravana?: string;
 };
