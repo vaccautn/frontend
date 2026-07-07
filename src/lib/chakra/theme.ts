@@ -27,6 +27,7 @@ const config = defineConfig({
         rojoAlerta: { value: "var(--rojo-alerta)" },
         ambarAviso: { value: "var(--ambar-aviso)" },
         verdeConfirmacion: { value: "var(--verde-confirmacion)" },
+        rosaHembra: { value: "var(--rosa-hembra)" },
       },
       fonts: {
         heading: { value: "var(--heading)" },
