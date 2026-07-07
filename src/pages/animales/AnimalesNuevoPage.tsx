@@ -17,24 +17,8 @@ import {
   type RodeoNuevoValues,
 } from "@/features/animales/utils/animalesValidation";
 import { normalizeBackendDetail } from "@/features/auth";
+import { RAZAS, SEXOS } from "@/features/animales/constants";
 import { toast } from "react-toastify";
-
-const RAZAS = [
-  "Angus",
-  "Hereford",
-  "Brangus",
-  "Brahman",
-  "Limousin",
-  "Simmental",
-  "Shorthorn",
-  "Charolais",
-  "Criolla",
-  "Otro",
-];
-const SEXOS = [
-  { value: "MACHO", label: "Macho" },
-  { value: "HEMBRA", label: "Hembra" },
-];
 
 function AnimalesNuevoPage() {
   const navigate = useNavigate();

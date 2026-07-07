@@ -17,6 +17,9 @@
   --ambar-aviso: #e0a83e;
   --verde-confirmacion: #4a9163;
 
+  /* Semántico - Identificación de sexo (no es alerta) */
+  --rosa-hembra: #c97a94;
+
   --text: #59645c;
   --text-h: #152019;
   --bg: #f7f8f4;
