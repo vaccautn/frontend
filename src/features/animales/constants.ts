@@ -24,6 +24,6 @@ export const ESTADOS_FILTRO = [
 
 export const DEFAULT_CC_SCALE = {
   min: 1,
-  max: 9,
+  max: 5,
   step: 1,
 } as const;

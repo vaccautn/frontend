@@ -88,8 +88,7 @@ export function RegistrarEvaluacionCCDialog({
         parsedScore < DEFAULT_CC_SCALE.min ||
         parsedScore > DEFAULT_CC_SCALE.max
       ) {
-        nextErrors.valorCc =
-          "El valor ingresado no pertenece a la escala configurada. Ingresá un número entero entre 1 y 9.";
+        nextErrors.valorCc = `El valor ingresado no pertenece a la escala configurada. Ingresá un número entero entre ${scaleLabel}.`;
       }
     }
 
