@@ -21,3 +21,9 @@ export const ESTADOS_FILTRO = [
   { value: "VENDIDO", label: "Vendido" },
   { value: "MUERTO", label: "Muerto" },
 ] as const;
+
+export const DEFAULT_CC_SCALE = {
+  min: 1,
+  max: 9,
+  step: 0.1,
+} as const;

@@ -8,8 +8,11 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Table } from "@chakra-ui/react";
 import { PrimaryButton } from "@/components/ui/PrimaryButton";
 import "./animales.css";
-import { getAnimales } from "@/features/animales/services/animalesService";
-import type { Animal } from "@/features/animales/types";
+import {
+  getAnimales,
+  getEvaluacionesCc,
+} from "@/features/animales/services/animalesService";
+import type { Animal, EvaluacionCC } from "@/features/animales/types";
 import { useAnimalesFiltros } from "@/features/animales/hooks/useAnimalesFiltros";
 import { BajaAnimalModal } from "./BajaAnimalModal";
 import { AnimalDetailDrawer } from "./AnimalDetailDrawer";
@@ -30,6 +33,9 @@ export function AnimalesPage() {
   const [animalSeleccionado, setAnimalSeleccionado] = useState<Animal | null>(
     null,
   );
+  const [evaluacionesAnimal, setEvaluacionesAnimal] = useState<EvaluacionCC[]>([]);
+  const [evaluacionesLoading, setEvaluacionesLoading] = useState(false);
+  const [evaluacionesError, setEvaluacionesError] = useState("");
   const [animalParaBaja, setAnimalParaBaja] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
@@ -65,7 +71,36 @@ export function AnimalesPage() {
     }
   }, [location.state, fetchAnimales]);
 
-  const abrirDetalle = (animal: Animal) => setAnimalSeleccionado(animal);
+  const fetchEvaluacionesAnimal = useCallback(async (animalId: number) => {
+    setEvaluacionesLoading(true);
+    setEvaluacionesError("");
+    try {
+      const history = await getEvaluacionesCc(animalId);
+      setEvaluacionesAnimal(history);
+    } catch {
+      setEvaluacionesError("No se pudo cargar el historial de evaluaciones.");
+    } finally {
+      setEvaluacionesLoading(false);
+    }
+  }, []);
+
+  const abrirDetalle = (animal: Animal) => {
+    setAnimalSeleccionado(animal);
+    void fetchEvaluacionesAnimal(animal.id);
+  };
+
+  const cerrarDetalle = () => {
+    setAnimalSeleccionado(null);
+    setEvaluacionesAnimal([]);
+    setEvaluacionesError("");
+    setEvaluacionesLoading(false);
+  };
+
+  const refreshEvaluacionesSeleccionadas = useCallback(() => {
+    if (!animalSeleccionado) return Promise.resolve();
+
+    return fetchEvaluacionesAnimal(animalSeleccionado.id);
+  }, [animalSeleccionado, fetchEvaluacionesAnimal]);
 
   const handleRowKeyDown = (
     event: KeyboardEvent<HTMLTableRowElement>,
@@ -142,13 +177,17 @@ export function AnimalesPage() {
 
       <AnimalDetailDrawer
         animal={animalSeleccionado}
-        onClose={() => setAnimalSeleccionado(null)}
+        evaluaciones={evaluacionesAnimal}
+        historyLoading={evaluacionesLoading}
+        historyError={evaluacionesError}
+        onClose={cerrarDetalle}
+        onRefreshHistory={refreshEvaluacionesSeleccionadas}
         onEditar={(animal) => {
-          setAnimalSeleccionado(null);
+          cerrarDetalle();
           navigate(`/animales/${animal.id}/editar`);
         }}
         onEliminar={(animal) => {
-          setAnimalSeleccionado(null);
+          cerrarDetalle();
           setAnimalParaBaja(animal);
         }}
       />
