@@ -1,6 +1,7 @@
 import {
   useCallback,
   useEffect,
+  useRef,
   useState,
   type KeyboardEvent,
 } from "react";
@@ -39,6 +40,8 @@ export function AnimalesPage() {
   const [animalParaBaja, setAnimalParaBaja] = useState<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const latestEvaluacionesRequestId = useRef(0);
+  const selectedAnimalIdRef = useRef<number | null>(null);
 
   const {
     caravanaInput,
@@ -72,24 +75,46 @@ export function AnimalesPage() {
   }, [location.state, fetchAnimales]);
 
   const fetchEvaluacionesAnimal = useCallback(async (animalId: number) => {
+    const requestId = ++latestEvaluacionesRequestId.current;
     setEvaluacionesLoading(true);
     setEvaluacionesError("");
+
     try {
       const history = await getEvaluacionesCc(animalId);
+
+      if (
+        latestEvaluacionesRequestId.current !== requestId ||
+        selectedAnimalIdRef.current !== animalId
+      ) {
+        return;
+      }
+
       setEvaluacionesAnimal(history);
     } catch {
+      if (
+        latestEvaluacionesRequestId.current !== requestId ||
+        selectedAnimalIdRef.current !== animalId
+      ) {
+        return;
+      }
+
       setEvaluacionesError("No se pudo cargar el historial de evaluaciones.");
     } finally {
-      setEvaluacionesLoading(false);
+      if (latestEvaluacionesRequestId.current === requestId) {
+        setEvaluacionesLoading(false);
+      }
     }
   }, []);
 
   const abrirDetalle = (animal: Animal) => {
+    selectedAnimalIdRef.current = animal.id;
     setAnimalSeleccionado(animal);
     void fetchEvaluacionesAnimal(animal.id);
   };
 
   const cerrarDetalle = () => {
+    latestEvaluacionesRequestId.current += 1;
+    selectedAnimalIdRef.current = null;
     setAnimalSeleccionado(null);
     setEvaluacionesAnimal([]);
     setEvaluacionesError("");

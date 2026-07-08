@@ -105,26 +105,21 @@ export function AnimalDetailDrawer({
                           <h2>Historial de evaluaciones</h2>
                         </div>
 
-                        <Button
-                          colorPalette="brand"
-                          onClick={openEvaluacionDialog}
-                          disabled={!canRegisterEvaluation}>
-                          <IconPlus size={18} stroke={1.5} />
-                          Registrar evaluación de CC
-                        </Button>
+                        <span
+                          title={
+                            canRegisterEvaluation
+                              ? undefined
+                              : "No es posible registrar una evaluación porque el animal no se encuentra activo."
+                          }>
+                          <Button
+                            colorPalette="brand"
+                            onClick={openEvaluacionDialog}
+                            disabled={!canRegisterEvaluation}>
+                            <IconPlus size={18} stroke={1.5} />
+                            Registrar evaluación de CC
+                          </Button>
+                        </span>
                       </div>
-
-                      {!canRegisterEvaluation && (
-                        <p className="animal-detail__hint animal-detail__hint--warning">
-                          No es posible registrar una evaluación porque el animal no se encuentra activo.
-                        </p>
-                      )}
-
-                      {!canStartBajaFlow && (
-                        <p className="animal-detail__hint animal-detail__hint--warning">
-                          No es posible dar de baja o eliminar al animal porque ya no se encuentra activo.
-                        </p>
-                      )}
 
                       {historyLoading && <p>Cargando historial...</p>}
 
@@ -173,14 +168,26 @@ export function AnimalDetailDrawer({
                       <IconEdit size={18} stroke={1.5} />
                       Editar
                     </button>
-                    <button
-                      type="button"
-                      className="animal-detail__action animal-detail__action--danger"
-                      onClick={() => onEliminar(animal)}
-                      disabled={!canStartBajaFlow}>
-                      <IconTrash size={18} stroke={1.5} />
-                      Eliminar
-                    </button>
+                    <span
+                      className={`animal-detail__action-tooltip-target${
+                        canStartBajaFlow
+                          ? ""
+                          : " animal-detail__action-tooltip-target--disabled"
+                      }`}
+                      title={
+                        canStartBajaFlow
+                          ? undefined
+                          : "No es posible dar de baja o eliminar al animal porque ya no se encuentra activo."
+                      }>
+                      <button
+                        type="button"
+                        className="animal-detail__action animal-detail__action--danger"
+                        onClick={() => onEliminar(animal)}
+                        disabled={!canStartBajaFlow}>
+                        <IconTrash size={18} stroke={1.5} />
+                        Eliminar
+                      </button>
+                    </span>
                   </Drawer.Footer>
                 </>
               )}
