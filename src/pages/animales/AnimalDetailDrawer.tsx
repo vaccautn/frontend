@@ -43,6 +43,7 @@ export function AnimalDetailDrawer({
   const [dialogInstanceKey, setDialogInstanceKey] = useState(0);
 
   const canRegisterEvaluation = animal?.estado === "ACTIVO";
+  const canStartBajaFlow = animal?.estado === "ACTIVO";
 
   const openEvaluacionDialog = () => {
     setDialogInstanceKey((current) => current + 1);
@@ -119,6 +120,12 @@ export function AnimalDetailDrawer({
                         </p>
                       )}
 
+                      {!canStartBajaFlow && (
+                        <p className="animal-detail__hint animal-detail__hint--warning">
+                          No es posible dar de baja o eliminar al animal porque ya no se encuentra activo.
+                        </p>
+                      )}
+
                       {historyLoading && <p>Cargando historial...</p>}
 
                       {historyError && (
@@ -169,7 +176,8 @@ export function AnimalDetailDrawer({
                     <button
                       type="button"
                       className="animal-detail__action animal-detail__action--danger"
-                      onClick={() => onEliminar(animal)}>
+                      onClick={() => onEliminar(animal)}
+                      disabled={!canStartBajaFlow}>
                       <IconTrash size={18} stroke={1.5} />
                       Eliminar
                     </button>

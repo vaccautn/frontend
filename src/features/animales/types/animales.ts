@@ -59,7 +59,7 @@ export type EvaluacionCC = {
   animal_id: number;
   usuario_id: number;
   fecha: string;
-  valor_cc: number | string;
+  valor_cc: number;
   escala_min: number;
   escala_max: number;
   observaciones: string;
@@ -70,7 +70,7 @@ export type EvaluacionCC = {
 
 export type RegisterEvaluacionCCPayload = {
   animal_id: number;
-  valor_cc: string;
+  valor_cc: number;
   escala_min: number;
   escala_max: number;
   observaciones?: string;

@@ -35,10 +35,6 @@ const INITIAL_VALUES: FormValues = {
   observaciones: "",
 };
 
-function normalizeCcValue(value: string) {
-  return value.replace(",", ".").trim();
-}
-
 export function RegistrarEvaluacionCCDialog({
   animal,
   open,
@@ -78,7 +74,7 @@ export function RegistrarEvaluacionCCDialog({
     }
 
     const nextErrors: FormErrors = {};
-    const normalizedScore = normalizeCcValue(values.valorCc);
+    const normalizedScore = values.valorCc.trim();
 
     if (!normalizedScore) {
       nextErrors.valorCc =
@@ -88,11 +84,12 @@ export function RegistrarEvaluacionCCDialog({
 
       if (
         Number.isNaN(parsedScore) ||
+        !Number.isInteger(parsedScore) ||
         parsedScore < DEFAULT_CC_SCALE.min ||
         parsedScore > DEFAULT_CC_SCALE.max
       ) {
         nextErrors.valorCc =
-          "El valor ingresado no pertenece a la escala configurada. Ingresá un valor entre 1 y 9.";
+          "El valor ingresado no pertenece a la escala configurada. Ingresá un número entero entre 1 y 9.";
       }
     }
 
@@ -101,12 +98,12 @@ export function RegistrarEvaluacionCCDialog({
 
     setIsSubmitting(true);
     try {
-      await registerEvaluacionCc({
-        animal_id: animal.id,
-        valor_cc: normalizedScore,
-        escala_min: DEFAULT_CC_SCALE.min,
-        escala_max: DEFAULT_CC_SCALE.max,
-        observaciones: values.observaciones.trim(),
+        await registerEvaluacionCc({
+          animal_id: animal.id,
+          valor_cc: Number(normalizedScore),
+          escala_min: DEFAULT_CC_SCALE.min,
+          escala_max: DEFAULT_CC_SCALE.max,
+          observaciones: values.observaciones.trim(),
       });
 
       await onSuccess();
@@ -184,17 +181,17 @@ export function RegistrarEvaluacionCCDialog({
                 className="animal-form__fields">
                 <Field.Root invalid={!!errors.valorCc} required>
                   <Field.Label>Valor de CC</Field.Label>
-                  <Input
-                    type="number"
-                    inputMode="decimal"
-                    min={DEFAULT_CC_SCALE.min}
-                    max={DEFAULT_CC_SCALE.max}
-                    step={DEFAULT_CC_SCALE.step}
-                    placeholder={`Ingresá un valor entre ${scaleLabel}`}
-                    value={values.valorCc}
-                    onChange={updateField("valorCc")}
-                  />
-                  <Field.HelperText>Escala vigente: {scaleLabel}.</Field.HelperText>
+                    <Input
+                      type="number"
+                      inputMode="numeric"
+                      min={DEFAULT_CC_SCALE.min}
+                      max={DEFAULT_CC_SCALE.max}
+                      step={DEFAULT_CC_SCALE.step}
+                      placeholder={`Ingresá un número entero entre ${scaleLabel}`}
+                      value={values.valorCc}
+                      onChange={updateField("valorCc")}
+                    />
+                  <Field.HelperText>Escala vigente: {scaleLabel}. Solo se admiten enteros.</Field.HelperText>
                   <Field.ErrorText>{errors.valorCc}</Field.ErrorText>
                 </Field.Root>
 
