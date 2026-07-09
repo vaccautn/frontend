@@ -311,7 +311,8 @@
 }
 
 .animal-evaluacion__dialog {
-  width: min(640px, calc(100vw - 2rem));
+  width: min(800px, calc(100vw - 2rem)) !important;
+  max-width: min(800px, calc(100vw - 2rem)) !important;
   background: var(--panel);
   box-shadow: var(--shadow);
 }
@@ -328,6 +329,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding-block: 1rem;
 }
 
 .animal-evaluacion__eyebrow {
@@ -379,6 +381,10 @@
   justify-content: center;
   padding: 1rem;
   background: rgba(21, 32, 25, 0.48);
+}
+
+.chakra-radio-card__root {
+  width: 100% !important;
 }
 
 .baja-modal {
@@ -598,7 +604,9 @@
   font-size: 1.05rem;
   cursor: pointer;
   line-height: 1;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .animales-filtros__toggle-btn:first-child {
@@ -620,6 +628,53 @@
 .animales-filtros__toggle-btn--hembra.animales-filtros__toggle-btn--activo {
   background: var(--rosa-hembra);
   color: #ffffff;
+}
+
+.chakra-file-upload__item {
+  display: flex;
+  padding: 4px;
+  justify-content: space-between;
+  align-items: center;
+
+  > svg {
+    fill: #888;
+  }
+  img {
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+  }
+  div {
+    display: flex;
+    gap: 1rem;
+  }
+}
+
+.delete-file {
+  place-self: center;
+  margin-right: 1rem;
+}
+
+.align-baseline {
+  display: flex;
+  gap: 2px !important;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.upload-icon {
+  justify-content: space-between;
+}
+
+.info-de-fecha {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 1.5rem;
+
+  svg {
+    fill: #888;
+  }
 }
 
 @media (max-width: 720px) {
