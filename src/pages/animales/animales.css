@@ -1,6 +1,22 @@
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1rem;
+
+  .primary-btn {
+    height: fit-content;
+    padding-block: 0.75rem;
+  }
+}
+
+.title-and-description {
+  max-width: 800px;
+}
+
 .animales-table__wrapper {
   width: 100%;
-  max-width: 1200px;
+
   margin-top: 1rem;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -387,6 +403,21 @@
   width: 100% !important;
 }
 
+.chakra-radio-card__item:is(
+  :checked,
+  [data-checked],
+  [aria-checked="true"],
+  [data-state="checked"]
+) {
+  box-shadow: 0 0 0 1px var(--verde-vacca);
+  --shadow-color: var(--verde-vacca);
+  border-color: var(--verde-vacca);
+}
+
+.radio[data-checked] {
+  background-color: var(--verde-vacca) !important;
+}
+
 .baja-modal {
   width: min(520px, 100%);
   max-height: calc(100svh - 2rem);
@@ -417,6 +448,11 @@
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.chakra-dialog__closeTrigger {
+  top: 24px;
+  right: 24px;
 }
 
 .baja-modal__close {

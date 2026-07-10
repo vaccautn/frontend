@@ -196,7 +196,7 @@ export function RegistrarEvaluacionCCDialog({
                             <RadioCard.ItemText>
                               {item.title}
                             </RadioCard.ItemText>
-                            <RadioCard.ItemIndicator />
+                            <RadioCard.ItemIndicator className="radio" />
                           </RadioCard.ItemControl>
                         </RadioCard.Item>
                       ))}
@@ -210,7 +210,7 @@ export function RegistrarEvaluacionCCDialog({
                   <Textarea
                     value={values.observaciones}
                     onChange={updateField("observaciones")}
-                    rows={4}
+                    rows={2}
                     placeholder="Agregá una observación si hace falta."
                   />
                 </Field.Root>
