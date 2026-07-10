@@ -403,6 +403,17 @@
   width: 100% !important;
 }
 
+.chakra-radio-card__item,
+.chakra-radio-card__item .radio {
+  transition: 0.3s ease;
+}
+
+.chakra-radio-card__item:hover,
+.chakra-radio-card__item:hover .radio {
+  cursor: pointer;
+  border-color: var(--verde-vacca);
+}
+
 .chakra-radio-card__item:is(
   :checked,
   [data-checked],

@@ -1,9 +1,15 @@
-import { postJson, getJson, patchJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
+import {
+  postJson,
+  getJson,
+  patchJson,
+  postFormData,
+} from "@/services/httpClient";
 import type {
   Animal,
   AnimalListParams,
   EvaluacionCC,
+  EvidenciaImagenRead,
   RegisterAnimalPayload,
   RegisterEvaluacionCCPayload,
   UpdateAnimalPayload,
@@ -51,7 +57,22 @@ export function getEvaluacionesCc(animalId: number): Promise<EvaluacionCC[]> {
   const token = getAccessToken();
   const searchParams = new URLSearchParams({ animal_id: animalId.toString() });
 
-  return getJson<EvaluacionCC[]>(`/evaluaciones-cc/?${searchParams.toString()}`, token);
+  return getJson<EvaluacionCC[]>(
+    `/evaluaciones-cc/?${searchParams.toString()}`,
+    token,
+  );
+}
+
+export function updateAnimal(
+  id: number,
+  payload: UpdateAnimalPayload,
+): Promise<Animal> {
+  const token = getAccessToken();
+  return patchJson<Animal, UpdateAnimalPayload>(
+    `/animales/${id}`,
+    payload,
+    token,
+  );
 }
 
 export function registerEvaluacionCc(
@@ -66,14 +87,19 @@ export function registerEvaluacionCc(
   );
 }
 
-export function updateAnimal(
-  id: number,
-  payload: UpdateAnimalPayload,
-): Promise<Animal> {
+export function subirImagenesEvaluacion(
+  evaluacionId: number,
+  files: File[],
+): Promise<EvidenciaImagenRead[]> {
+  if (files.length === 0) return Promise.resolve([]);
+
   const token = getAccessToken();
-  return patchJson<Animal, UpdateAnimalPayload>(
-    `/animales/${id}`,
-    payload,
+  const formData = new FormData();
+  files.forEach((file) => formData.append("imagenes", file));
+
+  return postFormData<EvidenciaImagenRead[]>(
+    `/evaluaciones-cc/${evaluacionId}/imagenes`,
+    formData,
     token,
   );
 }

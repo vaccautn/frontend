@@ -11,6 +11,7 @@ import {
   RadioCard,
   HStack,
 } from "@chakra-ui/react";
+import { subirImagenesEvaluacion } from "@/features/animales/services/animalesService";
 import { toast } from "react-toastify";
 import { normalizeBackendDetail } from "@/features/auth";
 import { DEFAULT_CC_SCALE } from "@/features/animales/constants";
@@ -49,6 +50,7 @@ export function RegistrarEvaluacionCCDialog({
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [files, setFiles] = useState<File[]>([]);
 
   const scaleLabel = useMemo(
     () => `${DEFAULT_CC_SCALE.min} a ${DEFAULT_CC_SCALE.max}`,
@@ -115,7 +117,7 @@ export function RegistrarEvaluacionCCDialog({
 
     setIsSubmitting(true);
     try {
-      await registerEvaluacionCc({
+      const evaluacionCreada = await registerEvaluacionCc({
         animal_id: animal.id,
         valor_cc: Number(normalizedScore),
         escala_min: DEFAULT_CC_SCALE.min,
@@ -123,11 +125,23 @@ export function RegistrarEvaluacionCCDialog({
         observaciones: values.observaciones.trim(),
       });
 
+      if (files.length > 0) {
+        try {
+          await subirImagenesEvaluacion(evaluacionCreada.id, files);
+        } catch {
+          toast.warning(
+            "La evaluación se registró, pero no pudimos subir una o más imágenes.",
+          );
+        }
+      }
+
       await onSuccess();
       toast.success(
         "Evaluación de condición corporal registrada correctamente.",
       );
       onClose();
+      setValues(INITIAL_VALUES);
+      setFiles([]);
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(
@@ -214,7 +228,10 @@ export function RegistrarEvaluacionCCDialog({
                     placeholder="Agregá una observación si hace falta."
                   />
                 </Field.Root>
-                <FileUpload.Root alignItems="stretch" maxFiles={10}>
+                <FileUpload.Root
+                  alignItems="stretch"
+                  maxFiles={10}
+                  onFileChange={(details) => setFiles(details.acceptedFiles)}>
                   <FileUpload.HiddenInput />
                   <FileUpload.Dropzone className="dropzone">
                     <Icon size="md" color="fg.muted">
