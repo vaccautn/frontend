@@ -15,6 +15,7 @@ import {
   getAnimal,
   updateAnimal,
 } from "@/features/animales/services/animalesService";
+import { getLotes } from "@/features/lotes/services/lotesService";
 import {
   validateRodeoEditarForm,
   type RodeoEditarFieldErrors,
@@ -22,6 +23,7 @@ import {
 } from "@/features/animales/utils/animalesValidation";
 import { normalizeBackendDetail } from "@/features/auth";
 import type { EstadoAnimal } from "@/features/animales/types";
+import type { LoteOption } from "@/features/lotes/types";
 
 const RAZAS = [
   "Angus",
@@ -53,6 +55,9 @@ function RodeoEditarPage() {
   const [errors, setErrors] = useState<RodeoEditarFieldErrors>({});
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [lotes, setLotes] = useState<LoteOption[]>([]);
+  const [lotesLoading, setLotesLoading] = useState(true);
+  const [lotesError, setLotesError] = useState("");
 
   useEffect(() => {
     getAnimal(Number(id)).then((animal) => {
@@ -68,6 +73,13 @@ function RodeoEditarPage() {
       setOpen(true);
     });
   }, [id]);
+
+  useEffect(() => {
+    getLotes()
+      .then(setLotes)
+      .catch(() => setLotesError("No se pudieron cargar los lotes disponibles."))
+      .finally(() => setLotesLoading(false));
+  }, []);
 
   const close = (refresh = false) => {
     const shouldRefresh = typeof refresh === "boolean" ? refresh : false;
@@ -248,14 +260,32 @@ function RodeoEditarPage() {
                   />
                 </Field.Root>
 
-                <Field.Root>
+                <Field.Root invalid={!!errors.lote_id}>
                   <Field.Label>Lote</Field.Label>
-                  <Input
-                    type="number"
-                    min={1}
-                    value={values.lote_id}
-                    onChange={updateField("lote_id")}
-                  />
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={values.lote_id}
+                      onChange={updateField("lote_id")}>
+                      <option value="">
+                        {lotesLoading
+                          ? "Cargando lotes..."
+                          : "Selecciona un lote"}
+                      </option>
+                      {lotes.map((lote) => (
+                        <option key={lote.id} value={lote.id}>
+                          {lote.nombre}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.ErrorText>{errors.lote_id}</Field.ErrorText>
+                  {lotesError && <p className="status-message error">{lotesError}</p>}
+                  {!lotesLoading && lotes.length === 0 && !lotesError && (
+                    <p className="status-message error">
+                      No tenes lotes disponibles para asociar este animal.
+                    </p>
+                  )}
                 </Field.Root>
               </form>
             </Drawer.Body>
