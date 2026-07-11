@@ -19,13 +19,7 @@ import { BajaAnimalModal } from "./BajaAnimalModal";
 import { AnimalDetailDrawer } from "./AnimalDetailDrawer";
 import { AnimalesFiltros } from "./AnimalesFiltros";
 
-const COLUMNAS = [
-  "Caravana",
-  "Raza",
-  "Sexo",
-  "Fecha de nacimiento",
-  "Estado",
-];
+const COLUMNAS = ["Caravana", "Raza", "Sexo", "Fecha de nacimiento", "Estado"];
 
 export function AnimalesPage() {
   const navigate = useNavigate();
@@ -34,7 +28,9 @@ export function AnimalesPage() {
   const [animalSeleccionado, setAnimalSeleccionado] = useState<Animal | null>(
     null,
   );
-  const [evaluacionesAnimal, setEvaluacionesAnimal] = useState<EvaluacionCC[]>([]);
+  const [evaluacionesAnimal, setEvaluacionesAnimal] = useState<EvaluacionCC[]>(
+    [],
+  );
   const [evaluacionesLoading, setEvaluacionesLoading] = useState(false);
   const [evaluacionesError, setEvaluacionesError] = useState("");
   const [animalParaBaja, setAnimalParaBaja] = useState<Animal | null>(null);
@@ -138,9 +134,18 @@ export function AnimalesPage() {
   };
 
   return (
-    <div>
-      <h1>Animales</h1>
-      <PrimaryButton label="Registrar animal" href="/animales/nuevo" />
+    <section>
+      <div className="section-header">
+        <div className="title-and-description">
+          <h1>Gestión del rodeo</h1>
+          <p>
+            Consultá todos los animales registrados, buscá por caravana o filtrá
+            por sus características, agregá nuevos animales y editá su
+            información para mantener los registros siempre actualizados.
+          </p>
+        </div>
+        <PrimaryButton label="Registrar animal" href="/animales/nuevo" />
+      </div>
 
       <AnimalesFiltros
         caravanaInput={caravanaInput}
@@ -224,6 +229,6 @@ export function AnimalesPage() {
           onSuccess={fetchAnimales}
         />
       )}
-    </div>
+    </section>
   );
 }

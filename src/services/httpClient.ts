@@ -105,3 +105,32 @@ export async function patchJson<TResponse, TPayload>(
 
   return body as TResponse;
 }
+
+export async function postFormData<TResponse>(
+  path: string,
+  formData: FormData,
+  accessToken?: string | null,
+): Promise<TResponse> {
+  const headers: Record<string, string> = {};
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers, // sin Content-Type: el browser arma el boundary del multipart solo
+    body: formData,
+  });
+
+  const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
+
+  if (!response.ok) {
+    throw new ApiError(
+      response.status,
+      body.detail ?? "No se pudo completar la operación. Probá nuevamente.",
+    );
+  }
+
+  return body as TResponse;
+}

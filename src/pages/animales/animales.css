@@ -1,6 +1,22 @@
+.section-header {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1rem;
+
+  .primary-btn {
+    height: fit-content;
+    padding-block: 0.75rem;
+  }
+}
+
+.title-and-description {
+  max-width: 800px;
+}
+
 .animales-table__wrapper {
   width: 100%;
-  max-width: 1200px;
+
   margin-top: 1rem;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -311,7 +327,8 @@
 }
 
 .animal-evaluacion__dialog {
-  width: min(640px, calc(100vw - 2rem));
+  width: min(800px, calc(100vw - 2rem)) !important;
+  max-width: min(800px, calc(100vw - 2rem)) !important;
   background: var(--panel);
   box-shadow: var(--shadow);
 }
@@ -328,6 +345,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding-block: 1rem;
 }
 
 .animal-evaluacion__eyebrow {
@@ -381,6 +399,36 @@
   background: rgba(21, 32, 25, 0.48);
 }
 
+.chakra-radio-card__root {
+  width: 100% !important;
+}
+
+.chakra-radio-card__item,
+.chakra-radio-card__item .radio {
+  transition: 0.3s ease;
+}
+
+.chakra-radio-card__item:hover,
+.chakra-radio-card__item:hover .radio {
+  cursor: pointer;
+  border-color: var(--verde-vacca);
+}
+
+.chakra-radio-card__item:is(
+  :checked,
+  [data-checked],
+  [aria-checked="true"],
+  [data-state="checked"]
+) {
+  box-shadow: 0 0 0 1px var(--verde-vacca);
+  --shadow-color: var(--verde-vacca);
+  border-color: var(--verde-vacca);
+}
+
+.radio[data-checked] {
+  background-color: var(--verde-vacca) !important;
+}
+
 .baja-modal {
   width: min(520px, 100%);
   max-height: calc(100svh - 2rem);
@@ -411,6 +459,11 @@
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.chakra-dialog__closeTrigger {
+  top: 24px;
+  right: 24px;
 }
 
 .baja-modal__close {
@@ -652,7 +705,9 @@
   font-size: 1.05rem;
   cursor: pointer;
   line-height: 1;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .animales-filtros__toggle-btn:first-child {
@@ -674,6 +729,53 @@
 .animales-filtros__toggle-btn--hembra.animales-filtros__toggle-btn--activo {
   background: var(--rosa-hembra);
   color: #ffffff;
+}
+
+.chakra-file-upload__item {
+  display: flex;
+  padding: 4px;
+  justify-content: space-between;
+  align-items: center;
+
+  > svg {
+    fill: #888;
+  }
+  img {
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+  }
+  div {
+    display: flex;
+    gap: 1rem;
+  }
+}
+
+.delete-file {
+  place-self: center;
+  margin-right: 1rem;
+}
+
+.align-baseline {
+  display: flex;
+  gap: 2px !important;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.upload-icon {
+  justify-content: space-between;
+}
+
+.info-de-fecha {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 1.5rem;
+
+  svg {
+    fill: #888;
+  }
 }
 
 @media (max-width: 720px) {
