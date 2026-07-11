@@ -81,9 +81,40 @@ export function AnimalDetailDrawer({
                         {animal.caravana ?? `#${animal.id}`}
                       </Drawer.Title>
                     </div>
-                    <Badge colorPalette="brand" className="animal-detail__badge">
-                      {animal.estado}
-                    </Badge>
+                    <div className="animal-detail__header-end">
+                      <Badge colorPalette="brand" className="animal-detail__badge">
+                        {animal.estado}
+                      </Badge>
+                      <div className="animal-detail__header-actions">
+                        <button
+                          type="button"
+                          className="animal-detail__action"
+                          onClick={() => onEditar(animal)}>
+                          <IconEdit size={18} stroke={1.5} />
+                          Editar
+                        </button>
+                        <span
+                          className={`animal-detail__action-tooltip-target${
+                            canStartBajaFlow
+                              ? ""
+                              : " animal-detail__action-tooltip-target--disabled"
+                          }`}
+                          title={
+                            canStartBajaFlow
+                              ? undefined
+                              : "No es posible dar de baja o eliminar al animal porque ya no se encuentra activo."
+                          }>
+                          <button
+                            type="button"
+                            className="animal-detail__action animal-detail__action--danger"
+                            onClick={() => onEliminar(animal)}
+                            disabled={!canStartBajaFlow}>
+                            <IconTrash size={18} stroke={1.5} />
+                            Eliminar
+                          </button>
+                        </span>
+                      </div>
+                    </div>
                   </Drawer.Header>
 
                   <Drawer.Body className="animal-detail__body">
@@ -159,36 +190,6 @@ export function AnimalDetailDrawer({
                       )}
                     </section>
                   </Drawer.Body>
-
-                  <Drawer.Footer className="animal-detail__footer">
-                    <button
-                      type="button"
-                      className="animal-detail__action"
-                      onClick={() => onEditar(animal)}>
-                      <IconEdit size={18} stroke={1.5} />
-                      Editar
-                    </button>
-                    <span
-                      className={`animal-detail__action-tooltip-target${
-                        canStartBajaFlow
-                          ? ""
-                          : " animal-detail__action-tooltip-target--disabled"
-                      }`}
-                      title={
-                        canStartBajaFlow
-                          ? undefined
-                          : "No es posible dar de baja o eliminar al animal porque ya no se encuentra activo."
-                      }>
-                      <button
-                        type="button"
-                        className="animal-detail__action animal-detail__action--danger"
-                        onClick={() => onEliminar(animal)}
-                        disabled={!canStartBajaFlow}>
-                        <IconTrash size={18} stroke={1.5} />
-                        Eliminar
-                      </button>
-                    </span>
-                  </Drawer.Footer>
                 </>
               )}
             </Drawer.Content>
