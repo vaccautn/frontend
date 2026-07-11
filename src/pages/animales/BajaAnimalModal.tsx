@@ -46,10 +46,18 @@ export function BajaAnimalModal({
   const [notas, setNotas] = useState("");
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const canSubmitBaja = animal.estado === "ACTIVO";
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmitting) return;
+
+    if (!canSubmitBaja) {
+      setFormError(
+        "Solo los animales en estado ACTIVO pueden ingresar al flujo de baja o eliminación.",
+      );
+      return;
+    }
 
     if (!motivo) {
       setFormError("Selecciona un motivo de baja.");
@@ -120,9 +128,16 @@ export function BajaAnimalModal({
         </div>
 
         <p className="baja-modal__warning">
-          Estas seguro de que deseas dar de baja a este animal? Esta accion lo
-          removera del inventario activo, pero conservara su historial.
+          ¿Está seguro de que desea dar de baja a este animal? Esta acción lo
+          removerá del inventario activo, pero conservará su historial.
         </p>
+
+        {!canSubmitBaja && (
+          <p className="status-message error" role="alert">
+            Solo los animales en estado ACTIVO pueden ingresar al flujo de baja o
+            eliminación.
+          </p>
+        )}
 
         <dl className="baja-modal__summary">
           <div>
@@ -191,9 +206,9 @@ export function BajaAnimalModal({
             <button type="button" onClick={onClose}>
               Cancelar
             </button>
-            <button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? "Dando de baja..." : "Dar de baja"}
-            </button>
+             <button type="submit" disabled={isSubmitting || !canSubmitBaja}>
+               {isSubmitting ? "Dando de baja..." : "Dar de baja"}
+             </button>
           </div>
         </form>
       </section>

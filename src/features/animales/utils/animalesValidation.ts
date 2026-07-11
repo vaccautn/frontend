@@ -3,6 +3,7 @@ export type RodeoNuevoValues = {
   raza: string;
   sexo: string;
   fecha_nacimiento: string;
+  lote_id: string;
 };
 
 export const initialRodeoNuevoValues: RodeoNuevoValues = {
@@ -10,6 +11,7 @@ export const initialRodeoNuevoValues: RodeoNuevoValues = {
   raza: "",
   sexo: "",
   fecha_nacimiento: "",
+  lote_id: "",
 };
 
 export type RodeoNuevoFieldErrors = Partial<
@@ -35,6 +37,10 @@ export function validateRodeoNuevoForm(
 
   if (!values.fecha_nacimiento) {
     errors.fecha_nacimiento = "La fecha de nacimiento es obligatoria.";
+  }
+
+  if (!values.lote_id) {
+    errors.lote_id = "Debes elegir un lote.";
   }
 
   return errors;
@@ -94,6 +100,10 @@ export function validateRodeoEditarForm(
 
   if (!values.estado) {
     errors.estado = "El estado es obligatorio.";
+  }
+
+  if (!values.lote_id) {
+    errors.lote_id = "Debes elegir un lote.";
   }
 
   return errors;

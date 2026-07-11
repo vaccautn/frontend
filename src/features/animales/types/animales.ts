@@ -51,3 +51,27 @@ export type AnimalListParams = {
   raza?: string;
   caravana?: string;
 };
+
+export type EvaluacionCCEstado = "BORRADOR" | "CONFIRMADA" | "ANULADA";
+
+export type EvaluacionCC = {
+  id: number;
+  animal_id: number;
+  usuario_id: number;
+  fecha: string;
+  valor_cc: number;
+  escala_min: number;
+  escala_max: number;
+  observaciones: string;
+  estado: EvaluacionCCEstado;
+  creado_en: string;
+  actualizado_en: string;
+};
+
+export type RegisterEvaluacionCCPayload = {
+  animal_id: number;
+  valor_cc: number;
+  escala_min: number;
+  escala_max: number;
+  observaciones?: string;
+};

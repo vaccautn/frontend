@@ -3,7 +3,9 @@ import { getAccessToken } from "@/features/auth";
 import type {
   Animal,
   AnimalListParams,
+  EvaluacionCC,
   RegisterAnimalPayload,
+  RegisterEvaluacionCCPayload,
   UpdateAnimalPayload,
 } from "@/features/animales/types";
 
@@ -43,6 +45,25 @@ export function getAnimales(params: AnimalListParams = {}): Promise<Animal[]> {
 export function getAnimal(id: number): Promise<Animal> {
   const token = getAccessToken();
   return getJson<Animal>(`/animales/${id}`, token);
+}
+
+export function getEvaluacionesCc(animalId: number): Promise<EvaluacionCC[]> {
+  const token = getAccessToken();
+  const searchParams = new URLSearchParams({ animal_id: animalId.toString() });
+
+  return getJson<EvaluacionCC[]>(`/evaluaciones-cc/?${searchParams.toString()}`, token);
+}
+
+export function registerEvaluacionCc(
+  payload: RegisterEvaluacionCCPayload,
+): Promise<EvaluacionCC> {
+  const token = getAccessToken();
+
+  return postJson<EvaluacionCC, RegisterEvaluacionCCPayload>(
+    "/evaluaciones-cc/",
+    payload,
+    token,
+  );
 }
 
 export function updateAnimal(
