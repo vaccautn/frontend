@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Badge, Button, Drawer, Portal } from "@chakra-ui/react";
 import { IconEdit, IconPlus, IconTrash } from "@tabler/icons-react";
 import type { Animal, EvaluacionCC } from "@/features/animales/types";
+import { EvaluacionCCItem } from "./EvaluacionCCItem";
 import { RegistrarEvaluacionCCDialog } from "./RegistrarEvaluacionCCDialog";
 
 type AnimalDetailDrawerProps = {
@@ -14,11 +15,6 @@ type AnimalDetailDrawerProps = {
   onEditar: (animal: Animal) => void;
   onEliminar: (animal: Animal) => void;
 };
-
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-AR", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
 
 const CAMPOS: { label: string; render: (animal: Animal) => string }[] = [
   { label: "Caravana", render: (a) => a.caravana ?? "—" },
@@ -81,9 +77,40 @@ export function AnimalDetailDrawer({
                         {animal.caravana ?? `#${animal.id}`}
                       </Drawer.Title>
                     </div>
-                    <Badge colorPalette="brand" className="animal-detail__badge">
-                      {animal.estado}
-                    </Badge>
+                    <div className="animal-detail__header-end">
+                      <Badge colorPalette="brand" className="animal-detail__badge">
+                        {animal.estado}
+                      </Badge>
+                      <div className="animal-detail__header-actions">
+                        <button
+                          type="button"
+                          className="animal-detail__action"
+                          onClick={() => onEditar(animal)}>
+                          <IconEdit size={16} stroke={1.5} />
+                          Editar
+                        </button>
+                        <span
+                          className={`animal-detail__action-tooltip-target${
+                            canStartBajaFlow
+                              ? ""
+                              : " animal-detail__action-tooltip-target--disabled"
+                          }`}
+                          title={
+                            canStartBajaFlow
+                              ? undefined
+                              : "No es posible dar de baja o eliminar al animal porque ya no se encuentra activo."
+                          }>
+                          <button
+                            type="button"
+                            className="animal-detail__action animal-detail__action--danger"
+                            onClick={() => onEliminar(animal)}
+                            disabled={!canStartBajaFlow}>
+                            <IconTrash size={16} stroke={1.5} />
+                            Eliminar
+                          </button>
+                        </span>
+                      </div>
+                    </div>
                   </Drawer.Header>
 
                   <Drawer.Body className="animal-detail__body">
@@ -138,57 +165,16 @@ export function AnimalDetailDrawer({
                       {!historyLoading && !historyError && historyItems.length > 0 && (
                         <div className="animal-evaluaciones__list">
                           {historyItems.map((evaluacion) => (
-                            <article
+                            <EvaluacionCCItem
                               key={evaluacion.id}
-                                className="animal-evaluaciones__item">
-                              <div className="animal-evaluaciones__item-header">
-                                <strong>CC {String(evaluacion.valor_cc)}</strong>
-                                <span>
-                                  {DATE_TIME_FORMATTER.format(new Date(evaluacion.fecha))}
-                                </span>
-                              </div>
-                              <p className="animal-evaluaciones__meta">
-                                Escala {evaluacion.escala_min} a {evaluacion.escala_max}
-                              </p>
-                              <p>
-                                {evaluacion.observaciones?.trim() || "Sin observaciones."}
-                              </p>
-                            </article>
+                              evaluacion={evaluacion}
+                              onUpdated={onRefreshHistory}
+                            />
                           ))}
                         </div>
                       )}
                     </section>
                   </Drawer.Body>
-
-                  <Drawer.Footer className="animal-detail__footer">
-                    <button
-                      type="button"
-                      className="animal-detail__action"
-                      onClick={() => onEditar(animal)}>
-                      <IconEdit size={18} stroke={1.5} />
-                      Editar
-                    </button>
-                    <span
-                      className={`animal-detail__action-tooltip-target${
-                        canStartBajaFlow
-                          ? ""
-                          : " animal-detail__action-tooltip-target--disabled"
-                      }`}
-                      title={
-                        canStartBajaFlow
-                          ? undefined
-                          : "No es posible dar de baja o eliminar al animal porque ya no se encuentra activo."
-                      }>
-                      <button
-                        type="button"
-                        className="animal-detail__action animal-detail__action--danger"
-                        onClick={() => onEliminar(animal)}
-                        disabled={!canStartBajaFlow}>
-                        <IconTrash size={18} stroke={1.5} />
-                        Eliminar
-                      </button>
-                    </span>
-                  </Drawer.Footer>
                 </>
               )}
             </Drawer.Content>

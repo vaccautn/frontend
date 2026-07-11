@@ -1,5 +1,5 @@
-import type { ChangeEvent } from "react";
-import { Input, NativeSelect } from "@chakra-ui/react";
+import { Input, Menu, Portal } from "@chakra-ui/react";
+import { IconChevronDown } from "@tabler/icons-react";
 import { RAZAS, ESTADOS_FILTRO } from "@/features/animales/constants";
 import type { EstadoFiltro } from "@/features/animales/types";
 
@@ -24,13 +24,7 @@ export function AnimalesFiltros({
   onRazaChange,
   onEstadoChange,
 }: AnimalesFiltrosProps) {
-  const handleRazaChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    onRazaChange(event.target.value || null);
-  };
-
-  const handleEstadoChange = (event: ChangeEvent<HTMLSelectElement>) => {
-    onEstadoChange((event.target.value as EstadoFiltro) || null);
-  };
+  const estadoLabel = ESTADOS_FILTRO.find((e) => e.value === estado)?.label;
 
   return (
     <div className="animales-filtros" role="search" aria-label="Filtros de animales">
@@ -74,35 +68,70 @@ export function AnimalesFiltros({
         </button>
       </div>
 
-      <NativeSelect.Root className="animales-filtros__select">
-        <NativeSelect.Field
-          aria-label="Filtrar por raza"
-          value={raza ?? ""}
-          onChange={handleRazaChange}>
-          <option value="">Todas las razas</option>
-          {RAZAS.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </NativeSelect.Field>
-        <NativeSelect.Indicator />
-      </NativeSelect.Root>
+      <Menu.Root>
+        <Menu.Trigger asChild>
+          <button
+            type="button"
+            className="animales-filtros__dropdown"
+            aria-label="Filtrar por raza">
+            <span>{raza ?? "Todas las razas"}</span>
+            <IconChevronDown
+              className="animales-filtros__dropdown-caret"
+              size={16}
+              stroke={1.5}
+            />
+          </button>
+        </Menu.Trigger>
+        <Portal>
+          <Menu.Positioner>
+            <Menu.Content className="animales-filtros__dropdown-menu">
+              <Menu.Item value="" onSelect={() => onRazaChange(null)}>
+                Todas las razas
+              </Menu.Item>
+              <Menu.Separator />
+              {RAZAS.map((r) => (
+                <Menu.Item key={r} value={r} onSelect={() => onRazaChange(r)}>
+                  {r}
+                </Menu.Item>
+              ))}
+            </Menu.Content>
+          </Menu.Positioner>
+        </Portal>
+      </Menu.Root>
 
-      <NativeSelect.Root className="animales-filtros__select">
-        <NativeSelect.Field
-          aria-label="Filtrar por estado"
-          value={estado ?? ""}
-          onChange={handleEstadoChange}>
-          <option value="">Todos</option>
-          {ESTADOS_FILTRO.map(({ value, label }) => (
-            <option key={value} value={value}>
-              {label}
-            </option>
-          ))}
-        </NativeSelect.Field>
-        <NativeSelect.Indicator />
-      </NativeSelect.Root>
+      <Menu.Root>
+        <Menu.Trigger asChild>
+          <button
+            type="button"
+            className="animales-filtros__dropdown"
+            aria-label="Filtrar por estado">
+            <span>{estadoLabel ?? "Todos"}</span>
+            <IconChevronDown
+              className="animales-filtros__dropdown-caret"
+              size={16}
+              stroke={1.5}
+            />
+          </button>
+        </Menu.Trigger>
+        <Portal>
+          <Menu.Positioner>
+            <Menu.Content className="animales-filtros__dropdown-menu">
+              <Menu.Item value="" onSelect={() => onEstadoChange(null)}>
+                Todos
+              </Menu.Item>
+              <Menu.Separator />
+              {ESTADOS_FILTRO.map(({ value, label }) => (
+                <Menu.Item
+                  key={value}
+                  value={value}
+                  onSelect={() => onEstadoChange(value as EstadoFiltro)}>
+                  {label}
+                </Menu.Item>
+              ))}
+            </Menu.Content>
+          </Menu.Positioner>
+        </Portal>
+      </Menu.Root>
     </div>
   );
 }

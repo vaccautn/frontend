@@ -8,9 +8,9 @@ import {
   Box,
   FileUpload,
   Icon,
-  RadioCard,
-  HStack,
+  Menu,
 } from "@chakra-ui/react";
+import { IconChevronDown } from "@tabler/icons-react";
 import { subirImagenesEvaluacion } from "@/features/animales/services/animalesService";
 import { toast } from "react-toastify";
 import { normalizeBackendDetail } from "@/features/auth";
@@ -58,9 +58,9 @@ export function RegistrarEvaluacionCCDialog({
   );
 
   const ccOptions = useMemo(() => {
-    const opts: { value: string; title: string }[] = [];
+    const opts: number[] = [];
     for (let i = DEFAULT_CC_SCALE.min; i <= DEFAULT_CC_SCALE.max; i++) {
-      opts.push({ value: String(i), title: String(i) });
+      opts.push(i);
     }
     return opts;
   }, []);
@@ -75,8 +75,8 @@ export function RegistrarEvaluacionCCDialog({
       setFormError("");
     };
 
-  const handleCcChange = (value: string | null) => {
-    setValues((current) => ({ ...current, valorCc: value ?? "" }));
+  const handleCcChange = (value: number) => {
+    setValues((current) => ({ ...current, valorCc: String(value) }));
     setErrors((current) => ({ ...current, valorCc: undefined }));
     setFormError("");
   };
@@ -199,23 +199,35 @@ export function RegistrarEvaluacionCCDialog({
                 className="animal-form__fields">
                 <Field.Root invalid={!!errors.valorCc} required>
                   <Field.Label>Valor de CC</Field.Label>
-                  <RadioCard.Root
-                    value={values.valorCc || null}
-                    onValueChange={(e) => handleCcChange(e.value)}>
-                    <HStack align="stretch">
-                      {ccOptions.map((item) => (
-                        <RadioCard.Item key={item.value} value={item.value}>
-                          <RadioCard.ItemHiddenInput />
-                          <RadioCard.ItemControl>
-                            <RadioCard.ItemText>
-                              {item.title}
-                            </RadioCard.ItemText>
-                            <RadioCard.ItemIndicator className="radio" />
-                          </RadioCard.ItemControl>
-                        </RadioCard.Item>
-                      ))}
-                    </HStack>
-                  </RadioCard.Root>
+                  <Menu.Root>
+                    <Menu.Trigger asChild>
+                      <button
+                        type="button"
+                        className="animal-evaluacion__valor-trigger"
+                        aria-label="Seleccionar valor de CC">
+                        <span>{values.valorCc || "Seleccioná un valor"}</span>
+                        <IconChevronDown
+                          className="animal-evaluacion__valor-caret"
+                          size={16}
+                          stroke={1.5}
+                        />
+                      </button>
+                    </Menu.Trigger>
+                    <Portal>
+                      <Menu.Positioner>
+                        <Menu.Content className="animal-evaluacion__valor-menu">
+                          {ccOptions.map((option) => (
+                            <Menu.Item
+                              key={option}
+                              value={String(option)}
+                              onSelect={() => handleCcChange(option)}>
+                              {option}
+                            </Menu.Item>
+                          ))}
+                        </Menu.Content>
+                      </Menu.Positioner>
+                    </Portal>
+                  </Menu.Root>
                   <Field.ErrorText>{errors.valorCc}</Field.ErrorText>
                 </Field.Root>
 
