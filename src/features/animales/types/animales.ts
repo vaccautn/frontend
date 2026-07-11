@@ -12,7 +12,10 @@ export type BajaAnimalMotivo = Extract<
 
 export type SexoAnimal = "MACHO" | "HEMBRA" | "NO_INFORMADO";
 
-export type EstadoFiltro = Extract<EstadoAnimal, "ACTIVO" | "VENDIDO" | "MUERTO">;
+export type EstadoFiltro = Extract<
+  EstadoAnimal,
+  "ACTIVO" | "VENDIDO" | "MUERTO"
+>;
 
 export type Animal = {
   id: number;
@@ -74,4 +77,15 @@ export type RegisterEvaluacionCCPayload = {
   escala_min: number;
   escala_max: number;
   observaciones?: string;
+};
+
+export type EvidenciaImagenRead = {
+  id: number;
+  evaluacion_id: number;
+  storage_key: string;
+  tipo: string;
+  origen: string;
+  estado: string;
+  metadatos_json: Record<string, unknown>;
+  url: string;
 };
