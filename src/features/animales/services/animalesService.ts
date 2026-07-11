@@ -3,7 +3,9 @@ import {
   postJson,
   getJson,
   patchJson,
+  putJson,
   postFormData,
+  deleteRequest,
 } from "@/services/httpClient";
 import type {
   Animal,
@@ -13,6 +15,7 @@ import type {
   RegisterAnimalPayload,
   RegisterEvaluacionCCPayload,
   UpdateAnimalPayload,
+  UpdateEvaluacionCCPayload,
 } from "@/features/animales/types";
 
 export function registerAnimal(
@@ -87,6 +90,19 @@ export function registerEvaluacionCc(
   );
 }
 
+export function updateEvaluacionCc(
+  id: number,
+  payload: UpdateEvaluacionCCPayload,
+): Promise<EvaluacionCC> {
+  const token = getAccessToken();
+
+  return putJson<EvaluacionCC, UpdateEvaluacionCCPayload>(
+    `/evaluaciones-cc/${id}`,
+    payload,
+    token,
+  );
+}
+
 export function subirImagenesEvaluacion(
   evaluacionId: number,
   files: File[],
@@ -102,4 +118,19 @@ export function subirImagenesEvaluacion(
     formData,
     token,
   );
+}
+
+export function getImagenesEvaluacion(
+  evaluacionId: number,
+): Promise<EvidenciaImagenRead[]> {
+  const token = getAccessToken();
+  return getJson<EvidenciaImagenRead[]>(
+    `/evaluaciones-cc/${evaluacionId}/imagenes`,
+    token,
+  );
+}
+
+export function eliminarImagenEvaluacion(evidenciaId: number): Promise<void> {
+  const token = getAccessToken();
+  return deleteRequest(`/evidencias-visuales/${evidenciaId}`, token);
 }

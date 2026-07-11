@@ -79,6 +79,10 @@ export type RegisterEvaluacionCCPayload = {
   observaciones?: string;
 };
 
+export type UpdateEvaluacionCCPayload = {
+  valor_cc: number;
+};
+
 export type EvidenciaImagenRead = {
   id: number;
   evaluacion_id: number;

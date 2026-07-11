@@ -2,6 +2,7 @@ import { useMemo, useState } from "react";
 import { Badge, Button, Drawer, Portal } from "@chakra-ui/react";
 import { IconEdit, IconPlus, IconTrash } from "@tabler/icons-react";
 import type { Animal, EvaluacionCC } from "@/features/animales/types";
+import { EvaluacionCCItem } from "./EvaluacionCCItem";
 import { RegistrarEvaluacionCCDialog } from "./RegistrarEvaluacionCCDialog";
 
 type AnimalDetailDrawerProps = {
@@ -14,11 +15,6 @@ type AnimalDetailDrawerProps = {
   onEditar: (animal: Animal) => void;
   onEliminar: (animal: Animal) => void;
 };
-
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-AR", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
 
 const CAMPOS: { label: string; render: (animal: Animal) => string }[] = [
   { label: "Caravana", render: (a) => a.caravana ?? "—" },
@@ -90,7 +86,7 @@ export function AnimalDetailDrawer({
                           type="button"
                           className="animal-detail__action"
                           onClick={() => onEditar(animal)}>
-                          <IconEdit size={18} stroke={1.5} />
+                          <IconEdit size={16} stroke={1.5} />
                           Editar
                         </button>
                         <span
@@ -109,7 +105,7 @@ export function AnimalDetailDrawer({
                             className="animal-detail__action animal-detail__action--danger"
                             onClick={() => onEliminar(animal)}
                             disabled={!canStartBajaFlow}>
-                            <IconTrash size={18} stroke={1.5} />
+                            <IconTrash size={16} stroke={1.5} />
                             Eliminar
                           </button>
                         </span>
@@ -169,22 +165,11 @@ export function AnimalDetailDrawer({
                       {!historyLoading && !historyError && historyItems.length > 0 && (
                         <div className="animal-evaluaciones__list">
                           {historyItems.map((evaluacion) => (
-                            <article
+                            <EvaluacionCCItem
                               key={evaluacion.id}
-                                className="animal-evaluaciones__item">
-                              <div className="animal-evaluaciones__item-header">
-                                <strong>CC {String(evaluacion.valor_cc)}</strong>
-                                <span>
-                                  {DATE_TIME_FORMATTER.format(new Date(evaluacion.fecha))}
-                                </span>
-                              </div>
-                              <p className="animal-evaluaciones__meta">
-                                Escala {evaluacion.escala_min} a {evaluacion.escala_max}
-                              </p>
-                              <p>
-                                {evaluacion.observaciones?.trim() || "Sin observaciones."}
-                              </p>
-                            </article>
+                              evaluacion={evaluacion}
+                              onUpdated={onRefreshHistory}
+                            />
                           ))}
                         </div>
                       )}
