@@ -563,15 +563,69 @@
   border-radius: 4px;
 }
 
-.animales-filtros__select {
+.animales-filtros__dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   flex: 0 1 160px;
   min-width: 140px;
+  min-height: 38px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.animales-filtros__select select {
-  min-height: 38px;
+.animales-filtros__dropdown:hover {
+  background: var(--verde-pastel);
+}
+
+.animales-filtros__dropdown[data-state="open"] {
+  background: var(--verde-pastel);
+}
+
+.animales-filtros__dropdown span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.animales-filtros__dropdown-caret {
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.animales-filtros__dropdown-menu {
+  min-width: 180px;
   background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 4px;
+  box-shadow: var(--shadow);
+  padding: 0.4rem;
+}
+
+.animales-filtros__dropdown-menu [data-part="item"] {
+  display: flex;
+  align-items: center;
+  padding: 0.55rem 0.65rem;
+  border-radius: 6px;
+  color: var(--text-h);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.animales-filtros__dropdown-menu [data-part="item"][data-highlighted] {
+  background: var(--verde-pastel);
+}
+
+.animales-filtros__dropdown-menu [data-part="separator"] {
+  margin: 0.3rem 0;
+  border-color: var(--border);
 }
 
 /* ── Sex toggle ── */
@@ -652,7 +706,7 @@
     align-self: flex-start;
   }
 
-  .animales-filtros__select {
+  .animales-filtros__dropdown {
     flex: 1 1 100%;
   }
 }
