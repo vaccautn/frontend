@@ -1,7 +1,13 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useLocation, useNavigate, useParams } from "react-router-dom";
 import { Badge, Button } from "@chakra-ui/react";
-import { IconArrowLeft, IconEdit, IconPlus, IconTrash } from "@tabler/icons-react";
+import {
+  IconArrowLeft,
+  IconChevronDown,
+  IconEdit,
+  IconPlus,
+  IconTrash,
+} from "@tabler/icons-react";
 import type { Animal, EvaluacionCC } from "@/features/animales/types";
 import {
   getAnimal,
@@ -13,13 +19,15 @@ import { BajaAnimalModal } from "./BajaAnimalModal";
 import "./animales.css";
 
 const CAMPOS: { label: string; render: (animal: Animal) => string }[] = [
-  { label: "Caravana", render: (a) => a.caravana ?? "—" },
+  { label: "Fecha de nacimiento", render: (a) => a.fecha_nacimiento ?? "—" },
   { label: "Raza", render: (a) => a.raza },
   { label: "Sexo", render: (a) => a.sexo },
-  { label: "Fecha de nacimiento", render: (a) => a.fecha_nacimiento ?? "—" },
-  { label: "Estado", render: (a) => a.estado },
-  { label: "Observación", render: (a) => a.observacion || "—" },
 ];
+
+const CAMPO_OBSERVACION = {
+  label: "Observación",
+  render: (animal: Animal) => animal.observacion || "—",
+};
 
 export function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -35,6 +43,7 @@ export function AnimalDetailPage() {
   const [animalParaBaja, setAnimalParaBaja] = useState<Animal | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [dialogInstanceKey, setDialogInstanceKey] = useState(0);
+  const [isDetailsOpen, setIsDetailsOpen] = useState(true);
 
   const latestEvaluacionesRequestId = useRef(0);
 
@@ -183,14 +192,35 @@ export function AnimalDetailPage() {
             </Badge>
           </div>
 
-          <dl className="animal-page__grid">
-            {CAMPOS.map(({ label, render }) => (
-              <div key={label}>
-                <dt>{label}</dt>
-                <dd>{render(animal)}</dd>
+          <button
+            type="button"
+            className="animal-page__details-toggle"
+            aria-expanded={isDetailsOpen}
+            onClick={() => setIsDetailsOpen((current) => !current)}>
+            <IconChevronDown
+              size={16}
+              stroke={1.75}
+              className={`animal-page__details-toggle-icon${
+                isDetailsOpen ? " animal-page__details-toggle-icon--open" : ""
+              }`}
+            />
+            {isDetailsOpen ? "Ocultar detalles" : "Mostrar detalles"}
+          </button>
+
+          {isDetailsOpen && (
+            <dl className="animal-page__grid">
+              {CAMPOS.map(({ label, render }) => (
+                <div key={label}>
+                  <dt>{label}</dt>
+                  <dd>{render(animal)}</dd>
+                </div>
+              ))}
+              <div className="animal-page__grid-field--full">
+                <dt>{CAMPO_OBSERVACION.label}</dt>
+                <dd>{CAMPO_OBSERVACION.render(animal)}</dd>
               </div>
-            ))}
-          </dl>
+            </dl>
+          )}
 
           <section className="animal-detail__section">
             <div className="animal-detail__section-header">
