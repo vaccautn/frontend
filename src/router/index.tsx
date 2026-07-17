@@ -7,6 +7,7 @@ import LoginPage from "@/pages/LoginPage";
 
 import { DashboardPage } from "@/pages/Dashboard";
 import { AnimalesPage } from "@/pages/animales/AnimalesPage";
+import { AnimalDetailPage } from "@/pages/animales/AnimalDetailPage";
 import { EvaluacionesPage } from "@/pages/Evaluaciones";
 import AnimalesNuevoPage from "@/pages/animales/AnimalesNuevoPage";
 import AnimalesEditarPage from "@/pages/animales/AnimalesEditarPage";
@@ -31,12 +32,10 @@ export const router = createBrowserRouter([
           {
             path: "/animales",
             element: <AnimalesPage />,
-            children: [
-              { path: "nuevo", element: <AnimalesNuevoPage /> },
-              { path: ":id/editar", element: <AnimalesEditarPage /> },
-            ],
+            children: [{ path: "nuevo", element: <AnimalesNuevoPage /> }],
           },
-          { path: "/animales/nuevo", element: <AnimalesNuevoPage /> },
+          { path: "/animales/:id", element: <AnimalDetailPage /> },
+          { path: "/animales/:id/editar", element: <AnimalesEditarPage /> },
           { path: "/evaluaciones", element: <EvaluacionesPage /> },
         ],
       },
