@@ -136,13 +136,10 @@ export function AnimalDetailPage() {
   return (
     <section className="animal-page">
       <div className="animal-page__topbar">
-        <button
-          type="button"
-          className="animal-page__back-btn"
-          onClick={() => navigate("/animales")}>
+        <Button colorPalette="brand" onClick={() => navigate("/animales")}>
           <IconArrowLeft size={16} stroke={1.5} />
           Volver
-        </button>
+        </Button>
       </div>
 
       {animalLoading && <p>Cargando...</p>}
@@ -164,8 +161,8 @@ export function AnimalDetailPage() {
             </Badge>
           </div>
 
-          <button
-            type="button"
+          <Button
+            colorPalette="brand"
             className="animal-page__details-toggle"
             aria-expanded={isDetailsOpen}
             onClick={() => setIsDetailsOpen((current) => !current)}>
@@ -177,7 +174,7 @@ export function AnimalDetailPage() {
               }`}
             />
             {isDetailsOpen ? "Ocultar detalles" : "Mostrar detalles"}
-          </button>
+          </Button>
 
           {isDetailsOpen && (
             <div className="animal-page__grid-wrapper">

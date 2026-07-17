@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useState, type KeyboardEvent } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Table } from "@chakra-ui/react";
-import { PrimaryButton } from "@/components/ui/PrimaryButton";
+import { Button, Table } from "@chakra-ui/react";
+import { IconPlus } from "@tabler/icons-react";
 import "./animales.css";
 import { getAnimales } from "@/features/animales/services/animalesService";
 import type { Animal } from "@/features/animales/types";
@@ -70,7 +70,10 @@ export function AnimalesPage() {
             información para mantener los registros siempre actualizados.
           </p>
         </div>
-        <PrimaryButton label="Registrar animal" href="/animales/nuevo" />
+        <Button colorPalette="brand" onClick={() => navigate("/animales/nuevo")}>
+          <IconPlus size={18} stroke={1.5} />
+          Agregar animal
+        </Button>
       </div>
 
       <AnimalesFiltros
