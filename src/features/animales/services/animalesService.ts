@@ -2,7 +2,6 @@ import { postJson, getJson, patchJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 import type {
   Animal,
-  AnimalLoteGroup,
   AnimalListParams,
   EvaluacionCC,
   RegisterAnimalPayload,
@@ -23,27 +22,6 @@ export function registerAnimal(
 
 export function getAnimales(params: AnimalListParams = {}): Promise<Animal[]> {
   const token = getAccessToken();
-  const searchParams = buildAnimalSearchParams(params);
-
-  const queryString = searchParams.toString();
-  const path = queryString ? `/animales/?${queryString}` : "/animales/";
-  return getJson<Animal[]>(path, token);
-}
-
-export function getAnimalesAgrupadosPorLote(
-  params: AnimalListParams = {},
-): Promise<AnimalLoteGroup[]> {
-  const token = getAccessToken();
-  const searchParams = buildAnimalSearchParams(params);
-
-  const queryString = searchParams.toString();
-  const path = queryString
-    ? `/animales/agrupados-por-lote?${queryString}`
-    : "/animales/agrupados-por-lote";
-  return getJson<AnimalLoteGroup[]>(path, token);
-}
-
-function buildAnimalSearchParams(params: AnimalListParams): URLSearchParams {
   const searchParams = new URLSearchParams();
 
   if (params.estado) {
@@ -58,11 +36,10 @@ function buildAnimalSearchParams(params: AnimalListParams): URLSearchParams {
   if (params.caravana) {
     searchParams.set("caravana", params.caravana);
   }
-  if (params.lote_id !== undefined) {
-    searchParams.set("lote_id", params.lote_id.toString());
-  }
 
-  return searchParams;
+  const queryString = searchParams.toString();
+  const path = queryString ? `/animales/?${queryString}` : "/animales/";
+  return getJson<Animal[]>(path, token);
 }
 
 export function getAnimal(id: number): Promise<Animal> {
