@@ -1340,10 +1340,6 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.1rem 1.25rem;
-  padding: 1.5rem 1.75rem;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--panel);
 }
 
 .animal-edit-page__form > .animal-edit-page__field--full {

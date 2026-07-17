@@ -277,7 +277,7 @@ export function AnimalDetailPage() {
           <Button
             colorPalette="brand"
             variant={"outline"}
-            bg={"white"}
+            bg="var(--panel)"
             className="animal-page__details-toggle"
             aria-expanded={isDetailsOpen}
             disabled={isEditingDetails}
