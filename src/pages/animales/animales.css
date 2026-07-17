@@ -1,5 +1,6 @@
 .section-header {
   display: flex;
+  align-items: center;
   justify-content: space-between;
   margin-bottom: 2rem;
   gap: 1rem;
@@ -175,9 +176,7 @@
 
 .animal-detail__empty {
   padding: 1rem;
-  border: 1px dashed var(--border);
-  border-radius: 8px;
-  background: var(--bg);
+  text-align: center;
 }
 
 .animal-evaluaciones__list {
@@ -214,6 +213,33 @@
 
 .animal-evaluaciones__item-header > span {
   opacity: 0.75;
+}
+
+/* ── Codificación semáforo según el valor de CC ── */
+
+.animal-evaluaciones__item-header--cc-3 {
+  background: var(--success-bg);
+  border-bottom-color: var(--success-border);
+  color: var(--success);
+}
+
+.animal-evaluaciones__item-header--cc-4 {
+  background: var(--warning-bg);
+  border-bottom-color: var(--warning-border);
+  color: var(--warning);
+}
+
+.animal-evaluaciones__item-header--cc-2 {
+  background: var(--orange-bg);
+  border-bottom-color: var(--orange-border);
+  color: var(--orange);
+}
+
+.animal-evaluaciones__item-header--cc-1,
+.animal-evaluaciones__item-header--cc-5 {
+  background: var(--danger-bg);
+  border-bottom-color: var(--danger-border);
+  color: var(--danger);
 }
 
 .animal-evaluaciones__value {
@@ -1157,7 +1183,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 1.75rem;
+  margin-bottom: 0.15rem;
 }
 
 .animal-page__back-btn {
@@ -1207,6 +1233,21 @@
 
 .animal-page__details-toggle {
   margin-bottom: 1.25rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.animal-page__details-toggle:hover {
+  background: var(--verde-pastel) !important;
+  border-color: var(--accent) !important;
+}
+
+.animal-page__back-link {
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.animal-page__back-link:hover {
+  opacity: 1;
 }
 
 .animal-page__details-toggle-icon {
@@ -1217,25 +1258,42 @@
   transform: rotate(180deg);
 }
 
+.animal-page__grid-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.animal-page__grid-collapse--open {
+  grid-template-rows: 1fr;
+}
+
+.animal-page__grid-collapse-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
 .animal-page__grid-wrapper {
   position: relative;
   margin-bottom: 2rem;
+}
+
+.animal-page__details-divider {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
 }
 
 .animal-page__grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 1.1rem 1.5rem;
-  padding: 1.5rem 1.75rem 3.25rem;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--panel);
+  padding-bottom: 3rem;
 }
 
 .animal-page__grid-actions {
   position: absolute;
-  right: 1.75rem;
-  bottom: 1rem;
+  right: 0;
+  bottom: 0.5rem;
   display: flex;
   gap: 0.4rem;
   opacity: 0;
@@ -1282,12 +1340,10 @@
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));
   gap: 1.1rem 1.25rem;
-  max-width: 720px;
-  padding: 1.5rem;
+  padding: 1.5rem 1.75rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
+  border-radius: 4px;
   background: var(--panel);
-  box-shadow: var(--shadow);
 }
 
 .animal-edit-page__form > .animal-edit-page__field--full {

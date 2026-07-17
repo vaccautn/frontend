@@ -169,7 +169,8 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
 
   return (
     <article className="animal-evaluaciones__item">
-      <div className="animal-evaluaciones__item-header">
+      <div
+        className={`animal-evaluaciones__item-header animal-evaluaciones__item-header--cc-${evaluacion.valor_cc}`}>
         {isEditing ? (
           <div className="animal-evaluaciones__edit">
             <Menu.Root>

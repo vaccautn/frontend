@@ -63,12 +63,12 @@ export function AnimalesPage() {
     <section>
       <div className="section-header">
         <div className="title-and-description">
-          <h1>Gestión del rodeo</h1>
-          <p>
+          <h1>Gestión de animales</h1>
+          {/*<p>
             Consultá todos los animales registrados, buscá por caravana o filtrá
             por sus características, agregá nuevos animales y editá su
             información para mantener los registros siempre actualizados.
-          </p>
+          </p>*/}
         </div>
         <Button colorPalette="brand" onClick={() => navigate("/animales/nuevo")}>
           <IconPlus size={18} stroke={1.5} />
