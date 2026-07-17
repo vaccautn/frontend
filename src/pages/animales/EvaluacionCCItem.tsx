@@ -18,7 +18,7 @@ import {
   updateEvaluacionCc,
 } from "@/features/animales/services/animalesService";
 import type { EvaluacionCC, EvidenciaImagenRead } from "@/features/animales/types";
-import { formatFechaHora } from "@/features/animales/utils/formatDate";
+import { formatFechaDeTimestamp } from "@/features/animales/utils/formatDate";
 import { ApiError } from "@/services/httpClient";
 
 function buildScaleOptions() {
@@ -217,7 +217,7 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
           </div>
         ) : (
           <div className="animal-evaluaciones__value">
-            <strong>CC {String(evaluacion.valor_cc)}</strong>
+            <strong>CC: {String(evaluacion.valor_cc)}</strong>
             <button
               type="button"
               className="animal-evaluaciones__edit-trigger-btn"
@@ -227,11 +227,11 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
             </button>
           </div>
         )}
-        <span>{formatFechaHora(evaluacion.fecha)}</span>
+        <span>{formatFechaDeTimestamp(evaluacion.fecha)}</span>
       </div>
-      <p className="animal-evaluaciones__meta">
+      {/*<p className="animal-evaluaciones__meta">
         Escala {evaluacion.escala_min} a {evaluacion.escala_max}
-      </p>
+      </p>*/}
       <p>{evaluacion.observaciones?.trim() || "Sin observaciones."}</p>
 
       {imagenesLoading && (

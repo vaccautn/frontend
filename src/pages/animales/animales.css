@@ -209,7 +209,11 @@
   padding: 0.6rem 1rem;
   background: var(--verde-pastel);
   border-bottom: 1px solid var(--border);
-  color: var(--text-h);
+  color: var(--accent-strong);
+}
+
+.animal-evaluaciones__item-header > span {
+  opacity: 0.75;
 }
 
 .animal-evaluaciones__value {
