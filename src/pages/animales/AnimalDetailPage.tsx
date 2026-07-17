@@ -13,13 +13,17 @@ import {
   getAnimal,
   getEvaluacionesCc,
 } from "@/features/animales/services/animalesService";
+import { formatFecha } from "@/features/animales/utils/formatDate";
 import { EvaluacionCCItem } from "./EvaluacionCCItem";
 import { RegistrarEvaluacionCCDialog } from "./RegistrarEvaluacionCCDialog";
 import { BajaAnimalModal } from "./BajaAnimalModal";
 import "./animales.css";
 
 const CAMPOS: { label: string; render: (animal: Animal) => string }[] = [
-  { label: "Fecha de nacimiento", render: (a) => a.fecha_nacimiento ?? "—" },
+  {
+    label: "Fecha de nacimiento",
+    render: (a) => (a.fecha_nacimiento ? formatFecha(a.fecha_nacimiento) : "—"),
+  },
   { label: "Raza", render: (a) => a.raza },
   { label: "Sexo", render: (a) => a.sexo },
 ];
@@ -139,38 +143,6 @@ export function AnimalDetailPage() {
           <IconArrowLeft size={16} stroke={1.5} />
           Volver
         </button>
-
-        {animal && (
-          <div className="animal-page__header-actions">
-            <button
-              type="button"
-              className="animal-detail__action"
-              onClick={() => navigate(`/animales/${animal.id}/editar`)}>
-              <IconEdit size={16} stroke={1.5} />
-              Editar
-            </button>
-            <span
-              className={`animal-detail__action-tooltip-target${
-                canStartBajaFlow
-                  ? ""
-                  : " animal-detail__action-tooltip-target--disabled"
-              }`}
-              title={
-                canStartBajaFlow
-                  ? undefined
-                  : "No es posible dar de baja o eliminar al animal porque ya no se encuentra activo."
-              }>
-              <button
-                type="button"
-                className="animal-detail__action animal-detail__action--danger"
-                onClick={() => setAnimalParaBaja(animal)}
-                disabled={!canStartBajaFlow}>
-                <IconTrash size={16} stroke={1.5} />
-                Eliminar
-              </button>
-            </span>
-          </div>
-        )}
       </div>
 
       {animalLoading && <p>Cargando...</p>}
@@ -208,18 +180,50 @@ export function AnimalDetailPage() {
           </button>
 
           {isDetailsOpen && (
-            <dl className="animal-page__grid">
-              {CAMPOS.map(({ label, render }) => (
-                <div key={label}>
-                  <dt>{label}</dt>
-                  <dd>{render(animal)}</dd>
+            <div className="animal-page__grid-wrapper">
+              <dl className="animal-page__grid">
+                {CAMPOS.map(({ label, render }) => (
+                  <div key={label}>
+                    <dt>{label}</dt>
+                    <dd>{render(animal)}</dd>
+                  </div>
+                ))}
+                <div className="animal-page__grid-field--full">
+                  <dt>{CAMPO_OBSERVACION.label}</dt>
+                  <dd>{CAMPO_OBSERVACION.render(animal)}</dd>
                 </div>
-              ))}
-              <div className="animal-page__grid-field--full">
-                <dt>{CAMPO_OBSERVACION.label}</dt>
-                <dd>{CAMPO_OBSERVACION.render(animal)}</dd>
+              </dl>
+
+              <div className="animal-page__grid-actions">
+                <button
+                  type="button"
+                  className="animal-detail__action"
+                  onClick={() => navigate(`/animales/${animal.id}/editar`)}>
+                  <IconEdit size={16} stroke={1.5} />
+                  Editar
+                </button>
+                <span
+                  className={`animal-detail__action-tooltip-target${
+                    canStartBajaFlow
+                      ? ""
+                      : " animal-detail__action-tooltip-target--disabled"
+                  }`}
+                  title={
+                    canStartBajaFlow
+                      ? undefined
+                      : "No es posible dar de baja o eliminar al animal porque ya no se encuentra activo."
+                  }>
+                  <button
+                    type="button"
+                    className="animal-detail__action animal-detail__action--danger"
+                    onClick={() => setAnimalParaBaja(animal)}
+                    disabled={!canStartBajaFlow}>
+                    <IconTrash size={16} stroke={1.5} />
+                    Eliminar
+                  </button>
+                </span>
               </div>
-            </dl>
+            </div>
           )}
 
           <section className="animal-detail__section">

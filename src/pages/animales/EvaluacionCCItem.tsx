@@ -18,12 +18,8 @@ import {
   updateEvaluacionCc,
 } from "@/features/animales/services/animalesService";
 import type { EvaluacionCC, EvidenciaImagenRead } from "@/features/animales/types";
+import { formatFechaHora } from "@/features/animales/utils/formatDate";
 import { ApiError } from "@/services/httpClient";
-
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-AR", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
 
 function buildScaleOptions() {
   const options: number[] = [];
@@ -231,7 +227,7 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
             </button>
           </div>
         )}
-        <span>{DATE_TIME_FORMATTER.format(new Date(evaluacion.fecha))}</span>
+        <span>{formatFechaHora(evaluacion.fecha)}</span>
       </div>
       <p className="animal-evaluaciones__meta">
         Escala {evaluacion.escala_min} a {evaluacion.escala_max}

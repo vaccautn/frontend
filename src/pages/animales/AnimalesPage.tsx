@@ -6,6 +6,7 @@ import "./animales.css";
 import { getAnimales } from "@/features/animales/services/animalesService";
 import type { Animal } from "@/features/animales/types";
 import { useAnimalesFiltros } from "@/features/animales/hooks/useAnimalesFiltros";
+import { formatFecha } from "@/features/animales/utils/formatDate";
 import { AnimalesFiltros } from "./AnimalesFiltros";
 
 const COLUMNAS = ["Caravana", "Raza", "Sexo", "Fecha de nacimiento", "Estado"];
@@ -118,7 +119,11 @@ export function AnimalesPage() {
                     <Table.Cell>{animal.caravana ?? "—"}</Table.Cell>
                     <Table.Cell>{animal.raza}</Table.Cell>
                     <Table.Cell>{animal.sexo}</Table.Cell>
-                    <Table.Cell>{animal.fecha_nacimiento ?? "—"}</Table.Cell>
+                    <Table.Cell>
+                      {animal.fecha_nacimiento
+                        ? formatFecha(animal.fecha_nacimiento)
+                        : "—"}
+                    </Table.Cell>
                     <Table.Cell>{animal.estado}</Table.Cell>
                   </Table.Row>
                 ))
