@@ -8,7 +8,7 @@ import LoginPage from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/Dashboard";
 import { AnimalesPage } from "@/pages/animales/AnimalesPage";
 import { AnimalDetailPage } from "@/pages/animales/AnimalDetailPage";
-import { EvaluacionesPage } from "@/pages/Evaluaciones";
+import { SesionesPage } from "@/pages/evaluaciones/SesionesPage";
 import AnimalesNuevoPage from "@/pages/animales/AnimalesNuevoPage";
 
 export const router = createBrowserRouter([
@@ -34,8 +34,11 @@ export const router = createBrowserRouter([
             children: [{ path: "nuevo", element: <AnimalesNuevoPage /> }],
           },
           { path: "/animales/:id", element: <AnimalDetailPage /> },
-
-          { path: "/evaluaciones", element: <EvaluacionesPage /> },
+          {
+            path: "/sesiones",
+            element: <SesionesPage />,
+            // children: [{ path: "nuevo", element: <AnimalesNuevoPage /> }],
+          },
         ],
       },
     ],
