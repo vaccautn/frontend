@@ -3,15 +3,8 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button, Table } from "@chakra-ui/react";
 import { IconPlus } from "@tabler/icons-react";
 import "./animales.css";
-import {
-  getAnimalesAgrupadosPorLote,
-  getEvaluacionesCc,
-} from "@/features/animales/services/animalesService";
-import type {
-  Animal,
-  AnimalLoteGroup,
-  EvaluacionCC,
-} from "@/features/animales/types";
+import { getAnimalesAgrupadosPorLote } from "@/features/animales/services/animalesService";
+import type { Animal, AnimalLoteGroup } from "@/features/animales/types";
 import { useAnimalesFiltros } from "@/features/animales/hooks/useAnimalesFiltros";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { AnimalesFiltros } from "./AnimalesFiltros";
@@ -26,15 +19,7 @@ export function AnimalesPage() {
   const navigate = useNavigate();
   const location = useLocation();
   const [grupos, setGrupos] = useState<AnimalLoteGroup[]>([]);
-  const [animalSeleccionado, setAnimalSeleccionado] = useState<Animal | null>(
-    null,
-  );
-  const [evaluacionesAnimal, setEvaluacionesAnimal] = useState<EvaluacionCC[]>(
-    [],
-  );
-  const [evaluacionesLoading, setEvaluacionesLoading] = useState(false);
-  const [evaluacionesError, setEvaluacionesError] = useState("");
-  const [animalParaBaja, setAnimalParaBaja] = useState<Animal | null>(null);
+
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
