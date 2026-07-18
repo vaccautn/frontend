@@ -1,0 +1,31 @@
+.sesiones-histograma {
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  height: 34px;
+}
+
+.sesiones-histograma__barra-wrapper {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  height: 100%;
+  gap: 2px;
+}
+
+.sesiones-histograma__barra {
+  width: 10px;
+  min-height: 3px;
+  border-radius: 2px;
+  background: var(--accent-strong);
+}
+
+.sesiones-histograma__label {
+  font-size: 0.65rem;
+  color: var(--text);
+}
+
+.sesiones-histograma__empty {
+  color: var(--text);
+}

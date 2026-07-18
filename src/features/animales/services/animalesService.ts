@@ -79,9 +79,22 @@ export function getAnimal(id: number): Promise<Animal> {
   return getJson<Animal>(`/animales/${id}/`, token);
 }
 
-export function getEvaluacionesCc(animalId: number): Promise<EvaluacionCC[]> {
+type EvaluacionesFiltros = {
+  animalId?: number;
+  sesionId?: number;
+};
+
+export function getEvaluacionesCc(
+  filtros: EvaluacionesFiltros,
+): Promise<EvaluacionCC[]> {
   const token = getAccessToken();
-  const searchParams = new URLSearchParams({ animal_id: animalId.toString() });
+  const searchParams = new URLSearchParams();
+  if (filtros.animalId !== undefined) {
+    searchParams.set("animal_id", filtros.animalId.toString());
+  }
+  if (filtros.sesionId !== undefined) {
+    searchParams.set("sesion_id", filtros.sesionId.toString());
+  }
 
   return getJson<EvaluacionCC[]>(
     `/evaluaciones-cc/?${searchParams.toString()}`,

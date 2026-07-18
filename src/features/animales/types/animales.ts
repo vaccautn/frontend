@@ -86,6 +86,7 @@ export type EvaluacionCC = {
 };
 
 export type RegisterEvaluacionCCPayload = {
+  sesion_id: number;
   animal_id: number;
   valor_cc: number;
   escala_min: number;

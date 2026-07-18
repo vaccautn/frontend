@@ -24,7 +24,11 @@ import {
   IconPlus,
   IconTrash,
 } from "@tabler/icons-react";
-import type { Animal, EstadoAnimal, EvaluacionCC } from "@/features/animales/types";
+import type {
+  Animal,
+  EstadoAnimal,
+  EvaluacionCC,
+} from "@/features/animales/types";
 import {
   getAnimal,
   getEvaluacionesCc,
@@ -114,7 +118,7 @@ export function AnimalDetailPage() {
     setEvaluacionesError("");
 
     try {
-      const history = await getEvaluacionesCc(animalId);
+      const history = await getEvaluacionesCc({ animalId });
 
       if (latestEvaluacionesRequestId.current !== requestId) return;
 
