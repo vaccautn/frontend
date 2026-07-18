@@ -1,6 +1,23 @@
+.section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 2rem;
+  gap: 1rem;
+
+  .primary-btn {
+    height: fit-content;
+    padding-block: 0.75rem;
+  }
+}
+
+.title-and-description {
+  max-width: 800px;
+}
+
 .animales-table__wrapper {
   width: 100%;
-  max-width: 1200px;
+
   margin-top: 1rem;
   border: 1px solid var(--border);
   border-radius: 4px;
@@ -135,6 +152,19 @@
   text-transform: uppercase;
 }
 
+.animal-detail__header-end {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.6rem;
+}
+
+.animal-detail__header-actions {
+  display: flex;
+  gap: 0.4rem;
+  margin-top: 1.9rem;
+}
+
 .animal-detail__body {
   flex: 1;
 }
@@ -165,13 +195,6 @@
   margin: 0.2rem 0 0;
   color: var(--text-h);
   font-weight: 700;
-}
-
-.animal-detail__footer {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  border-top: 1px solid var(--border);
 }
 
 .animal-detail__section {
@@ -217,22 +240,27 @@
 
 .animal-detail__empty {
   padding: 1rem;
-  border: 1px dashed var(--border);
-  border-radius: 8px;
-  background: var(--bg);
+  text-align: center;
 }
 
 .animal-evaluaciones__list {
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 0.85rem;
+}
+
+@media (max-width: 900px) {
+  .animal-evaluaciones__list {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 .animal-evaluaciones__item {
   padding: 1rem;
   border: 1px solid var(--border);
-  border-radius: 8px;
-  background: var(--bg);
+  border-radius: 4px;
+  background: var(--panel);
+  overflow: hidden;
 }
 
 .animal-evaluaciones__item-header {
@@ -240,8 +268,137 @@
   align-items: center;
   justify-content: space-between;
   gap: 1rem;
-  margin-bottom: 0.35rem;
-  color: var(--text-h);
+  margin: -1rem -1rem 0.85rem;
+  padding: 0.6rem 1rem;
+  background: var(--verde-pastel);
+  border-bottom: 1px solid var(--border);
+  color: var(--accent-strong);
+}
+
+.animal-evaluaciones__item-header > span {
+  opacity: 0.75;
+}
+
+/* ── Codificación semáforo según el valor de CC ── */
+
+.animal-evaluaciones__item-header--cc-3 {
+  background: var(--success-bg);
+  border-bottom-color: var(--success-border);
+  color: var(--success);
+}
+
+.animal-evaluaciones__item-header--cc-4 {
+  background: var(--warning-bg);
+  border-bottom-color: var(--warning-border);
+  color: var(--warning);
+}
+
+.animal-evaluaciones__item-header--cc-2 {
+  background: var(--orange-bg);
+  border-bottom-color: var(--orange-border);
+  color: var(--orange);
+}
+
+.animal-evaluaciones__item-header--cc-1,
+.animal-evaluaciones__item-header--cc-5 {
+  background: var(--danger-bg);
+  border-bottom-color: var(--danger-border);
+  color: var(--danger);
+}
+
+.animal-evaluaciones__value {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.animal-evaluaciones__edit-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  opacity: 0;
+  transition: opacity 0.15s, background 0.15s, color 0.15s;
+}
+
+.animal-evaluaciones__item:hover .animal-evaluaciones__edit-trigger-btn,
+.animal-evaluaciones__edit-trigger-btn:focus-visible {
+  opacity: 1;
+}
+
+.animal-evaluaciones__edit-trigger-btn:hover {
+  background: var(--panel);
+  color: var(--accent-strong);
+}
+
+.animal-evaluaciones__edit {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.animal-evaluaciones__edit-trigger {
+  min-height: 32px;
+  padding: 0.3rem 0.6rem;
+  font-size: 0.85rem;
+  width: auto;
+}
+
+.animal-evaluaciones__edit-confirm,
+.animal-evaluaciones__edit-cancel {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 40px;
+  height: 32px;
+  padding: 0 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  cursor: pointer;
+  outline: none;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.animal-evaluaciones__edit-confirm {
+  border-color: var(--accent);
+  background: var(--accent-strong);
+  color: #ffffff;
+}
+
+.animal-evaluaciones__edit-confirm:hover {
+  background: var(--accent-strong);
+  border-color: var(--accent-strong);
+  filter: brightness(1.08);
+}
+
+.animal-evaluaciones__edit-confirm:focus-visible,
+.animal-evaluaciones__edit-cancel:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.animal-evaluaciones__edit-cancel {
+  color: var(--text);
+}
+
+.animal-evaluaciones__edit-cancel:hover {
+  background: var(--danger-bg);
+  border-color: var(--danger-border);
+  color: var(--danger);
+}
+
+.animal-evaluaciones__edit-confirm:disabled,
+.animal-evaluaciones__edit-cancel:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+  filter: none;
 }
 
 .animal-evaluaciones__meta {
@@ -253,15 +410,18 @@
 .animal-detail__action {
   display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  min-height: 38px;
-  padding: 0.5rem 0.9rem;
-  border: 1px solid var(--border);
+  gap: 0.35rem;
+  min-height: 30px;
+  padding: 0.3rem 0.6rem;
+  border: none;
   border-radius: 6px;
-  background: var(--panel);
+  background: transparent;
   color: var(--text-h);
   cursor: pointer;
   font: inherit;
+  font-size: 0.88rem;
+  opacity: 0.9;
+  transition: background 0.15s, opacity 0.15s;
 }
 
 .animal-detail__action-tooltip-target {
@@ -273,28 +433,25 @@
 }
 
 .animal-detail__action:hover {
-  border-color: var(--accent);
   color: var(--accent-strong);
   background: var(--verde-pastel);
+  opacity: 1;
 }
 
 .animal-detail__action--danger {
-  border-color: var(--danger-border);
   color: var(--danger);
 }
 
 .animal-detail__action--danger:hover {
   background: var(--danger-bg);
-  border-color: var(--danger);
   color: var(--danger);
 }
 
 .animal-detail__action:disabled,
 .animal-detail__action[aria-disabled="true"] {
-  background: var(--bg);
-  border-color: var(--border);
+  background: transparent;
   color: var(--text);
-  opacity: 0.7;
+  opacity: 0.25;
   cursor: not-allowed;
 }
 
@@ -304,7 +461,7 @@
 
 .animal-detail__action--danger:disabled,
 .animal-detail__action--danger[aria-disabled="true"] {
-  background: var(--bg);
+  background: transparent;
   border-color: var(--border);
   color: var(--text);
 }
@@ -375,9 +532,203 @@
 }
 
 .animal-evaluacion__dialog {
-  width: min(640px, calc(100vw - 2rem));
+  width: min(800px, calc(100vw - 2rem)) !important;
+  max-width: min(800px, calc(100vw - 2rem)) !important;
   background: var(--panel);
   box-shadow: var(--shadow);
+}
+
+.animal-imagenes__loading {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.animal-imagenes__grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.6rem;
+  margin-top: 0.75rem;
+}
+
+.animal-imagenes__thumb {
+  position: relative;
+  width: 68px;
+  height: 68px;
+  padding: 0;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  overflow: hidden;
+  background: var(--bg);
+  cursor: zoom-in;
+  transition: border-color 0.15s;
+}
+
+.animal-imagenes__thumb img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  display: block;
+}
+
+.animal-imagenes__thumb:hover {
+  border-color: var(--accent);
+}
+
+.animal-imagenes__thumb:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.animal-imagenes__add-thumb {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 68px;
+  height: 68px;
+  border: 1px dashed var(--border);
+  border-radius: 8px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.animal-imagenes__add-thumb:hover {
+  background: var(--verde-pastel);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.animal-imagenes__add-thumb:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.animal-imagenes__menu-delete-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--danger);
+}
+
+.animal-evaluacion__valor-menu [data-part="item"].animal-imagenes__menu-delete-item[data-highlighted] {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.animal-imagenes__confirm-dialog {
+  width: min(360px, calc(100vw - 2rem)) !important;
+  max-width: min(360px, calc(100vw - 2rem)) !important;
+  padding: 1.25rem;
+  border-radius: 10px;
+  background: var(--panel);
+  box-shadow: var(--shadow);
+}
+
+.animal-imagenes__confirm-body {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.animal-imagenes__confirm-body p {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 0.92rem;
+}
+
+.animal-imagenes__confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+.animal-imagenes__confirm-cancel,
+.animal-imagenes__confirm-delete {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 90px;
+  padding: 0.45rem 0.9rem;
+  border-radius: 6px;
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.animal-imagenes__confirm-cancel {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-h);
+}
+
+.animal-imagenes__confirm-cancel:hover {
+  background: var(--verde-pastel);
+  border-color: var(--accent);
+}
+
+.animal-imagenes__confirm-delete {
+  border: 1px solid var(--danger-border);
+  background: var(--danger);
+  color: #ffffff;
+}
+
+.animal-imagenes__confirm-delete:hover {
+  filter: brightness(1.08);
+}
+
+.animal-imagenes__confirm-delete:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+
+.animal-imagenes__lightbox {
+  position: fixed;
+  inset: 0;
+  z-index: 1600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 2rem;
+  background: rgba(15, 22, 17, 0.85);
+  cursor: zoom-out;
+  /* El Dialog de imágenes pone pointer-events: none en <body> mientras está
+     abierto; como este overlay es un portal hermano (no anidado dentro del
+     Dialog), hay que reactivar explícitamente los eventos de puntero acá. */
+  pointer-events: auto;
+}
+
+.animal-imagenes__lightbox img {
+  max-width: 100%;
+  max-height: 100%;
+  border-radius: 8px;
+  box-shadow: var(--shadow);
+  cursor: default;
+}
+
+.animal-imagenes__lightbox-close {
+  position: fixed;
+  top: 1.25rem;
+  right: 1.25rem;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  border-radius: 8px;
+  background: rgba(21, 32, 25, 0.55);
+  color: #ffffff;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.animal-imagenes__lightbox-close:hover {
+  background: rgba(21, 32, 25, 0.85);
 }
 
 .animal-evaluacion__header {
@@ -392,6 +743,7 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  padding-block: 1rem;
 }
 
 .animal-evaluacion__eyebrow {
@@ -411,21 +763,81 @@
 }
 
 .animal-evaluacion__summary div {
-  padding: 0.85rem;
+  padding: 0.85rem 0.95rem;
   border: 1px solid var(--border);
   border-radius: 8px;
-  background: var(--bg);
+  background: var(--panel);
+  transition: border-color 0.15s;
+}
+
+.animal-evaluacion__summary div:hover {
+  border-color: var(--accent-strong);
 }
 
 .animal-evaluacion__summary dt {
   color: var(--text);
-  font-size: 0.78rem;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .animal-evaluacion__summary dd {
-  margin: 0.2rem 0 0;
+  margin: 0.3rem 0 0;
   color: var(--text-h);
   font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.animal-evaluacion__valor-trigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  width: 100%;
+  min-height: 42px;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.95rem;
+  cursor: pointer;
+}
+
+.animal-evaluacion__valor-trigger:hover {
+  border-color: var(--accent-strong);
+}
+
+.animal-evaluacion__valor-trigger[data-state="open"] {
+  border-color: var(--accent-strong);
+}
+
+.animal-evaluacion__valor-caret {
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.animal-evaluacion__valor-menu {
+  min-width: 200px;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  box-shadow: var(--shadow);
+  padding: 0.4rem;
+}
+
+.animal-evaluacion__valor-menu [data-part="item"] {
+  padding: 0.5rem 0.65rem;
+  border-radius: 6px;
+  color: var(--text-h);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.animal-evaluacion__valor-menu [data-part="item"][data-highlighted] {
+  background: var(--verde-pastel);
 }
 
 .animal-evaluacion__footer {
@@ -443,6 +855,36 @@
   justify-content: center;
   padding: 1rem;
   background: rgba(21, 32, 25, 0.48);
+}
+
+.chakra-radio-card__root {
+  width: 100% !important;
+}
+
+.chakra-radio-card__item,
+.chakra-radio-card__item .radio {
+  transition: 0.3s ease;
+}
+
+.chakra-radio-card__item:hover,
+.chakra-radio-card__item:hover .radio {
+  cursor: pointer;
+  border-color: var(--verde-vacca);
+}
+
+.chakra-radio-card__item:is(
+  :checked,
+  [data-checked],
+  [aria-checked="true"],
+  [data-state="checked"]
+) {
+  box-shadow: 0 0 0 1px var(--verde-vacca);
+  --shadow-color: var(--verde-vacca);
+  border-color: var(--verde-vacca);
+}
+
+.radio[data-checked] {
+  background-color: var(--verde-vacca) !important;
 }
 
 .baja-modal {
@@ -475,6 +917,11 @@
   font-size: 0.78rem;
   font-weight: 700;
   text-transform: uppercase;
+}
+
+.chakra-dialog__closeTrigger {
+  top: 24px;
+  right: 24px;
 }
 
 .baja-modal__close {
@@ -627,15 +1074,69 @@
   border-radius: 4px;
 }
 
-.animales-filtros__select {
+.animales-filtros__dropdown {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
   flex: 0 1 160px;
   min-width: 140px;
+  min-height: 38px;
+  padding: 0.45rem 0.7rem;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  color: var(--text-h);
+  font: inherit;
+  font-size: 0.9rem;
+  border-radius: 4px;
+  cursor: pointer;
 }
 
-.animales-filtros__select select {
-  min-height: 38px;
+.animales-filtros__dropdown:hover {
+  background: var(--verde-pastel);
+}
+
+.animales-filtros__dropdown[data-state="open"] {
+  background: var(--verde-pastel);
+}
+
+.animales-filtros__dropdown span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.animales-filtros__dropdown-caret {
+  color: var(--text);
+  flex-shrink: 0;
+}
+
+.animales-filtros__dropdown-menu {
+  min-width: 180px;
   background: var(--panel);
+  border: 1px solid var(--border);
   border-radius: 4px;
+  box-shadow: var(--shadow);
+  padding: 0.4rem;
+}
+
+.animales-filtros__dropdown-menu [data-part="item"] {
+  display: flex;
+  align-items: center;
+  padding: 0.55rem 0.65rem;
+  border-radius: 6px;
+  color: var(--text-h);
+  font-size: 0.9rem;
+  cursor: pointer;
+}
+
+.animales-filtros__dropdown-menu [data-part="item"][data-highlighted] {
+  background: var(--verde-pastel);
+}
+
+.animales-filtros__dropdown-menu [data-part="separator"] {
+  margin: 0.3rem 0;
+  border-color: var(--border);
 }
 
 /* ── Sex toggle ── */
@@ -662,7 +1163,9 @@
   font-size: 1.05rem;
   cursor: pointer;
   line-height: 1;
-  transition: background 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s;
 }
 
 .animales-filtros__toggle-btn:first-child {
@@ -686,7 +1189,242 @@
   color: #ffffff;
 }
 
+.chakra-file-upload__item {
+  display: flex;
+  padding: 4px;
+  justify-content: space-between;
+  align-items: center;
+
+  > svg {
+    fill: #888;
+  }
+  img {
+    width: 60px;
+    height: 60px;
+    border-radius: 4px;
+  }
+  div {
+    display: flex;
+    gap: 1rem;
+  }
+}
+
+.delete-file {
+  place-self: center;
+  margin-right: 1rem;
+}
+
+.align-baseline {
+  display: flex;
+  gap: 2px !important;
+  flex-direction: column;
+  justify-content: center;
+}
+
+.upload-icon {
+  justify-content: space-between;
+}
+
+.info-de-fecha {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding-inline: 1.5rem;
+
+  svg {
+    fill: #888;
+  }
+}
+
+/* ── AnimalDetailPage — full-page layout ── */
+
+.animal-page {
+  /* intentionally no max-width constraint here; the AppLayout already caps at 1400 px */
+}
+
+.animal-page__topbar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  margin-bottom: 0.15rem;
+}
+
+.animal-page__back-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.88rem;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, color 0.15s;
+}
+
+.animal-page__back-btn:hover {
+  background: var(--verde-pastel);
+  border-color: var(--accent);
+  color: var(--accent-strong);
+}
+
+.animal-page__back-btn:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.animal-page__hero {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem;
+  padding-bottom: 1.5rem;
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.animal-page__eyebrow {
+  display: block;
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  margin-bottom: 0.2rem;
+}
+
+.animal-page__details-toggle {
+  margin-bottom: 1.25rem;
+  transition: background 0.15s ease, border-color 0.15s ease;
+}
+
+.animal-page__details-toggle:hover {
+  background: var(--verde-pastel) !important;
+  border-color: var(--accent) !important;
+}
+
+.animal-page__back-link {
+  opacity: 0.85;
+  transition: opacity 0.15s ease;
+}
+
+.animal-page__back-link:hover {
+  opacity: 1;
+}
+
+.animal-page__details-toggle-icon {
+  transition: transform 0.15s;
+}
+
+.animal-page__details-toggle-icon--open {
+  transform: rotate(180deg);
+}
+
+.animal-page__grid-collapse {
+  display: grid;
+  grid-template-rows: 0fr;
+  transition: grid-template-rows 0.25s ease;
+}
+
+.animal-page__grid-collapse--open {
+  grid-template-rows: 1fr;
+}
+
+.animal-page__grid-collapse-inner {
+  overflow: hidden;
+  min-height: 0;
+}
+
+.animal-page__grid-wrapper {
+  position: relative;
+  margin-bottom: 2rem;
+}
+
+.animal-page__details-divider {
+  margin-bottom: 1.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.animal-page__grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 1.1rem 1.5rem;
+  padding-bottom: 3rem;
+}
+
+.animal-page__grid-actions {
+  position: absolute;
+  right: 0;
+  bottom: 0.5rem;
+  display: flex;
+  gap: 0.4rem;
+  opacity: 0;
+  transform: translateY(4px);
+  pointer-events: none;
+  transition: opacity 0.15s ease, transform 0.15s ease;
+}
+
+.animal-page__grid-wrapper:hover .animal-page__grid-actions,
+.animal-page__grid-actions:focus-within {
+  opacity: 1;
+  transform: translateY(0);
+  pointer-events: auto;
+}
+
+.animal-page__grid div {
+  padding: 0;
+  border: none;
+  background: transparent;
+}
+
+.animal-page__grid-field--full {
+  grid-column: 1 / -1;
+}
+
+.animal-page__grid dt {
+  display: block;
+  margin-bottom: 0.3rem;
+  color: var(--text-h);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+}
+
+.animal-page__grid dd {
+  margin: 0;
+  color: var(--accent);
+  font-weight: 700;
+}
+
+/* ── AnimalesEditarPage — full-page form layout ── */
+
+.animal-edit-page__form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1.1rem 1.25rem;
+}
+
+.animal-edit-page__form > .animal-edit-page__field--full {
+  grid-column: 1 / -1;
+}
+
+.animal-edit-page__actions {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid var(--border);
+  margin-top: 0.25rem;
+}
+
 @media (max-width: 720px) {
+  .animal-evaluaciones__list {
+    grid-template-columns: 1fr;
+  }
+
   .animales-table__wrapper {
     overflow-x: auto;
   }
@@ -726,7 +1464,30 @@
     align-self: flex-start;
   }
 
-  .animales-filtros__select {
+  .animales-filtros__dropdown {
     flex: 1 1 100%;
+  }
+
+  .animal-page__grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .animal-page__topbar {
+    flex-wrap: wrap;
+  }
+
+  .animal-edit-page__form {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 480px) {
+  .animal-page__grid {
+    grid-template-columns: 1fr;
+  }
+
+  .animal-page__hero {
+    flex-direction: column;
+    gap: 0.75rem;
   }
 }
