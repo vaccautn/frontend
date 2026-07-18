@@ -8,7 +8,8 @@ import LoginPage from "@/pages/LoginPage";
 import { DashboardPage } from "@/pages/Dashboard";
 import { AnimalesPage } from "@/pages/animales/AnimalesPage";
 import { AnimalDetailPage } from "@/pages/animales/AnimalDetailPage";
-import { SesionesPage } from "@/pages/evaluaciones/SesionesPage";
+import { SesionesPage } from "@/pages/sesiones/SesionesPage";
+
 import AnimalesNuevoPage from "@/pages/animales/AnimalesNuevoPage";
 
 export const router = createBrowserRouter([

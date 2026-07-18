@@ -10,11 +10,19 @@ import {
 } from "@tabler/icons-react";
 
 const navItems = [
-  { label: "Inicio", to: "/dashboard", icon: <IconHome2 size={20} stroke={1} /> },
-  { label: "Animales", to: "/animales", icon: <IconList size={20} stroke={1} /> },
   {
-    label: "Evaluaciones",
-    to: "/evaluaciones",
+    label: "Inicio",
+    to: "/dashboard",
+    icon: <IconHome2 size={20} stroke={1} />,
+  },
+  {
+    label: "Animales",
+    to: "/animales",
+    icon: <IconList size={20} stroke={1} />,
+  },
+  {
+    label: "Sesiones",
+    to: "/sesiones",
     icon: <IconChartBar size={20} stroke={1} />,
   },
 ];
