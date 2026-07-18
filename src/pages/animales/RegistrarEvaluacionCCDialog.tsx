@@ -18,14 +18,15 @@ import { DEFAULT_CC_SCALE } from "@/features/animales/constants";
 import { registerEvaluacionCc } from "@/features/animales/services/animalesService";
 import type { Animal } from "@/features/animales/types";
 import { ApiError } from "@/services/httpClient";
+import { getSesionActiva } from "@/features/sesiones/services/sesionesService";
 
 type RegistrarEvaluacionCCDialogProps = {
   animal: Animal | null;
   open: boolean;
+  sesionId?: number;
   onClose: () => void;
   onSuccess: () => Promise<void> | void;
 };
-
 type FormValues = {
   valorCc: string;
   observaciones: string;
@@ -43,6 +44,7 @@ const INITIAL_VALUES: FormValues = {
 export function RegistrarEvaluacionCCDialog({
   animal,
   open,
+  sesionId,
   onClose,
   onSuccess,
 }: RegistrarEvaluacionCCDialogProps) {
@@ -83,7 +85,6 @@ export function RegistrarEvaluacionCCDialog({
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-
     if (isSubmitting || !animal) return;
 
     if (animal.estado !== "ACTIVO") {
@@ -116,8 +117,12 @@ export function RegistrarEvaluacionCCDialog({
     if (Object.keys(nextErrors).length > 0) return;
 
     setIsSubmitting(true);
+
     try {
+      const sesionIdFinal = sesionId ?? (await getSesionActiva()).id;
+
       const evaluacionCreada = await registerEvaluacionCc({
+        sesion_id: sesionIdFinal,
         animal_id: animal.id,
         valor_cc: Number(normalizedScore),
         escala_min: DEFAULT_CC_SCALE.min,

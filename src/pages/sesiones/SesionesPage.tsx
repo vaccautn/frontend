@@ -1,10 +1,14 @@
 import { useCallback, useEffect, useState } from "react";
-import { Table } from "@chakra-ui/react";
+import { Table, Button } from "@chakra-ui/react";
 import { getSesionesConResumen } from "@/features/sesiones/services/sesionesService";
 import type { SesionCaptura } from "@/features/sesiones/types";
 import { SesionCCHistograma } from "./SesionCCHistograma";
 import "@/pages/animales/animales.css";
 import "./sesiones.css";
+import { useNavigate } from "react-router-dom";
+import { toast } from "react-toastify";
+import { IconPlus } from "@tabler/icons-react";
+import { crearSesion } from "@/features/sesiones/services/sesionesService";
 
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-AR", {
   dateStyle: "short",
@@ -21,6 +25,20 @@ export function SesionesPage() {
   const [sesiones, setSesiones] = useState<SesionCaptura[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
+  const navigate = useNavigate();
+  const [isStarting, setIsStarting] = useState(false);
+
+  const handleIniciarSesion = async () => {
+    setIsStarting(true);
+    try {
+      const nuevaSesion = await crearSesion();
+      navigate(`/sesiones/${nuevaSesion.id}/cargar`);
+    } catch {
+      toast.error("No se pudo iniciar la sesión de evaluación.");
+    } finally {
+      setIsStarting(false);
+    }
+  };
 
   const fetchSesiones = useCallback(() => {
     setLoading(true);
@@ -41,6 +59,13 @@ export function SesionesPage() {
         <div className="title-and-description">
           <h1>Sesiones de evaluación</h1>
         </div>
+        <Button
+          colorPalette="brand"
+          onClick={handleIniciarSesion}
+          loading={isStarting}>
+          <IconPlus size={18} stroke={1.5} />
+          Iniciar sesión de evaluación
+        </Button>
       </div>
 
       {loading && <p>Cargando...</p>}
