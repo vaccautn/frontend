@@ -324,7 +324,10 @@
   color: var(--text);
   cursor: pointer;
   opacity: 0;
-  transition: opacity 0.15s, background 0.15s, color 0.15s;
+  transition:
+    opacity 0.15s,
+    background 0.15s,
+    color 0.15s;
 }
 
 .animal-evaluaciones__item:hover .animal-evaluaciones__edit-trigger-btn,
@@ -363,7 +366,10 @@
   background: var(--panel);
   cursor: pointer;
   outline: none;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .animal-evaluaciones__edit-confirm {
@@ -421,11 +427,33 @@
   font: inherit;
   font-size: 0.88rem;
   opacity: 0.9;
-  transition: background 0.15s, opacity 0.15s;
+  transition:
+    background 0.15s,
+    opacity 0.15s;
 }
 
 .animal-detail__action-tooltip-target {
   display: inline-flex;
+}
+.animal-form__lote-toggle {
+  display: flex;
+  gap: 4px;
+  transition: all 0.2s ease;
+}
+
+.animal-form__lote-toggle:hover {
+  color: var(--verde-confirmacion);
+}
+.animal-form__link-button {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.label_button {
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
 }
 
 .animal-detail__action-tooltip-target--disabled {
@@ -593,7 +621,10 @@
   background: transparent;
   color: var(--text);
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .animal-imagenes__add-thumb:hover {
@@ -614,7 +645,8 @@
   color: var(--danger);
 }
 
-.animal-evaluacion__valor-menu [data-part="item"].animal-imagenes__menu-delete-item[data-highlighted] {
+.animal-evaluacion__valor-menu
+  [data-part="item"].animal-imagenes__menu-delete-item[data-highlighted] {
   background: var(--danger-bg);
   color: var(--danger);
 }
@@ -657,7 +689,10 @@
   font: inherit;
   font-size: 0.88rem;
   cursor: pointer;
-  transition: background 0.15s, color 0.15s, border-color 0.15s;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    border-color 0.15s;
 }
 
 .animal-imagenes__confirm-cancel {
@@ -1262,7 +1297,10 @@
   font: inherit;
   font-size: 0.88rem;
   cursor: pointer;
-  transition: background 0.15s, border-color 0.15s, color 0.15s;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
 }
 
 .animal-page__back-btn:hover {
@@ -1297,7 +1335,9 @@
 
 .animal-page__details-toggle {
   margin-bottom: 1.25rem;
-  transition: background 0.15s ease, border-color 0.15s ease;
+  transition:
+    background 0.15s ease,
+    border-color 0.15s ease;
 }
 
 .animal-page__details-toggle:hover {
@@ -1363,7 +1403,9 @@
   opacity: 0;
   transform: translateY(4px);
   pointer-events: none;
-  transition: opacity 0.15s ease, transform 0.15s ease;
+  transition:
+    opacity 0.15s ease,
+    transform 0.15s ease;
 }
 
 .animal-page__grid-wrapper:hover .animal-page__grid-actions,
