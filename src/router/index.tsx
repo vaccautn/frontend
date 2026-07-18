@@ -34,6 +34,7 @@ export const router = createBrowserRouter([
             children: [{ path: "nuevo", element: <AnimalesNuevoPage /> }],
           },
           { path: "/animales/:id", element: <AnimalDetailPage /> },
+
           { path: "/evaluaciones", element: <EvaluacionesPage /> },
         ],
       },
