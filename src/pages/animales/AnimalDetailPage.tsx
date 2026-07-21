@@ -489,7 +489,7 @@ export function AnimalDetailPage() {
                 <h2>Historial de evaluaciones</h2>
               </div>
 
-              <span
+              {/* <span
                 title={
                   canRegisterEvaluation
                     ? undefined
@@ -502,7 +502,7 @@ export function AnimalDetailPage() {
                   <IconPlus size={18} stroke={1.5} />
                   Registrar evaluación de CC
                 </Button>
-              </span>
+              </span> */}
             </div>
 
             {evaluacionesLoading && <p>Cargando historial...</p>}

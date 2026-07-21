@@ -12,6 +12,8 @@ import { crearSesion } from "@/features/sesiones/services/sesionesService";
 
 const PAGE_SIZE = 20;
 
+const CC_VALORES = ["1", "2", "3", "4", "5"] as const;
+
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-AR", {
   dateStyle: "short",
   timeStyle: "short",
@@ -125,15 +127,21 @@ export function SesionesPage() {
                 <Table.ColumnHeader>Fecha</Table.ColumnHeader>
                 <Table.ColumnHeader>Estado</Table.ColumnHeader>
                 <Table.ColumnHeader>Evaluaciones</Table.ColumnHeader>
-                <Table.ColumnHeader>Mediana CC</Table.ColumnHeader>
+                <Table.ColumnHeader>Promedio CC</Table.ColumnHeader>
                 <Table.ColumnHeader>Rango</Table.ColumnHeader>
-                <Table.ColumnHeader>Distribución</Table.ColumnHeader>
+                {CC_VALORES.map((v) => (
+                  <Table.ColumnHeader
+                    key={v}
+                    className="sesiones-table__cc-header">
+                    CC {v}
+                  </Table.ColumnHeader>
+                ))}
               </Table.Row>
             </Table.Header>
             <Table.Body>
               {sesiones.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={6}>
+                  <Table.Cell colSpan={5 + CC_VALORES.length}>
                     No se encontraron sesiones registradas.
                   </Table.Cell>
                 </Table.Row>
@@ -156,9 +164,11 @@ export function SesionesPage() {
                         ? `${sesion.valor_cc_min} – ${sesion.valor_cc_max}`
                         : "—"}
                     </Table.Cell>
-                    <Table.Cell>
-                      <SesionCCHistograma distribucion={sesion.distribucion} />
-                    </Table.Cell>
+                    {CC_VALORES.map((v) => (
+                      <Table.Cell key={v} className="sesiones-table__cc-cell">
+                        {sesion.distribucion[v] ?? 0}
+                      </Table.Cell>
+                    ))}
                   </Table.Row>
                 ))
               )}
