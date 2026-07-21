@@ -11,6 +11,7 @@ import type {
   Animal,
   AnimalLoteGroup,
   AnimalListParams,
+  DashboardAnimalesData,
   EvaluacionCC,
   EvidenciaImagenRead,
   RegisterAnimalPayload,
@@ -169,4 +170,15 @@ export function getImagenesEvaluacion(
 export function eliminarImagenEvaluacion(evidenciaId: number): Promise<void> {
   const token = getAccessToken();
   return deleteRequest(`/evidencias-visuales/${evidenciaId}`, token);
+}
+
+export function getAnimalesDashboard(
+  loteId?: number | null,
+): Promise<DashboardAnimalesData> {
+  const token = getAccessToken();
+  const path =
+    loteId != null
+      ? `/animales/dashboard?lote_id=${loteId}`
+      : "/animales/dashboard";
+  return getJson<DashboardAnimalesData>(path, token);
 }
