@@ -1,10 +1,14 @@
 import { getJson, postJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
-import type { SesionCaptura, SesionListParams } from "../types";
+import type {
+  PaginatedSesionesResumenResponse,
+  SesionCaptura,
+  SesionListParams,
+} from "../types";
 
 export function getSesionesConResumen(
   params: SesionListParams = {},
-): Promise<SesionCaptura[]> {
+): Promise<PaginatedSesionesResumenResponse> {
   const token = getAccessToken();
   const query = new URLSearchParams();
   if (params.estado) query.set("estado", params.estado);
@@ -12,10 +16,12 @@ export function getSesionesConResumen(
     query.set("fecha_inicio_desde", params.fecha_inicio_desde);
   if (params.fecha_inicio_hasta)
     query.set("fecha_inicio_hasta", params.fecha_inicio_hasta);
+  query.set("limit", String(params.limit ?? 20));
+  query.set("offset", String(params.offset ?? 0));
 
   const qs = query.toString();
-  return getJson<SesionCaptura[]>(
-    `/sesiones-captura/con-resumen${qs ? `?${qs}` : ""}`,
+  return getJson<PaginatedSesionesResumenResponse>(
+    `/sesiones-captura/${qs ? `?${qs}` : ""}`,
     token,
   );
 }

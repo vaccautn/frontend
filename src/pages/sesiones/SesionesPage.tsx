@@ -1,5 +1,5 @@
-import { useCallback, useEffect, useState } from "react";
-import { Table, Button } from "@chakra-ui/react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { Table, Button, Spinner } from "@chakra-ui/react";
 import { getSesionesConResumen } from "@/features/sesiones/services/sesionesService";
 import type { SesionCaptura } from "@/features/sesiones/types";
 import { SesionCCHistograma } from "./SesionCCHistograma";
@@ -9,6 +9,8 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { IconPlus } from "@tabler/icons-react";
 import { crearSesion } from "@/features/sesiones/services/sesionesService";
+
+const PAGE_SIZE = 20;
 
 const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-AR", {
   dateStyle: "short",
@@ -24,9 +26,15 @@ const ESTADO_LABELS: Record<string, string> = {
 export function SesionesPage() {
   const [sesiones, setSesiones] = useState<SesionCaptura[]>([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
+  const [hasMore, setHasMore] = useState(false);
+  const [nextOffset, setNextOffset] = useState<number | null>(null);
   const navigate = useNavigate();
   const [isStarting, setIsStarting] = useState(false);
+
+  const sentinelRef = useRef<HTMLDivElement | null>(null);
+  const loadingMoreRef = useRef(false);
 
   const handleIniciarSesion = async () => {
     setIsStarting(true);
@@ -43,8 +51,12 @@ export function SesionesPage() {
   const fetchSesiones = useCallback(() => {
     setLoading(true);
     setError("");
-    getSesionesConResumen()
-      .then(setSesiones)
+    getSesionesConResumen({ limit: PAGE_SIZE, offset: 0 })
+      .then((res) => {
+        setSesiones(res.items);
+        setHasMore(res.has_more);
+        setNextOffset(res.next_offset);
+      })
       .catch(() => setError("No se pudieron cargar las sesiones."))
       .finally(() => setLoading(false));
   }, []);
@@ -52,6 +64,40 @@ export function SesionesPage() {
   useEffect(() => {
     fetchSesiones();
   }, [fetchSesiones]);
+
+  const cargarMas = useCallback(() => {
+    if (loadingMoreRef.current || !hasMore || nextOffset === null) return;
+    loadingMoreRef.current = true;
+    setLoadingMore(true);
+    getSesionesConResumen({ limit: PAGE_SIZE, offset: nextOffset })
+      .then((res) => {
+        setSesiones((prev) => [...prev, ...res.items]);
+        setHasMore(res.has_more);
+        setNextOffset(res.next_offset);
+      })
+      .catch(() => toast.error("No se pudieron cargar más sesiones."))
+      .finally(() => {
+        setLoadingMore(false);
+        loadingMoreRef.current = false;
+      });
+  }, [hasMore, nextOffset]);
+
+  useEffect(() => {
+    const sentinel = sentinelRef.current;
+    if (!sentinel) return;
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          cargarMas();
+        }
+      },
+      { rootMargin: "200px" },
+    );
+
+    observer.observe(sentinel);
+    return () => observer.disconnect();
+  }, [cargarMas]);
 
   return (
     <section>
@@ -118,6 +164,12 @@ export function SesionesPage() {
               )}
             </Table.Body>
           </Table.Root>
+
+          {hasMore && (
+            <div ref={sentinelRef} className="sesiones-table__sentinel">
+              {loadingMore && <Spinner size="sm" />}
+            </div>
+          )}
         </div>
       )}
     </section>

@@ -15,8 +15,16 @@ export type SesionCaptura = {
   distribucion: Record<string, number>;
 };
 
-export type SesionListParams = {
-  estado?: EstadoSesion;
+export interface SesionListParams {
+  estado?: string;
   fecha_inicio_desde?: string;
   fecha_inicio_hasta?: string;
-};
+  limit?: number;
+  offset?: number;
+}
+
+export interface PaginatedSesionesResumenResponse {
+  items: SesionCaptura[];
+  has_more: boolean;
+  next_offset: number | null;
+}
