@@ -11,7 +11,7 @@ import { AnimalDetailPage } from "@/pages/animales/AnimalDetailPage";
 import { SesionesPage } from "@/pages/sesiones/SesionesPage";
 
 import AnimalesNuevoPage from "@/pages/animales/AnimalesNuevoPage";
-import { CargarEvaluacionesPage } from "@/pages/sesiones/CargaraEvaluacionPage";
+import { CargarEvaluacionesPage } from "@/pages/sesiones/CargarEvaluacionPage";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard

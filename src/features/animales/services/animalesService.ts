@@ -18,6 +18,7 @@ import type {
   UpdateAnimalPayload,
   UpdateEvaluacionCCPayload,
 } from "@/features/animales/types";
+import { getSesionActiva } from "@/features/sesiones/services/sesionesService";
 
 export function registerAnimal(
   payload: RegisterAnimalPayload,
@@ -169,4 +170,45 @@ export function getImagenesEvaluacion(
 export function eliminarImagenEvaluacion(evidenciaId: number): Promise<void> {
   const token = getAccessToken();
   return deleteRequest(`/evidencias-visuales/${evidenciaId}`, token);
+}
+
+export interface RegistrarEvaluacionCCParams {
+  sesionId?: number;
+  animalId: number;
+  valorCc: number;
+  escalaMin: number;
+  escalaMax: number;
+  observaciones: string;
+  files?: File[];
+}
+
+export interface RegistrarEvaluacionCCResult {
+  evaluacion: EvaluacionCC;
+  imagenesConError: boolean;
+}
+
+export async function registrarEvaluacionCCCompleta(
+  params: RegistrarEvaluacionCCParams,
+): Promise<RegistrarEvaluacionCCResult> {
+  const sesionIdFinal = params.sesionId ?? (await getSesionActiva()).id;
+
+  const evaluacion = await registerEvaluacionCc({
+    sesion_id: sesionIdFinal,
+    animal_id: params.animalId,
+    valor_cc: params.valorCc,
+    escala_min: params.escalaMin,
+    escala_max: params.escalaMax,
+    observaciones: params.observaciones,
+  });
+
+  let imagenesConError = false;
+  if (params.files && params.files.length > 0) {
+    try {
+      await subirImagenesEvaluacion(evaluacion.id, params.files);
+    } catch {
+      imagenesConError = true;
+    }
+  }
+
+  return { evaluacion, imagenesConError };
 }
