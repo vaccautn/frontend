@@ -7,6 +7,7 @@ import {
   getAnimalesAgrupadosPorLote,
   registrarEvaluacionCCCompleta,
 } from "@/features/animales/services/animalesService";
+import { actualizarSesion } from "@/features/sesiones/services/sesionesService";
 import {
   RegistrarEvaluacionCCDialog,
   type EvaluacionCCPendiente,
@@ -60,11 +61,6 @@ export function CargarEvaluacionesPage() {
   );
 
   const handleFinalizarCarga = useCallback(async () => {
-    if (evaluaciones.size === 0) {
-      navigate("/sesiones");
-      return;
-    }
-
     setIsFinalizando(true);
     const entries = Array.from(evaluaciones.entries());
 
@@ -97,27 +93,47 @@ export function CargarEvaluacionesPage() {
       }
     });
 
-    setIsFinalizando(false);
-
     if (fallidos.length > 0) {
       // Sacamos las que sí se guardaron para no reenviarlas de nuevo.
+      // No cerramos la sesión: queda abierta para que el usuario reintente.
       setEvaluaciones((prev) => {
         const next = new Map(prev);
         exitosos.forEach((id) => next.delete(id));
         return next;
       });
+      setIsFinalizando(false);
       toast.error(
         `No se pudieron guardar ${fallidos.length} de ${entries.length} evaluación(es). Revisá e intentá de nuevo.`,
       );
       return;
     }
 
+    // Todas las evaluaciones se guardaron: limpiamos el estado local antes de
+    // intentar cerrar la sesión para que, si el cierre falla y el usuario
+    // reintenta, no se reenvíen evaluaciones que ya quedaron persistidas.
+    setEvaluaciones(new Map());
+
+    try {
+      await actualizarSesion(sesionId, {
+        estado: "CERRADA",
+        fecha_fin: new Date().toISOString(),
+      });
+    } catch {
+      setIsFinalizando(false);
+      toast.error(
+        "Las evaluaciones se guardaron, pero no se pudo cerrar la sesión. Intentá finalizar de nuevo.",
+      );
+      return;
+    }
+
+    setIsFinalizando(false);
+
     if (algunaImagenConError) {
       toast.warning(
         "Las evaluaciones se registraron, pero alguna imagen no pudo subirse.",
       );
     } else {
-      toast.success("Evaluaciones registradas correctamente.");
+      toast.success("Sesión finalizada correctamente.");
     }
     navigate("/sesiones");
   }, [evaluaciones, sesionId, navigate]);
@@ -133,7 +149,7 @@ export function CargarEvaluacionesPage() {
           <p>{evaluaciones.size} evaluación(es) cargadas en esta sesión.</p>
         </div>
         <Button
-          variant="outline"
+          colorPalette="brand"
           onClick={handleFinalizarCarga}
           loading={isFinalizando}
           loadingText="Guardando...">

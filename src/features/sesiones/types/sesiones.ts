@@ -28,3 +28,8 @@ export interface PaginatedSesionesResumenResponse {
   has_more: boolean;
   next_offset: number | null;
 }
+
+export interface SesionCapturaUpdatePayload {
+  estado?: string;
+  fecha_fin?: string;
+}
