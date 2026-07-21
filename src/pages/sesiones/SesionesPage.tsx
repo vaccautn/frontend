@@ -2,7 +2,6 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Table, Button, Spinner } from "@chakra-ui/react";
 import { getSesionesConResumen } from "@/features/sesiones/services/sesionesService";
 import type { SesionCaptura } from "@/features/sesiones/types";
-import { SesionCCHistograma } from "./SesionCCHistograma";
 import "@/pages/animales/animales.css";
 import "./sesiones.css";
 import { useNavigate } from "react-router-dom";
