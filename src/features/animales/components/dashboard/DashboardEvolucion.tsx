@@ -73,6 +73,13 @@ export function DashboardEvolucion({ evolucion, loading }: Props) {
             />
             <Tooltip
               formatter={(value: number) => [value.toFixed(2), "Promedio CC"]}
+              labelFormatter={(v: string) => {
+                const [year, month] = v.split("-").map(Number);
+                return new Date(year, month - 1, 1).toLocaleDateString(
+                  "es-AR",
+                  { month: "short", year: "numeric" },
+                );
+              }}
               contentStyle={{
                 background: "var(--panel)",
                 border: "1px solid var(--border)",
