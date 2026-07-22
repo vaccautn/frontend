@@ -48,7 +48,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  { path: "/", element: <Navigate to="/dashboard" replace /> },
-  // 404 -> Deberia haber una pag de 404 en vez de dashboard
-  { path: "*", element: <Navigate to="/dashboard" replace /> },
+  { path: "/", element: <Navigate to="/animales" replace /> },
+  // 404 -> Deberia haber una pag de 404 en vez de animales
+  { path: "*", element: <Navigate to="/animales" replace /> },
 ]);
