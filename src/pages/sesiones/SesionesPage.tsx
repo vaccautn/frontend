@@ -126,7 +126,7 @@ export function SesionesPage() {
                 <Table.ColumnHeader>Fecha</Table.ColumnHeader>
                 <Table.ColumnHeader>Estado</Table.ColumnHeader>
                 <Table.ColumnHeader>Evaluaciones</Table.ColumnHeader>
-                <Table.ColumnHeader>Promedio CC</Table.ColumnHeader>
+                <Table.ColumnHeader>Moda CC</Table.ColumnHeader>
                 <Table.ColumnHeader>Rango</Table.ColumnHeader>
                 {CC_VALORES.map((v) => (
                   <Table.ColumnHeader
@@ -156,7 +156,7 @@ export function SesionesPage() {
                       {ESTADO_LABELS[sesion.estado] ?? sesion.estado}
                     </Table.Cell>
                     <Table.Cell>{sesion.evaluaciones_count}</Table.Cell>
-                    <Table.Cell>{sesion.valor_cc_mediana ?? "—"}</Table.Cell>
+                    <Table.Cell>{sesion.valor_cc_moda ?? "—"}</Table.Cell>
                     <Table.Cell>
                       {sesion.valor_cc_min !== null &&
                       sesion.valor_cc_max !== null

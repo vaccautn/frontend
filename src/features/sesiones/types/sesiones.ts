@@ -9,7 +9,7 @@ export type SesionCaptura = {
   creado_en: string;
   actualizado_en: string;
   evaluaciones_count: number;
-  valor_cc_mediana: number | null;
+  valor_cc_moda: number | null;
   valor_cc_min: number | null;
   valor_cc_max: number | null;
   distribucion: Record<string, number>;
