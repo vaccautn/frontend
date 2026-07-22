@@ -12,6 +12,7 @@ import {
 const pageTitles: Record<string, string> = {
   "/dashboard": "Inicio",
   "/evaluaciones": "Evaluaciones de condición corporal",
+  "/sesiones": "Sesiones de evaluación",
 };
 
 function getPageTitle(pathname: string) {

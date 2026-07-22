@@ -9,14 +9,27 @@ export type SesionCaptura = {
   creado_en: string;
   actualizado_en: string;
   evaluaciones_count: number;
-  valor_cc_mediana: number | null;
+  valor_cc_moda: number | null;
   valor_cc_min: number | null;
   valor_cc_max: number | null;
   distribucion: Record<string, number>;
 };
 
-export type SesionListParams = {
-  estado?: EstadoSesion;
+export interface SesionListParams {
+  estado?: string;
   fecha_inicio_desde?: string;
   fecha_inicio_hasta?: string;
-};
+  limit?: number;
+  offset?: number;
+}
+
+export interface PaginatedSesionesResumenResponse {
+  items: SesionCaptura[];
+  has_more: boolean;
+  next_offset: number | null;
+}
+
+export interface SesionCapturaUpdatePayload {
+  estado?: string;
+  fecha_fin?: string;
+}

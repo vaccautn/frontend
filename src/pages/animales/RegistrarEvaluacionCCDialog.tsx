@@ -1,4 +1,10 @@
-import { useMemo, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useEffect,
+  useMemo,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+} from "react";
 import {
   Button,
   Dialog,
@@ -11,22 +17,25 @@ import {
   Menu,
 } from "@chakra-ui/react";
 import { IconChevronDown } from "@tabler/icons-react";
-import { subirImagenesEvaluacion } from "@/features/animales/services/animalesService";
-import { toast } from "react-toastify";
-import { normalizeBackendDetail } from "@/features/auth";
 import { DEFAULT_CC_SCALE } from "@/features/animales/constants";
-import { registerEvaluacionCc } from "@/features/animales/services/animalesService";
 import type { Animal } from "@/features/animales/types";
-import { ApiError } from "@/services/httpClient";
-import { getSesionActiva } from "@/features/sesiones/services/sesionesService";
+
+export interface EvaluacionCCPendiente {
+  valorCc: number;
+  escalaMin: number;
+  escalaMax: number;
+  observaciones: string;
+  files: File[];
+}
 
 type RegistrarEvaluacionCCDialogProps = {
   animal: Animal | null;
   open: boolean;
-  sesionId?: number;
+  valorInicial?: EvaluacionCCPendiente;
   onClose: () => void;
-  onSuccess: () => Promise<void> | void;
+  onGuardar: (data: EvaluacionCCPendiente) => void;
 };
+
 type FormValues = {
   valorCc: string;
   observaciones: string;
@@ -44,14 +53,13 @@ const INITIAL_VALUES: FormValues = {
 export function RegistrarEvaluacionCCDialog({
   animal,
   open,
-  sesionId,
+  valorInicial,
   onClose,
-  onSuccess,
+  onGuardar,
 }: RegistrarEvaluacionCCDialogProps) {
   const [values, setValues] = useState<FormValues>(INITIAL_VALUES);
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState("");
-  const [isSubmitting, setIsSubmitting] = useState(false);
   const [files, setFiles] = useState<File[]>([]);
 
   const scaleLabel = useMemo(
@@ -66,6 +74,21 @@ export function RegistrarEvaluacionCCDialog({
     }
     return opts;
   }, []);
+
+  useEffect(() => {
+    if (open && valorInicial) {
+      setValues({
+        valorCc: String(valorInicial.valorCc),
+        observaciones: valorInicial.observaciones,
+      });
+      setFiles(valorInicial.files);
+    } else if (open) {
+      setValues(INITIAL_VALUES);
+      setFiles([]);
+    }
+    setErrors({});
+    setFormError("");
+  }, [open, valorInicial]);
 
   const updateField =
     (field: keyof FormValues) =>
@@ -83,9 +106,9 @@ export function RegistrarEvaluacionCCDialog({
     setFormError("");
   };
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
+  const handleGuardar = (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (isSubmitting || !animal) return;
+    if (!animal) return;
 
     if (animal.estado !== "ACTIVO") {
       setFormError(
@@ -102,7 +125,6 @@ export function RegistrarEvaluacionCCDialog({
         "Debés ingresar un valor de condición corporal para registrar la evaluación.";
     } else {
       const parsedScore = Number(normalizedScore);
-
       if (
         Number.isNaN(parsedScore) ||
         !Number.isInteger(parsedScore) ||
@@ -116,51 +138,18 @@ export function RegistrarEvaluacionCCDialog({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    setIsSubmitting(true);
+    onGuardar({
+      valorCc: Number(normalizedScore),
+      escalaMin: DEFAULT_CC_SCALE.min,
+      escalaMax: DEFAULT_CC_SCALE.max,
+      observaciones: values.observaciones.trim(),
+      files,
+    });
 
-    try {
-      const sesionIdFinal = sesionId ?? (await getSesionActiva()).id;
-
-      const evaluacionCreada = await registerEvaluacionCc({
-        sesion_id: sesionIdFinal,
-        animal_id: animal.id,
-        valor_cc: Number(normalizedScore),
-        escala_min: DEFAULT_CC_SCALE.min,
-        escala_max: DEFAULT_CC_SCALE.max,
-        observaciones: values.observaciones.trim(),
-      });
-
-      if (files.length > 0) {
-        try {
-          await subirImagenesEvaluacion(evaluacionCreada.id, files);
-        } catch {
-          toast.warning(
-            "La evaluación se registró, pero no pudimos subir una o más imágenes.",
-          );
-        }
-      }
-
-      await onSuccess();
-      toast.success(
-        "Evaluación de condición corporal registrada correctamente.",
-      );
-      onClose();
-      setValues(INITIAL_VALUES);
-      setFiles([]);
-    } catch (error) {
-      if (error instanceof ApiError) {
-        setFormError(
-          normalizeBackendDetail(error.detail) ??
-            "No pudimos registrar la evaluación en este momento. Revisá tu conexión o intentá nuevamente. Los datos ingresados no se perdieron.",
-        );
-      } else {
-        setFormError(
-          "No pudimos registrar la evaluación en este momento. Revisá tu conexión o intentá nuevamente. Los datos ingresados no se perdieron.",
-        );
-      }
-    } finally {
-      setIsSubmitting(false);
-    }
+    setValues(INITIAL_VALUES);
+    setFiles([]);
+    setFormError("");
+    onClose();
   };
 
   return (
@@ -199,7 +188,7 @@ export function RegistrarEvaluacionCCDialog({
 
               <form
                 id="animal-evaluacion-form"
-                onSubmit={handleSubmit}
+                onSubmit={handleGuardar}
                 noValidate
                 className="animal-form__fields">
                 <Field.Root invalid={!!errors.valorCc} required>
@@ -325,10 +314,8 @@ export function RegistrarEvaluacionCCDialog({
                 type="submit"
                 form="animal-evaluacion-form"
                 colorPalette="brand"
-                loading={isSubmitting}
-                loadingText="Registrando..."
                 disabled={!animal || animal.estado !== "ACTIVO"}>
-                Registrar evaluación
+                Guardar valor
               </Button>
             </Dialog.Footer>
           </Dialog.Content>
