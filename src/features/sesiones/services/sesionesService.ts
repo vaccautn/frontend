@@ -1,6 +1,10 @@
 import { getJson, postJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
-import type { SesionCaptura, SesionListParams } from "../types";
+import type {
+  SesionCaptura,
+  SesionListParams,
+  DashboardSesionData,
+} from "../types";
 
 export function getSesionesConResumen(
   params: SesionListParams = {},
@@ -37,4 +41,14 @@ export function crearSesion(): Promise<SesionCaptura> {
 export function getSesion(id: number): Promise<SesionCaptura> {
   const token = getAccessToken();
   return getJson<SesionCaptura>(`/sesiones-captura/${id}`, token);
+}
+
+export function getSesionDashboard(
+  sesionId: number,
+): Promise<DashboardSesionData> {
+  const token = getAccessToken();
+  return getJson<DashboardSesionData>(
+    `/sesiones-captura/${sesionId}/dashboard`,
+    token,
+  );
 }

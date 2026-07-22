@@ -6,6 +6,8 @@ import { getSesion } from "@/features/sesiones/services/sesionesService";
 import { getEvaluacionesCc } from "@/features/animales/services/animalesService";
 import { getAnimalesAgrupadosPorLote } from "@/features/animales/services/animalesService";
 import { RegistrarEvaluacionCCDialog } from "@/pages/animales/RegistrarEvaluacionCCDialog"; // ajustar ruta real
+import { useSesionDashboard } from "@/features/sesiones/hooks/useSesionDashboard";
+import { SesionDashboard } from "@/features/sesiones/components/dashboard/SesionDashboard";
 import type { SesionCaptura } from "@/features/sesiones/types";
 import type { Animal, AnimalLoteGroup } from "@/features/animales/types";
 
@@ -21,6 +23,13 @@ export function CargarEvaluacionesPage() {
     null,
   );
   const [loading, setLoading] = useState(true);
+
+  const {
+    data: dashboardData,
+    loading: dashboardLoading,
+    error: dashboardError,
+    refetch: refetchDashboard,
+  } = useSesionDashboard(sesionId);
 
   const refreshCount = useCallback(() => {
     getEvaluacionesCc({ sesionId })
@@ -58,6 +67,12 @@ export function CargarEvaluacionesPage() {
         </Button>
       </div>
 
+      <SesionDashboard
+        data={dashboardData}
+        loading={dashboardLoading}
+        error={dashboardError}
+      />
+
       <Table.Root className="animales-table" interactive>
         <Table.Header>
           <Table.Row>
@@ -89,6 +104,7 @@ export function CargarEvaluacionesPage() {
         onClose={() => setAnimalSeleccionado(null)}
         onSuccess={async () => {
           refreshCount();
+          refetchDashboard();
         }}
       />
     </section>
