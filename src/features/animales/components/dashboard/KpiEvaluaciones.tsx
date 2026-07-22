@@ -1,19 +1,11 @@
 import { Box, Text, Skeleton } from "@chakra-ui/react";
 
 type Props = {
-  count: number;
+  cantidad: number;
   loading: boolean;
-  label?: { singular: string; plural: string };
 };
 
-const defaultLabel = {
-  singular: "animal en estado crítico",
-  plural: "animales en estado crítico",
-};
-
-export function KpiCriticos({ count, loading, label }: Props) {
-  const resolvedLabel = label ?? defaultLabel;
-
+export function KpiEvaluaciones({ cantidad, loading }: Props) {
   return (
     <Box
       p="4"
@@ -31,23 +23,19 @@ export function KpiCriticos({ count, loading, label }: Props) {
         letterSpacing="0.04em"
         color="var(--text)"
         mb="1">
-        Condición crítica
+        Total de evaluaciones
       </Text>
 
       {loading ? (
         <Skeleton height="2rem" width="4rem" />
       ) : (
-        <Text
-          fontSize="2rem"
-          fontWeight="800"
-          lineHeight="1"
-          color={count > 0 ? "var(--rojo-alerta)" : "var(--text-h)"}>
-          {count}
+        <Text fontSize="2rem" fontWeight="800" lineHeight="1" color="var(--azul-acero)">
+          {cantidad}
         </Text>
       )}
 
       <Text fontSize="0.82rem" color="var(--text)" mt="1">
-        {count === 1 ? resolvedLabel.singular : resolvedLabel.plural}
+        {cantidad === 1 ? "evaluación confirmada" : "evaluaciones confirmadas"}
       </Text>
     </Box>
   );

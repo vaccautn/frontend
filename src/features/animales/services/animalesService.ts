@@ -12,6 +12,7 @@ import type {
   AnimalLoteGroup,
   AnimalListParams,
   DashboardAnimalesData,
+  DashboardAnimalData,
   EvaluacionCC,
   EvidenciaImagenRead,
   RegisterAnimalPayload,
@@ -181,4 +182,11 @@ export function getAnimalesDashboard(
       ? `/animales/dashboard?lote_id=${loteId}`
       : "/animales/dashboard";
   return getJson<DashboardAnimalesData>(path, token);
+}
+
+export function getAnimalDashboard(
+  animalId: number,
+): Promise<DashboardAnimalData> {
+  const token = getAccessToken();
+  return getJson<DashboardAnimalData>(`/animales/${animalId}/dashboard`, token);
 }

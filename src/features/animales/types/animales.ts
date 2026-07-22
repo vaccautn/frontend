@@ -137,3 +137,19 @@ export type DashboardAnimalesData = {
   evolucion: EvolucionPunto[]; // empty array if no history
   alertas: AlertaAnimal[]; // animals whose last confirmed CC = 1 or 5; sorted recent-first
 };
+
+// ── Dashboard de animal individual ───────────────────────────────────────────
+
+export type EvaluacionPunto = {
+  evaluacion_id: number;
+  fecha: string; // ISO 8601 datetime, e.g. "2024-03-15T10:30:00"
+  valor_cc: number; // 1 | 2 | 3 | 4 | 5
+};
+
+export type DashboardAnimalData = {
+  animal_id: number;
+  cantidad_evaluaciones: number;
+  histograma: HistogramaBin[]; // always 5 bins (CC 1–5), same shape as rodeo dashboard
+  evolucion: EvaluacionPunto[]; // one point per evaluation, chronological ascending
+  historial_peores: EvaluacionPunto[]; // CC 1 or 5 only, most recent first
+};
