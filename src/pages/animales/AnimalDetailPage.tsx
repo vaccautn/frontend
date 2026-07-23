@@ -21,7 +21,6 @@ import {
   IconArrowLeft,
   IconChevronDown,
   IconEdit,
-  IconPlus,
   IconTrash,
 } from "@tabler/icons-react";
 import type {
@@ -46,7 +45,7 @@ import {
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
 import { EvaluacionCCItem } from "./EvaluacionCCItem";
-import { RegistrarEvaluacionCCDialog } from "./RegistrarEvaluacionCCDialog";
+
 import { BajaAnimalModal } from "./BajaAnimalModal";
 import "./animales.css";
 
@@ -76,8 +75,7 @@ export function AnimalDetailPage() {
   const [evaluacionesLoading, setEvaluacionesLoading] = useState(false);
   const [evaluacionesError, setEvaluacionesError] = useState("");
   const [animalParaBaja, setAnimalParaBaja] = useState<Animal | null>(null);
-  const [isDialogOpen, setIsDialogOpen] = useState(false);
-  const [dialogInstanceKey, setDialogInstanceKey] = useState(0);
+
   const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const [isEditingDetails, setIsEditingDetails] = useState(false);
@@ -96,7 +94,6 @@ export function AnimalDetailPage() {
     refetch: refetchDashboard,
   } = useAnimalDashboard(animalId);
 
-  const canRegisterEvaluation = animal?.estado === "ACTIVO";
   const canStartBajaFlow = animal?.estado === "ACTIVO";
 
   const historyItems = useMemo(() => {
@@ -152,11 +149,6 @@ export function AnimalDetailPage() {
 
   const handleBajaSuccess = () => {
     navigate("/animales", { state: { refresh: true } });
-  };
-
-  const openEvaluacionDialog = () => {
-    setDialogInstanceKey((current) => current + 1);
-    setIsDialogOpen(true);
   };
 
   const startEditingDetails = () => {
@@ -505,7 +497,7 @@ export function AnimalDetailPage() {
                 <h2>Historial de evaluaciones</h2>
               </div>
 
-              <span
+              {/* <span
                 title={
                   canRegisterEvaluation
                     ? undefined
@@ -518,7 +510,7 @@ export function AnimalDetailPage() {
                   <IconPlus size={18} stroke={1.5} />
                   Registrar evaluación de CC
                 </Button>
-              </span>
+              </span> */}
             </div>
 
             {evaluacionesLoading && <p>Cargando historial...</p>}
@@ -554,8 +546,8 @@ export function AnimalDetailPage() {
         </>
       )}
 
-      <RegistrarEvaluacionCCDialog
-        key={`${animal?.id ?? "sin-animal"}-${dialogInstanceKey}`}
+      {/* <RegistrarEvaluacionCCDialog
+        key={`${animal?.id ?? "sin-animal"}`}
         animal={animal}
         open={isDialogOpen && !!animal}
         onClose={() => setIsDialogOpen(false)}
@@ -563,7 +555,7 @@ export function AnimalDetailPage() {
           await handleRefreshEvaluaciones();
           refetchDashboard();
         }}
-      />
+      /> */}
 
       {animalParaBaja && (
         <BajaAnimalModal
