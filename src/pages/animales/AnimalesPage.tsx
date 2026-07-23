@@ -7,6 +7,7 @@ import { getAnimalesAgrupadosPorLote } from "@/features/animales/services/animal
 import type { Animal, AnimalLoteGroup } from "@/features/animales/types";
 import { useAnimalesFiltros } from "@/features/animales/hooks/useAnimalesFiltros";
 import { formatFecha } from "@/features/animales/utils/formatDate";
+import { AnimalesDashboard } from "@/features/animales/components/dashboard/AnimalesDashboard";
 import { AnimalesFiltros } from "./AnimalesFiltros";
 
 const COLUMNAS = ["Caravana", "Raza", "Sexo", "Fecha de nacimiento", "Estado"];
@@ -95,6 +96,8 @@ export function AnimalesPage() {
           Agregar animal
         </Button>
       </div>
+
+      <AnimalesDashboard />
 
       <AnimalesFiltros
         caravanaInput={caravanaInput}

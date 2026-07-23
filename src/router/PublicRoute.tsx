@@ -3,5 +3,5 @@ import { useAuth } from "@/features/auth";
 
 export function PublicRoute() {
   const { isAuthenticated } = useAuth();
-  return isAuthenticated ? <Navigate to="/dashboard" replace /> : <Outlet />;
+  return isAuthenticated ? <Navigate to="/animales" replace /> : <Outlet />;
 }

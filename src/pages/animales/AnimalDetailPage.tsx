@@ -32,6 +32,8 @@ import {
   getEvaluacionesCc,
   updateAnimal,
 } from "@/features/animales/services/animalesService";
+import { useAnimalDashboard } from "@/features/animales/hooks/useAnimalDashboard";
+import { AnimalDashboard } from "@/features/animales/components/dashboard/AnimalDashboard";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { RAZAS, SEXOS, ESTADOS_FILTRO } from "@/features/animales/constants";
 import {
@@ -82,6 +84,14 @@ export function AnimalDetailPage() {
   const [isSavingDetails, setIsSavingDetails] = useState(false);
 
   const latestEvaluacionesRequestId = useRef(0);
+
+  const animalId = Number(id);
+  const {
+    data: dashboardData,
+    loading: dashboardLoading,
+    error: dashboardError,
+    // refetch: refetchDashboard,
+  } = useAnimalDashboard(animalId);
 
   const canStartBajaFlow = animal?.estado === "ACTIVO";
 
@@ -464,6 +474,12 @@ export function AnimalDetailPage() {
 
           <div className="animal-page__details-divider" />
 
+          <AnimalDashboard
+            data={dashboardData}
+            loading={dashboardLoading}
+            error={dashboardError}
+          />
+
           <section className="animal-detail__section">
             <div className="animal-detail__section-header">
               <div>
@@ -527,7 +543,10 @@ export function AnimalDetailPage() {
         animal={animal}
         open={isDialogOpen && !!animal}
         onClose={() => setIsDialogOpen(false)}
-        onSuccess={handleRefreshEvaluaciones}
+        onSuccess={async () => {
+          await handleRefreshEvaluaciones();
+          refetchDashboard();
+        }}
       /> */}
 
       {animalParaBaja && (
