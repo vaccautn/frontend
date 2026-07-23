@@ -1,7 +1,13 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { Table, Button, Spinner } from "@chakra-ui/react";
 import { getSesionesConResumen } from "@/features/sesiones/services/sesionesService";
-import type { SesionCaptura } from "@/features/sesiones/types";
+import type { SesionCapturaConResumen } from "@/features/sesiones/types";
 import "@/pages/animales/animales.css";
 import "./sesiones.css";
 import { useNavigate } from "react-router-dom";
@@ -25,7 +31,7 @@ const ESTADO_LABELS: Record<string, string> = {
 };
 
 export function SesionesPage() {
-  const [sesiones, setSesiones] = useState<SesionCaptura[]>([]);
+  const [sesiones, setSesiones] = useState<SesionCapturaConResumen[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
@@ -46,6 +52,25 @@ export function SesionesPage() {
       toast.error("No se pudo iniciar la sesión de evaluación.");
     } finally {
       setIsStarting(false);
+    }
+  };
+
+  const abrirDetalle = (sesion: SesionCapturaConResumen) => {
+    if (sesion.estado === "CERRADA") {
+      navigate(`/sesiones/${sesion.id}`);
+    }
+  };
+
+  const handleRowKeyDown = (
+    event: KeyboardEvent<HTMLTableRowElement>,
+    sesion: SesionCapturaConResumen,
+  ) => {
+    if (
+      sesion.estado === "CERRADA" &&
+      (event.key === "Enter" || event.key === " ")
+    ) {
+      event.preventDefault();
+      abrirDetalle(sesion);
     }
   };
 
@@ -146,7 +171,22 @@ export function SesionesPage() {
                 </Table.Row>
               ) : (
                 sesiones.map((sesion) => (
-                  <Table.Row key={sesion.id} className="animales-table__row">
+                  <Table.Row
+                    key={sesion.id}
+                    className={`animales-table__row sesiones-table__row${
+                      sesion.estado === "CERRADA"
+                        ? " sesiones-table__row--interactive"
+                        : " sesiones-table__row--static"
+                    }`}
+                    tabIndex={sesion.estado === "CERRADA" ? 0 : undefined}
+                    role={sesion.estado === "CERRADA" ? "link" : undefined}
+                    aria-label={
+                      sesion.estado === "CERRADA"
+                        ? `Ver evaluaciones de la sesión ${sesion.id}`
+                        : undefined
+                    }
+                    onClick={() => abrirDetalle(sesion)}
+                    onKeyDown={(event) => handleRowKeyDown(event, sesion)}>
                     <Table.Cell>
                       {DATE_TIME_FORMATTER.format(
                         new Date(sesion.fecha_inicio),

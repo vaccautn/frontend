@@ -73,6 +73,7 @@ export type EvaluacionCCEstado = "BORRADOR" | "CONFIRMADA" | "ANULADA";
 
 export type EvaluacionCC = {
   id: number;
+  sesion_id: number;
   animal_id: number;
   usuario_id: number;
   fecha: string;
@@ -95,7 +96,17 @@ export type RegisterEvaluacionCCPayload = {
 };
 
 export type UpdateEvaluacionCCPayload = {
+  animal_id?: number;
+  valor_cc?: number;
+  escala_min?: number;
+  escala_max?: number;
+  observaciones?: string;
+  estado?: EvaluacionCCEstado;
+};
+
+export type UpdateEvaluacionCCSesionPayload = {
   valor_cc: number;
+  observaciones: string;
 };
 
 export type EvidenciaImagenRead = {

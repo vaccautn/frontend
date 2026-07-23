@@ -2,7 +2,7 @@ import { getJson, patchJson, postJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 import type {
   PaginatedSesionesResumenResponse,
-  SesionCaptura,
+  SesionCapturaRead,
   SesionCapturaUpdatePayload,
   SesionListParams,
 } from "../types";
@@ -27,31 +27,31 @@ export function getSesionesConResumen(
   );
 }
 
-export function getSesionActiva(): Promise<SesionCaptura> {
+export function getSesionActiva(): Promise<SesionCapturaRead> {
   const token = getAccessToken();
-  return getJson<SesionCaptura>("/sesiones-captura/activa", token);
+  return getJson<SesionCapturaRead>("/sesiones-captura/activa", token);
 }
 
-export function crearSesion(): Promise<SesionCaptura> {
+export function crearSesion(): Promise<SesionCapturaRead> {
   const token = getAccessToken();
-  return postJson<SesionCaptura, Record<string, never>>(
+  return postJson<SesionCapturaRead, Record<string, never>>(
     "/sesiones-captura/",
     {},
     token,
   );
 }
 
-export function getSesion(id: number): Promise<SesionCaptura> {
+export function getSesion(id: number): Promise<SesionCapturaRead> {
   const token = getAccessToken();
-  return getJson<SesionCaptura>(`/sesiones-captura/${id}`, token);
+  return getJson<SesionCapturaRead>(`/sesiones-captura/${id}`, token);
 }
 
 export function actualizarSesion(
   sesionId: number,
   datos: SesionCapturaUpdatePayload,
-): Promise<SesionCaptura> {
+): Promise<SesionCapturaRead> {
   const token = getAccessToken();
-  return patchJson<SesionCaptura, SesionCapturaUpdatePayload>(
+  return patchJson<SesionCapturaRead, SesionCapturaUpdatePayload>(
     `/sesiones-captura/${sesionId}`,
     datos,
     token,

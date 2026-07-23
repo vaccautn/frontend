@@ -17,6 +17,7 @@ import type {
   RegisterEvaluacionCCPayload,
   UpdateAnimalPayload,
   UpdateEvaluacionCCPayload,
+  UpdateEvaluacionCCSesionPayload,
 } from "@/features/animales/types";
 import { getSesionActiva } from "@/features/sesiones/services/sesionesService";
 
@@ -136,6 +137,34 @@ export function updateEvaluacionCc(
   return putJson<EvaluacionCC, UpdateEvaluacionCCPayload>(
     `/evaluaciones-cc/${id}`,
     payload,
+    token,
+  );
+}
+
+export function updateEvaluacionCcEnSesion(
+  evaluacionId: number,
+  sesionId: number,
+  payload: UpdateEvaluacionCCSesionPayload,
+): Promise<EvaluacionCC> {
+  const token = getAccessToken();
+  const query = new URLSearchParams({ sesion_id: sesionId.toString() });
+
+  return putJson<EvaluacionCC, UpdateEvaluacionCCSesionPayload>(
+    `/evaluaciones-cc/${evaluacionId}?${query.toString()}`,
+    payload,
+    token,
+  );
+}
+
+export function anularEvaluacionCcEnSesion(
+  evaluacionId: number,
+  sesionId: number,
+): Promise<void> {
+  const token = getAccessToken();
+  const query = new URLSearchParams({ sesion_id: sesionId.toString() });
+
+  return deleteRequest(
+    `/evaluaciones-cc/${evaluacionId}?${query.toString()}`,
     token,
   );
 }
