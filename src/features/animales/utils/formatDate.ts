@@ -1,3 +1,5 @@
+import { formatEventDateTime } from "@/utils/localDateTime";
+
 const DATE_FORMATTER = new Intl.DateTimeFormat("es-AR", {
   day: "2-digit",
   month: "2-digit",
@@ -16,8 +18,7 @@ export function formatFecha(fecha: string): string {
   return DATE_FORMATTER.format(parseFechaSolo(fecha));
 }
 
-/** Formatea los componentes de fecha de un evento sin reinterpretar su zona. */
+/** Formatea fecha y hora de un evento sin reinterpretar su zona. */
 export function formatFechaDeTimestamp(fecha: string): string {
-  return formatEventDate(fecha);
+  return formatEventDateTime(fecha);
 }
-import { formatEventDate } from "@/utils/localDateTime";

@@ -51,10 +51,6 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
 
       <dl className="sesion-evaluacion__datos">
         <div>
-          <dt>Estado</dt>
-          <dd>{evaluacion.estado}</dd>
-        </div>
-        <div>
           <dt>Escala</dt>
           <dd>
             {evaluacion.escala_min}–{evaluacion.escala_max}
