@@ -11,6 +11,8 @@ import type {
   Animal,
   AnimalLoteGroup,
   AnimalListParams,
+  DashboardAnimalesData,
+  DashboardAnimalData,
   EvaluacionCC,
   EvidenciaImagenRead,
   RegisterAnimalPayload,
@@ -18,6 +20,8 @@ import type {
   UpdateAnimalPayload,
   UpdateEvaluacionCCPayload,
   UpdateEvaluacionCCSesionPayload,
+  RegistrarEvaluacionCCParams,
+  RegistrarEvaluacionCCResult,
 } from "@/features/animales/types";
 import { getSesionActiva } from "@/features/sesiones/services/sesionesService";
 import { localNaiveNow } from "@/utils/localDateTime";
@@ -202,20 +206,22 @@ export function eliminarImagenEvaluacion(evidenciaId: number): Promise<void> {
   return deleteRequest(`/evidencias-visuales/${evidenciaId}`, token);
 }
 
-export interface RegistrarEvaluacionCCParams {
-  sesionId?: number;
-  animalId: number;
-  valorCc: number;
-  escalaMin: number;
-  escalaMax: number;
-  observaciones: string;
-  fecha?: string;
-  files?: File[];
+export function getAnimalesDashboard(
+  loteId?: number | null,
+): Promise<DashboardAnimalesData> {
+  const token = getAccessToken();
+  const path =
+    loteId != null
+      ? `/animales/dashboard?lote_id=${loteId}`
+      : "/animales/dashboard";
+  return getJson<DashboardAnimalesData>(path, token);
 }
 
-export interface RegistrarEvaluacionCCResult {
-  evaluacion: EvaluacionCC;
-  imagenesConError: boolean;
+export function getAnimalDashboard(
+  animalId: number,
+): Promise<DashboardAnimalData> {
+  const token = getAccessToken();
+  return getJson<DashboardAnimalData>(`/animales/${animalId}/dashboard`, token);
 }
 
 export async function registrarEvaluacionCCCompleta(
