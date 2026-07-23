@@ -1,22 +1,27 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useRef,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { Table, Button, Spinner } from "@chakra-ui/react";
 import { getSesionesConResumen } from "@/features/sesiones/services/sesionesService";
-import type { SesionCaptura } from "@/features/sesiones/types";
+import type { SesionCapturaConResumen } from "@/features/sesiones/types";
 import "@/pages/animales/animales.css";
 import "./sesiones.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { IconPlus } from "@tabler/icons-react";
 import { crearSesion } from "@/features/sesiones/services/sesionesService";
+import {
+  formatEventDateTime,
+  localNaiveNow,
+} from "@/utils/localDateTime";
 
 const PAGE_SIZE = 20;
 
 const CC_VALORES = ["1", "2", "3", "4", "5"] as const;
-
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-AR", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
 
 const ESTADO_LABELS: Record<string, string> = {
   ABIERTA: "Abierta",
@@ -25,7 +30,7 @@ const ESTADO_LABELS: Record<string, string> = {
 };
 
 export function SesionesPage() {
-  const [sesiones, setSesiones] = useState<SesionCaptura[]>([]);
+  const [sesiones, setSesiones] = useState<SesionCapturaConResumen[]>([]);
   const [loading, setLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
@@ -40,12 +45,31 @@ export function SesionesPage() {
   const handleIniciarSesion = async () => {
     setIsStarting(true);
     try {
-      const nuevaSesion = await crearSesion();
+      const nuevaSesion = await crearSesion({ fecha_inicio: localNaiveNow() });
       navigate(`/sesiones/${nuevaSesion.id}/cargar`);
     } catch {
       toast.error("No se pudo iniciar la sesión de evaluación.");
     } finally {
       setIsStarting(false);
+    }
+  };
+
+  const abrirDetalle = (sesion: SesionCapturaConResumen) => {
+    if (sesion.estado === "CERRADA") {
+      navigate(`/sesiones/${sesion.id}`);
+    }
+  };
+
+  const handleRowKeyDown = (
+    event: KeyboardEvent<HTMLTableRowElement>,
+    sesion: SesionCapturaConResumen,
+  ) => {
+    if (
+      sesion.estado === "CERRADA" &&
+      (event.key === "Enter" || event.key === " ")
+    ) {
+      event.preventDefault();
+      abrirDetalle(sesion);
     }
   };
 
@@ -146,11 +170,24 @@ export function SesionesPage() {
                 </Table.Row>
               ) : (
                 sesiones.map((sesion) => (
-                  <Table.Row key={sesion.id} className="animales-table__row">
+                  <Table.Row
+                    key={sesion.id}
+                    className={`animales-table__row sesiones-table__row${
+                      sesion.estado === "CERRADA"
+                        ? " sesiones-table__row--interactive"
+                        : " sesiones-table__row--static"
+                    }`}
+                    tabIndex={sesion.estado === "CERRADA" ? 0 : undefined}
+                    role={sesion.estado === "CERRADA" ? "link" : undefined}
+                    aria-label={
+                      sesion.estado === "CERRADA"
+                        ? `Ver evaluaciones de la sesión ${sesion.id}`
+                        : undefined
+                    }
+                    onClick={() => abrirDetalle(sesion)}
+                    onKeyDown={(event) => handleRowKeyDown(event, sesion)}>
                     <Table.Cell>
-                      {DATE_TIME_FORMATTER.format(
-                        new Date(sesion.fecha_inicio),
-                      )}
+                      {formatEventDateTime(sesion.fecha_inicio)}
                     </Table.Cell>
                     <Table.Cell>
                       {ESTADO_LABELS[sesion.estado] ?? sesion.estado}

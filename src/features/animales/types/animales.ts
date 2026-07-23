@@ -73,7 +73,9 @@ export type EvaluacionCCEstado = "BORRADOR" | "CONFIRMADA" | "ANULADA";
 
 export type EvaluacionCC = {
   id: number;
+  sesion_id: number;
   animal_id: number;
+  animal_rfid: string | null;
   usuario_id: number;
   fecha: string;
   valor_cc: number;
@@ -92,10 +94,21 @@ export type RegisterEvaluacionCCPayload = {
   escala_min: number;
   escala_max: number;
   observaciones?: string;
+  fecha?: string;
 };
 
 export type UpdateEvaluacionCCPayload = {
+  animal_id?: number;
+  valor_cc?: number;
+  escala_min?: number;
+  escala_max?: number;
+  observaciones?: string;
+  estado?: EvaluacionCCEstado;
+};
+
+export type UpdateEvaluacionCCSesionPayload = {
   valor_cc: number;
+  observaciones: string;
 };
 
 export type EvidenciaImagenRead = {
@@ -116,6 +129,7 @@ export interface RegistrarEvaluacionCCParams {
   escalaMin: number;
   escalaMax: number;
   observaciones: string;
+  fecha?: string;
   files?: File[];
 }
 

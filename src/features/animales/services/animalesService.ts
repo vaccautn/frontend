@@ -19,10 +19,12 @@ import type {
   RegisterEvaluacionCCPayload,
   UpdateAnimalPayload,
   UpdateEvaluacionCCPayload,
+  UpdateEvaluacionCCSesionPayload,
   RegistrarEvaluacionCCParams,
   RegistrarEvaluacionCCResult,
 } from "@/features/animales/types";
 import { getSesionActiva } from "@/features/sesiones/services/sesionesService";
+import { localNaiveNow } from "@/utils/localDateTime";
 
 export function registerAnimal(
   payload: RegisterAnimalPayload,
@@ -144,6 +146,34 @@ export function updateEvaluacionCc(
   );
 }
 
+export function updateEvaluacionCcEnSesion(
+  evaluacionId: number,
+  sesionId: number,
+  payload: UpdateEvaluacionCCSesionPayload,
+): Promise<EvaluacionCC> {
+  const token = getAccessToken();
+  const query = new URLSearchParams({ sesion_id: sesionId.toString() });
+
+  return putJson<EvaluacionCC, UpdateEvaluacionCCSesionPayload>(
+    `/evaluaciones-cc/${evaluacionId}?${query.toString()}`,
+    payload,
+    token,
+  );
+}
+
+export function anularEvaluacionCcEnSesion(
+  evaluacionId: number,
+  sesionId: number,
+): Promise<void> {
+  const token = getAccessToken();
+  const query = new URLSearchParams({ sesion_id: sesionId.toString() });
+
+  return deleteRequest(
+    `/evaluaciones-cc/${evaluacionId}?${query.toString()}`,
+    token,
+  );
+}
+
 export function subirImagenesEvaluacion(
   evaluacionId: number,
   files: File[],
@@ -197,7 +227,8 @@ export function getAnimalDashboard(
 export async function registrarEvaluacionCCCompleta(
   params: RegistrarEvaluacionCCParams,
 ): Promise<RegistrarEvaluacionCCResult> {
-  const sesionIdFinal = params.sesionId ?? (await getSesionActiva()).id;
+  const fecha = params.fecha ?? localNaiveNow();
+  const sesionIdFinal = params.sesionId ?? (await getSesionActiva(fecha)).id;
 
   const evaluacion = await registerEvaluacionCc({
     sesion_id: sesionIdFinal,
@@ -206,6 +237,7 @@ export async function registrarEvaluacionCCCompleta(
     escala_min: params.escalaMin,
     escala_max: params.escalaMax,
     observaciones: params.observaciones,
+    fecha,
   });
 
   let imagenesConError = false;
