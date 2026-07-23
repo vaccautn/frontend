@@ -1,3 +1,38 @@
+.sesiones-filtros {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.75rem;
+  align-items: center;
+  margin: 1rem 0;
+}
+
+.sesiones-filtros__campo {
+  flex: 0 1 190px;
+  min-width: 180px;
+}
+
+.sesiones-filtros__clear {
+  min-height: 38px;
+  padding: 0.55rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text-h);
+  cursor: pointer;
+  font: inherit;
+}
+
+.sesiones-filtros__clear:hover {
+  border-color: var(--accent);
+  color: var(--accent-strong);
+  background: var(--verde-pastel);
+}
+
+.sesiones-filtros__clear:disabled {
+  opacity: 0.65;
+  cursor: not-allowed;
+}
+
 .sesiones-histograma {
   display: flex;
   align-items: flex-end;
@@ -28,4 +63,16 @@
 
 .sesiones-histograma__empty {
   color: var(--text);
+}
+
+@media (max-width: 720px) {
+  .sesiones-filtros {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .sesiones-filtros__campo {
+    flex: 1 1 auto;
+    min-width: 0;
+  }
 }

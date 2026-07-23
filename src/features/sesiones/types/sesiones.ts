@@ -18,7 +18,7 @@ export type SesionCaptura = {
 };
 
 export interface SesionListParams {
-  estado?: string;
+  estado?: EstadoSesion;
   fecha_inicio_desde?: string;
   fecha_inicio_hasta?: string;
   limit?: number;
