@@ -1,3 +1,5 @@
+import type { HistogramaBin, AlertaAnimal } from "@/features/animales/types";
+
 export type EstadoSesion = "ABIERTA" | "CERRADA" | "CANCELADA";
 
 export type SesionCaptura = {
@@ -33,3 +35,14 @@ export interface SesionCapturaUpdatePayload {
   estado?: string;
   fecha_fin?: string;
 }
+
+// ── Dashboard de sesión ───────────────────────────────────────────────────────
+
+export type DashboardSesionData = {
+  sesion_id: number;
+  animales_evaluados: number;
+  total_animales: number; // herd total (denominator for %)
+  promedio: number | null;
+  histograma: HistogramaBin[]; // always 5 bins, CC 1–5
+  alertas: AlertaAnimal[]; // animals in THIS session with CC = 1 or 5
+};

@@ -1,6 +1,7 @@
 import { getJson, patchJson, postJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 import type {
+  DashboardSesionData,
   PaginatedSesionesResumenResponse,
   SesionCaptura,
   SesionCapturaUpdatePayload,
@@ -44,6 +45,16 @@ export function crearSesion(): Promise<SesionCaptura> {
 export function getSesion(id: number): Promise<SesionCaptura> {
   const token = getAccessToken();
   return getJson<SesionCaptura>(`/sesiones-captura/${id}`, token);
+}
+
+export function getSesionDashboard(
+  sesionId: number,
+): Promise<DashboardSesionData> {
+  const token = getAccessToken();
+  return getJson<DashboardSesionData>(
+    `/sesiones-captura/${sesionId}/dashboard`,
+    token,
+  );
 }
 
 export function actualizarSesion(
