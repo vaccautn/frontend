@@ -15,17 +15,13 @@ import type {
 import { getSesion } from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaRead } from "@/features/sesiones/types";
 import { ApiError } from "@/services/httpClient";
+import { formatEventDateTime } from "@/utils/localDateTime";
 import { ConfirmarEliminacionDialog } from "./ConfirmarEliminacionDialog";
 import { EditarEvaluacionDialog } from "./EditarEvaluacionDialog";
 import { SesionEvaluacionRow } from "./SesionEvaluacionRow";
 import "./sesiones.css";
 
 type DetailStatus = "loading" | "ready" | "error" | "stale" | "ineligible";
-
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-AR", {
-  dateStyle: "long",
-  timeStyle: "short",
-});
 
 export function SesionDetailPage() {
   const { id } = useParams<{ id: string }>();
@@ -256,7 +252,7 @@ export function SesionDetailPage() {
             <div>
               <span className="sesion-detail__eyebrow">Sesión cerrada</span>
               <h1 id="sesion-detail-title">Evaluaciones de la sesión #{sesion.id}</h1>
-              <p>{DATE_TIME_FORMATTER.format(new Date(sesion.fecha_inicio))}</p>
+              <p>{formatEventDateTime(sesion.fecha_inicio)}</p>
             </div>
             <span className="sesion-detail__count">
               {evaluaciones.length} evaluación{evaluaciones.length === 1 ? "" : "es"}

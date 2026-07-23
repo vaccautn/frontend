@@ -20,6 +20,7 @@ import type {
   UpdateEvaluacionCCSesionPayload,
 } from "@/features/animales/types";
 import { getSesionActiva } from "@/features/sesiones/services/sesionesService";
+import { localNaiveNow } from "@/utils/localDateTime";
 
 export function registerAnimal(
   payload: RegisterAnimalPayload,
@@ -208,6 +209,7 @@ export interface RegistrarEvaluacionCCParams {
   escalaMin: number;
   escalaMax: number;
   observaciones: string;
+  fecha?: string;
   files?: File[];
 }
 
@@ -219,7 +221,8 @@ export interface RegistrarEvaluacionCCResult {
 export async function registrarEvaluacionCCCompleta(
   params: RegistrarEvaluacionCCParams,
 ): Promise<RegistrarEvaluacionCCResult> {
-  const sesionIdFinal = params.sesionId ?? (await getSesionActiva()).id;
+  const fecha = params.fecha ?? localNaiveNow();
+  const sesionIdFinal = params.sesionId ?? (await getSesionActiva(fecha)).id;
 
   const evaluacion = await registerEvaluacionCc({
     sesion_id: sesionIdFinal,
@@ -228,6 +231,7 @@ export async function registrarEvaluacionCCCompleta(
     escala_min: params.escalaMin,
     escala_max: params.escalaMax,
     observaciones: params.observaciones,
+    fecha,
   });
 
   let imagenesConError = false;

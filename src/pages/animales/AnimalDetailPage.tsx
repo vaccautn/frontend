@@ -1,7 +1,6 @@
 import {
   useCallback,
   useEffect,
-  useMemo,
   useRef,
   useState,
   type ChangeEvent,
@@ -86,14 +85,7 @@ export function AnimalDetailPage() {
 
   const canStartBajaFlow = animal?.estado === "ACTIVO";
 
-  const historyItems = useMemo(() => {
-    return [...evaluaciones].sort((first, second) => {
-      const secondDate = new Date(second.fecha).getTime();
-      const firstDate = new Date(first.fecha).getTime();
-
-      return secondDate - firstDate || second.id - first.id;
-    });
-  }, [evaluaciones]);
+  const historyItems = evaluaciones;
 
   const fetchAnimal = useCallback(async () => {
     setAnimalLoading(true);

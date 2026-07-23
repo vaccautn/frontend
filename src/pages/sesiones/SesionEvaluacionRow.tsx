@@ -1,11 +1,8 @@
 import { Button } from "@chakra-ui/react";
 import { IconPencil, IconTrash } from "@tabler/icons-react";
 import type { EvaluacionCC } from "@/features/animales/types";
-
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-AR", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
+import { getAnimalRfidLabel } from "@/features/animales/utils/animalRfid";
+import { formatEventDateTime } from "@/utils/localDateTime";
 
 type SesionEvaluacionRowProps = {
   evaluacion: EvaluacionCC;
@@ -15,19 +12,28 @@ type SesionEvaluacionRowProps = {
 
 export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEvaluacionRowProps) {
   const tituloId = `evaluacion-${evaluacion.id}-titulo`;
+  const animalRfid = getAnimalRfidLabel(evaluacion.animal_rfid);
+  const animalAccessibleName =
+    animalRfid === "Sin RFID"
+      ? "animal sin RFID"
+      : `animal con RFID ${animalRfid}`;
 
   return (
     <article className="sesion-evaluacion" aria-labelledby={tituloId}>
       <div className="sesion-evaluacion__heading">
         <div>
           <span className="sesion-evaluacion__eyebrow">Animal</span>
-          <h2 id={tituloId}>#{evaluacion.animal_id}</h2>
+          <h2 id={tituloId}>{animalRfid}</h2>
         </div>
         <div className="sesion-evaluacion__actions">
           <strong className="sesion-evaluacion__valor" aria-label={`Condición corporal ${evaluacion.valor_cc}`}>
             CC {evaluacion.valor_cc}
           </strong>
-          <Button size="sm" variant="ghost" onClick={onEdit} aria-label={`Editar evaluación del animal ${evaluacion.animal_id}`}>
+          <Button
+            size="sm"
+            variant="ghost"
+            onClick={onEdit}
+            aria-label={`Editar evaluación del ${animalAccessibleName}`}>
             <IconPencil size={16} stroke={1.5} />
             Editar
           </Button>
@@ -36,7 +42,7 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
             variant="ghost"
             colorPalette="red"
             onClick={onDelete}
-            aria-label={`Eliminar evaluación del animal ${evaluacion.animal_id}`}>
+            aria-label={`Eliminar evaluación del ${animalAccessibleName}`}>
             <IconTrash size={16} stroke={1.5} />
             Eliminar
           </Button>
@@ -56,7 +62,7 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
         </div>
         <div>
           <dt>Evaluada</dt>
-          <dd>{DATE_TIME_FORMATTER.format(new Date(evaluacion.fecha))}</dd>
+          <dd>{formatEventDateTime(evaluacion.fecha)}</dd>
         </div>
       </dl>
 

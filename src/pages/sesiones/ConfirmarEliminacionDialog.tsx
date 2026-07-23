@@ -3,6 +3,7 @@ import { Button, Dialog, Portal } from "@chakra-ui/react";
 import { toast } from "react-toastify";
 import { normalizeBackendDetail } from "@/features/auth";
 import type { EvaluacionCC } from "@/features/animales/types";
+import { getAnimalRfidLabel } from "@/features/animales/utils/animalRfid";
 import { ApiError } from "@/services/httpClient";
 
 type ConfirmarEliminacionDialogProps = {
@@ -16,6 +17,7 @@ export function ConfirmarEliminacionDialog({
   onClose,
   onConfirm,
 }: ConfirmarEliminacionDialogProps) {
+  const animalRfid = getAnimalRfidLabel(evaluacion.animal_rfid);
   const [pending, setPending] = useState(false);
   const [errorMessage, setErrorMessage] = useState("");
 
@@ -50,7 +52,7 @@ export function ConfirmarEliminacionDialog({
             <Dialog.Header>
               <div>
                 <Dialog.Title>Eliminar evaluación</Dialog.Title>
-                <p>Animal #{evaluacion.animal_id}</p>
+                <p>RFID: {animalRfid}</p>
               </div>
               <Dialog.CloseTrigger asChild>
                 <button

@@ -2,6 +2,7 @@ import { getJson, patchJson, postJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 import type {
   PaginatedSesionesResumenResponse,
+  SesionCapturaCreatePayload,
   SesionCapturaRead,
   SesionCapturaUpdatePayload,
   SesionListParams,
@@ -27,16 +28,26 @@ export function getSesionesConResumen(
   );
 }
 
-export function getSesionActiva(): Promise<SesionCapturaRead> {
+export function getSesionActiva(
+  fechaInicio?: string,
+): Promise<SesionCapturaRead> {
   const token = getAccessToken();
-  return getJson<SesionCapturaRead>("/sesiones-captura/activa", token);
+  const query = new URLSearchParams();
+  if (fechaInicio) query.set("fecha_inicio", fechaInicio);
+  const queryString = query.toString();
+  return getJson<SesionCapturaRead>(
+    `/sesiones-captura/activa${queryString ? `?${queryString}` : ""}`,
+    token,
+  );
 }
 
-export function crearSesion(): Promise<SesionCapturaRead> {
+export function crearSesion(
+  payload: SesionCapturaCreatePayload = {},
+): Promise<SesionCapturaRead> {
   const token = getAccessToken();
-  return postJson<SesionCapturaRead, Record<string, never>>(
+  return postJson<SesionCapturaRead, SesionCapturaCreatePayload>(
     "/sesiones-captura/",
-    {},
+    payload,
     token,
   );
 }

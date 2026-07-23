@@ -33,6 +33,10 @@ export interface PaginatedSesionesResumenResponse {
   next_offset: number | null;
 }
 
+export interface SesionCapturaCreatePayload {
+  fecha_inicio?: string;
+}
+
 export interface SesionCapturaUpdatePayload {
   fecha_inicio?: string;
   fecha_fin?: string | null;

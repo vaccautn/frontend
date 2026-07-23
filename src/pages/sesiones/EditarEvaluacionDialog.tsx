@@ -6,6 +6,7 @@ import type {
   EvaluacionCC,
   UpdateEvaluacionCCSesionPayload,
 } from "@/features/animales/types";
+import { getAnimalRfidLabel } from "@/features/animales/utils/animalRfid";
 import { ApiError } from "@/services/httpClient";
 
 type EditarEvaluacionDialogProps = {
@@ -19,6 +20,7 @@ export function EditarEvaluacionDialog({
   onClose,
   onSubmit,
 }: EditarEvaluacionDialogProps) {
+  const animalRfid = getAnimalRfidLabel(evaluacion.animal_rfid);
   const [valorCc, setValorCc] = useState(String(evaluacion.valor_cc));
   const [observaciones, setObservaciones] = useState(evaluacion.observaciones);
   const [valorError, setValorError] = useState("");
@@ -73,7 +75,7 @@ export function EditarEvaluacionDialog({
             <Dialog.Header>
               <div>
                 <Dialog.Title>Editar evaluación</Dialog.Title>
-                <p>Animal #{evaluacion.animal_id}</p>
+                <p>RFID: {animalRfid}</p>
               </div>
               <Dialog.CloseTrigger asChild>
                 <button

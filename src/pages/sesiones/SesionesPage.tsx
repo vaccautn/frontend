@@ -14,15 +14,14 @@ import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { IconPlus } from "@tabler/icons-react";
 import { crearSesion } from "@/features/sesiones/services/sesionesService";
+import {
+  formatEventDateTime,
+  localNaiveNow,
+} from "@/utils/localDateTime";
 
 const PAGE_SIZE = 20;
 
 const CC_VALORES = ["1", "2", "3", "4", "5"] as const;
-
-const DATE_TIME_FORMATTER = new Intl.DateTimeFormat("es-AR", {
-  dateStyle: "short",
-  timeStyle: "short",
-});
 
 const ESTADO_LABELS: Record<string, string> = {
   ABIERTA: "Abierta",
@@ -46,7 +45,7 @@ export function SesionesPage() {
   const handleIniciarSesion = async () => {
     setIsStarting(true);
     try {
-      const nuevaSesion = await crearSesion();
+      const nuevaSesion = await crearSesion({ fecha_inicio: localNaiveNow() });
       navigate(`/sesiones/${nuevaSesion.id}/cargar`);
     } catch {
       toast.error("No se pudo iniciar la sesión de evaluación.");
@@ -188,9 +187,7 @@ export function SesionesPage() {
                     onClick={() => abrirDetalle(sesion)}
                     onKeyDown={(event) => handleRowKeyDown(event, sesion)}>
                     <Table.Cell>
-                      {DATE_TIME_FORMATTER.format(
-                        new Date(sesion.fecha_inicio),
-                      )}
+                      {formatEventDateTime(sesion.fecha_inicio)}
                     </Table.Cell>
                     <Table.Cell>
                       {ESTADO_LABELS[sesion.estado] ?? sesion.estado}

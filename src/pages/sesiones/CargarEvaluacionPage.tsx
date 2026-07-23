@@ -14,6 +14,7 @@ import {
 } from "@/pages/animales/RegistrarEvaluacionCCDialog"; // ajustar ruta real
 import type { SesionCapturaRead } from "@/features/sesiones/types";
 import type { Animal, AnimalLoteGroup } from "@/features/animales/types";
+import { localNaiveNow } from "@/utils/localDateTime";
 
 export function CargarEvaluacionesPage() {
   const { id } = useParams<{ id: string }>();
@@ -73,6 +74,7 @@ export function CargarEvaluacionesPage() {
           escalaMin: data.escalaMin,
           escalaMax: data.escalaMax,
           observaciones: data.observaciones,
+          fecha: data.fecha,
           files: data.files,
         });
         return { animalId, imagenesConError };
@@ -116,7 +118,7 @@ export function CargarEvaluacionesPage() {
     try {
       await actualizarSesion(sesionId, {
         estado: "CERRADA",
-        fecha_fin: new Date().toISOString(),
+        fecha_fin: localNaiveNow(),
       });
     } catch {
       setIsFinalizando(false);
