@@ -19,6 +19,8 @@ import type {
   RegisterEvaluacionCCPayload,
   UpdateAnimalPayload,
   UpdateEvaluacionCCPayload,
+  RegistrarEvaluacionCCParams,
+  RegistrarEvaluacionCCResult,
 } from "@/features/animales/types";
 import { getSesionActiva } from "@/features/sesiones/services/sesionesService";
 
@@ -190,21 +192,6 @@ export function getAnimalDashboard(
 ): Promise<DashboardAnimalData> {
   const token = getAccessToken();
   return getJson<DashboardAnimalData>(`/animales/${animalId}/dashboard`, token);
-}
-
-export interface RegistrarEvaluacionCCParams {
-  sesionId?: number;
-  animalId: number;
-  valorCc: number;
-  escalaMin: number;
-  escalaMax: number;
-  observaciones: string;
-  files?: File[];
-}
-
-export interface RegistrarEvaluacionCCResult {
-  evaluacion: EvaluacionCC;
-  imagenesConError: boolean;
 }
 
 export async function registrarEvaluacionCCCompleta(

@@ -109,6 +109,21 @@ export type EvidenciaImagenRead = {
   url: string;
 };
 
+export interface RegistrarEvaluacionCCParams {
+  sesionId?: number;
+  animalId: number;
+  valorCc: number;
+  escalaMin: number;
+  escalaMax: number;
+  observaciones: string;
+  files?: File[];
+}
+
+export interface RegistrarEvaluacionCCResult {
+  evaluacion: EvaluacionCC;
+  imagenesConError: boolean;
+}
+
 // ── Dashboard de animales (rodeo) ─────────────────────────────────────────────
 
 export type HistogramaBin = {

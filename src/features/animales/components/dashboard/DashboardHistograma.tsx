@@ -27,6 +27,8 @@ const CC_COLORS: Record<number, string> = {
 
 export function DashboardHistograma({ histograma, loading }: Props) {
   const allZero = histograma.every((b) => b.cantidad === 0);
+  const maxCantidad = Math.max(...histograma.map((b) => b.cantidad), 0);
+  const yTicks = Array.from({ length: maxCantidad + 1 }, (_, i) => i);
 
   return (
     <Box>
@@ -55,7 +57,9 @@ export function DashboardHistograma({ histograma, loading }: Props) {
             />
             <YAxis
               allowDecimals={false}
-              tick={{ fontSize: 11, fill: "#59645c" }}
+              domain={[0, maxCantidad]}
+              ticks={yTicks}
+              tick={{ fontSize: 12, fill: "#59645c" }}
               axisLine={false}
               tickLine={false}
               width={28}

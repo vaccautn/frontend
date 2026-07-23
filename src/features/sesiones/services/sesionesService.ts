@@ -1,15 +1,11 @@
 import { getJson, patchJson, postJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 import type {
+  DashboardSesionData,
   PaginatedSesionesResumenResponse,
   SesionCaptura,
   SesionCapturaUpdatePayload,
   SesionListParams,
-} from "../types";
-import type {
-  SesionCaptura,
-  SesionListParams,
-  DashboardSesionData,
 } from "../types";
 
 export function getSesionesConResumen(

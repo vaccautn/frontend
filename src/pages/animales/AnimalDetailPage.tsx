@@ -91,7 +91,7 @@ export function AnimalDetailPage() {
     data: dashboardData,
     loading: dashboardLoading,
     error: dashboardError,
-    refetch: refetchDashboard,
+    // refetch: refetchDashboard,
   } = useAnimalDashboard(animalId);
 
   const canStartBajaFlow = animal?.estado === "ACTIVO";
