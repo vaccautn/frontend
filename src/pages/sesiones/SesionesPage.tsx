@@ -6,18 +6,19 @@ import {
   type KeyboardEvent,
 } from "react";
 import { Table, Button, Spinner } from "@chakra-ui/react";
-import { getSesionesConResumen } from "@/features/sesiones/services/sesionesService";
+import {
+  crearSesion,
+  getSesionesConResumen,
+} from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaConResumen } from "@/features/sesiones/types";
+import { useSesionesFiltros } from "@/features/sesiones/hooks/useSesionesFiltros";
 import "@/pages/animales/animales.css";
 import "./sesiones.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { IconPlus } from "@tabler/icons-react";
-import { crearSesion } from "@/features/sesiones/services/sesionesService";
-import {
-  formatEventDateTime,
-  localNaiveNow,
-} from "@/utils/localDateTime";
+import { SesionesFiltros } from "./SesionesFiltros";
+import { formatEventDateTime, localNaiveNow } from "@/utils/localDateTime";
 
 const PAGE_SIZE = 20;
 
@@ -38,6 +39,16 @@ export function SesionesPage() {
   const [nextOffset, setNextOffset] = useState<number | null>(null);
   const navigate = useNavigate();
   const [isStarting, setIsStarting] = useState(false);
+  const {
+    estado,
+    fechaDesde,
+    fechaHasta,
+    params,
+    setEstado,
+    setFechaDesde,
+    setFechaHasta,
+    clearFilters,
+  } = useSesionesFiltros();
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreRef = useRef(false);
@@ -48,7 +59,7 @@ export function SesionesPage() {
       const nuevaSesion = await crearSesion({ fecha_inicio: localNaiveNow() });
       navigate(`/sesiones/${nuevaSesion.id}/cargar`);
     } catch {
-      toast.error("No se pudo iniciar la sesión de evaluación.");
+      toast.error("No se pudo iniciar la sesion de evaluacion.");
     } finally {
       setIsStarting(false);
     }
@@ -76,7 +87,7 @@ export function SesionesPage() {
   const fetchSesiones = useCallback(() => {
     setLoading(true);
     setError("");
-    getSesionesConResumen({ limit: PAGE_SIZE, offset: 0 })
+    getSesionesConResumen({ ...params, limit: PAGE_SIZE, offset: 0 })
       .then((res) => {
         setSesiones(res.items);
         setHasMore(res.has_more);
@@ -84,28 +95,32 @@ export function SesionesPage() {
       })
       .catch(() => setError("No se pudieron cargar las sesiones."))
       .finally(() => setLoading(false));
-  }, []);
+  }, [params]);
 
   useEffect(() => {
-    fetchSesiones();
+    const timer = window.setTimeout(() => {
+      fetchSesiones();
+    }, 0);
+
+    return () => window.clearTimeout(timer);
   }, [fetchSesiones]);
 
   const cargarMas = useCallback(() => {
     if (loadingMoreRef.current || !hasMore || nextOffset === null) return;
     loadingMoreRef.current = true;
     setLoadingMore(true);
-    getSesionesConResumen({ limit: PAGE_SIZE, offset: nextOffset })
+    getSesionesConResumen({ ...params, limit: PAGE_SIZE, offset: nextOffset })
       .then((res) => {
         setSesiones((prev) => [...prev, ...res.items]);
         setHasMore(res.has_more);
         setNextOffset(res.next_offset);
       })
-      .catch(() => toast.error("No se pudieron cargar más sesiones."))
+      .catch(() => toast.error("No se pudieron cargar mas sesiones."))
       .finally(() => {
         setLoadingMore(false);
         loadingMoreRef.current = false;
       });
-  }, [hasMore, nextOffset]);
+  }, [hasMore, nextOffset, params]);
 
   useEffect(() => {
     const sentinel = sentinelRef.current;
@@ -128,16 +143,26 @@ export function SesionesPage() {
     <section>
       <div className="section-header">
         <div className="title-and-description">
-          <h1>Sesiones de evaluación</h1>
+          <h1>Sesiones de evaluacion</h1>
         </div>
         <Button
           colorPalette="brand"
           onClick={handleIniciarSesion}
           loading={isStarting}>
           <IconPlus size={18} stroke={1.5} />
-          Iniciar sesión de evaluación
+          Iniciar sesion de evaluacion
         </Button>
       </div>
+
+      <SesionesFiltros
+        estado={estado}
+        fechaDesde={fechaDesde}
+        fechaHasta={fechaHasta}
+        onEstadoChange={setEstado}
+        onFechaDesdeChange={setFechaDesde}
+        onFechaHastaChange={setFechaHasta}
+        onClear={clearFilters}
+      />
 
       {loading && <p>Cargando...</p>}
       {error && <p className="status-message error">{error}</p>}
@@ -165,7 +190,7 @@ export function SesionesPage() {
               {sesiones.length === 0 ? (
                 <Table.Row>
                   <Table.Cell colSpan={5 + CC_VALORES.length}>
-                    No se encontraron sesiones registradas.
+                    No se encontraron sesiones con los filtros aplicados.
                   </Table.Cell>
                 </Table.Row>
               ) : (
@@ -193,12 +218,12 @@ export function SesionesPage() {
                       {ESTADO_LABELS[sesion.estado] ?? sesion.estado}
                     </Table.Cell>
                     <Table.Cell>{sesion.evaluaciones_count}</Table.Cell>
-                    <Table.Cell>{sesion.valor_cc_moda ?? "—"}</Table.Cell>
+                    <Table.Cell>{sesion.valor_cc_moda ?? "-"}</Table.Cell>
                     <Table.Cell>
                       {sesion.valor_cc_min !== null &&
                       sesion.valor_cc_max !== null
-                        ? `${sesion.valor_cc_min} – ${sesion.valor_cc_max}`
-                        : "—"}
+                        ? `${sesion.valor_cc_min} - ${sesion.valor_cc_max}`
+                        : "-"}
                     </Table.Cell>
                     {CC_VALORES.map((v) => (
                       <Table.Cell key={v} className="sesiones-table__cc-cell">
