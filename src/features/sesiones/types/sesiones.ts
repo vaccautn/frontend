@@ -2,14 +2,18 @@ import type { HistogramaBin, AlertaAnimal } from "@/features/animales/types";
 
 export type EstadoSesion = "ABIERTA" | "CERRADA" | "CANCELADA";
 
-export type SesionCaptura = {
+export type SesionCapturaRead = {
   id: number;
+  usuario_id: number;
   fecha_inicio: string;
   fecha_fin: string | null;
   estado: EstadoSesion;
   observaciones: string;
   creado_en: string;
   actualizado_en: string;
+};
+
+export type SesionCapturaConResumen = SesionCapturaRead & {
   evaluaciones_count: number;
   valor_cc_moda: number | null;
   valor_cc_min: number | null;
@@ -18,7 +22,7 @@ export type SesionCaptura = {
 };
 
 export interface SesionListParams {
-  estado?: string;
+  estado?: EstadoSesion;
   fecha_inicio_desde?: string;
   fecha_inicio_hasta?: string;
   limit?: number;
@@ -26,14 +30,20 @@ export interface SesionListParams {
 }
 
 export interface PaginatedSesionesResumenResponse {
-  items: SesionCaptura[];
+  items: SesionCapturaConResumen[];
   has_more: boolean;
   next_offset: number | null;
 }
 
+export interface SesionCapturaCreatePayload {
+  fecha_inicio?: string;
+}
+
 export interface SesionCapturaUpdatePayload {
-  estado?: string;
-  fecha_fin?: string;
+  fecha_inicio?: string;
+  fecha_fin?: string | null;
+  estado?: EstadoSesion;
+  observaciones?: string;
 }
 
 // ── Dashboard de sesión ───────────────────────────────────────────────────────

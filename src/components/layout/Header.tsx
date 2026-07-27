@@ -19,6 +19,9 @@ function getPageTitle(pathname: string) {
   if (pathname.startsWith("/animales")) {
     return "Información de animales";
   }
+  if (pathname.startsWith("/sesiones")) {
+    return "Sesiones de evaluación";
+  }
 
   return pageTitles[pathname] ?? "Sin título";
 }

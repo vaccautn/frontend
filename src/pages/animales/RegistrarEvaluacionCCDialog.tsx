@@ -19,12 +19,14 @@ import {
 import { IconChevronDown } from "@tabler/icons-react";
 import { DEFAULT_CC_SCALE } from "@/features/animales/constants";
 import type { Animal } from "@/features/animales/types";
+import { localNaiveNow } from "@/utils/localDateTime";
 
 export interface EvaluacionCCPendiente {
   valorCc: number;
   escalaMin: number;
   escalaMax: number;
   observaciones: string;
+  fecha: string;
   files: File[];
 }
 
@@ -143,6 +145,7 @@ export function RegistrarEvaluacionCCDialog({
       escalaMin: DEFAULT_CC_SCALE.min,
       escalaMax: DEFAULT_CC_SCALE.max,
       observaciones: values.observaciones.trim(),
+      fecha: localNaiveNow(),
       files,
     });
 

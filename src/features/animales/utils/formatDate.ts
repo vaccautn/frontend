@@ -1,3 +1,5 @@
+import { formatEventDateTime } from "@/utils/localDateTime";
+
 const DATE_FORMATTER = new Intl.DateTimeFormat("es-AR", {
   day: "2-digit",
   month: "2-digit",
@@ -16,8 +18,7 @@ export function formatFecha(fecha: string): string {
   return DATE_FORMATTER.format(parseFechaSolo(fecha));
 }
 
-/** Formatea solo la parte de fecha de un timestamp completo (ej.
- * "2026-07-11T17:29:00Z") como dd/mm/aaaa, sin la hora. */
+/** Formatea fecha y hora de un evento sin reinterpretar su zona. */
 export function formatFechaDeTimestamp(fecha: string): string {
-  return DATE_FORMATTER.format(new Date(fecha));
+  return formatEventDateTime(fecha);
 }
