@@ -3,7 +3,8 @@ import { getAccessToken } from "@/features/auth";
 import type {
   DashboardSesionData,
   PaginatedSesionesResumenResponse,
-  SesionCaptura,
+  SesionCapturaCreatePayload,
+  SesionCapturaRead,
   SesionCapturaUpdatePayload,
   SesionListParams,
 } from "../types";
@@ -28,23 +29,33 @@ export function getSesionesConResumen(
   );
 }
 
-export function getSesionActiva(): Promise<SesionCaptura> {
+export function getSesionActiva(
+  fechaInicio?: string,
+): Promise<SesionCapturaRead> {
   const token = getAccessToken();
-  return getJson<SesionCaptura>("/sesiones-captura/activa", token);
-}
-
-export function crearSesion(): Promise<SesionCaptura> {
-  const token = getAccessToken();
-  return postJson<SesionCaptura, Record<string, never>>(
-    "/sesiones-captura/",
-    {},
+  const query = new URLSearchParams();
+  if (fechaInicio) query.set("fecha_inicio", fechaInicio);
+  const queryString = query.toString();
+  return getJson<SesionCapturaRead>(
+    `/sesiones-captura/activa${queryString ? `?${queryString}` : ""}`,
     token,
   );
 }
 
-export function getSesion(id: number): Promise<SesionCaptura> {
+export function crearSesion(
+  payload: SesionCapturaCreatePayload = {},
+): Promise<SesionCapturaRead> {
   const token = getAccessToken();
-  return getJson<SesionCaptura>(`/sesiones-captura/${id}`, token);
+  return postJson<SesionCapturaRead, SesionCapturaCreatePayload>(
+    "/sesiones-captura/",
+    payload,
+    token,
+  );
+}
+
+export function getSesion(id: number): Promise<SesionCapturaRead> {
+  const token = getAccessToken();
+  return getJson<SesionCapturaRead>(`/sesiones-captura/${id}`, token);
 }
 
 export function getSesionDashboard(
@@ -60,9 +71,9 @@ export function getSesionDashboard(
 export function actualizarSesion(
   sesionId: number,
   datos: SesionCapturaUpdatePayload,
-): Promise<SesionCaptura> {
+): Promise<SesionCapturaRead> {
   const token = getAccessToken();
-  return patchJson<SesionCaptura, SesionCapturaUpdatePayload>(
+  return patchJson<SesionCapturaRead, SesionCapturaUpdatePayload>(
     `/sesiones-captura/${sesionId}`,
     datos,
     token,
