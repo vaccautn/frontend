@@ -6,13 +6,13 @@ import LoginPage from "@/pages/LoginPage";
 // import RegisterPage from "@/pages/RegisterPage";
 
 import { DashboardPage } from "@/pages/Dashboard";
-import { AnimalesPage } from "@/pages/animales/AnimalesPage";
-import { AnimalDetailPage } from "@/pages/animales/AnimalDetailPage";
-import { SesionesPage } from "@/pages/sesiones/SesionesPage";
+import { AnimalesPage } from "@/pages/AnimalesPage";
+import { AnimalDetailPage } from "@/pages/AnimalDetailPage";
+import { SesionesPage } from "@/pages/SesionesPage";
 
-import AnimalesNuevoPage from "@/pages/animales/AnimalesNuevoPage";
-import { CargarEvaluacionesPage } from "@/pages/sesiones/CargarEvaluacionPage";
-import { SesionDetailPage } from "@/pages/sesiones/SesionDetailPage";
+import AnimalesNuevoPage from "@/pages/AnimalesNuevoPage";
+import { CargarEvaluacionesPage } from "@/pages/CargarEvaluacionPage";
+import { SesionDetailPage } from "@/pages/SesionDetailPage";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard

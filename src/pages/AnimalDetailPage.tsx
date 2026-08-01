@@ -43,12 +43,12 @@ import {
 } from "@/features/animales/utils/animalesValidation";
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
-import { EvaluacionCCItem } from "./EvaluacionCCItem";
+import { EvaluacionCCItem } from "../features/animales/components/EvaluacionCCItem";
 
-import { BajaAnimalModal } from "./BajaAnimalModal";
-import "./animales.css";
-import { AnimalEvaluacionCCDialog } from "@/pages/animales/AnimalEvaluacionCCDialog";
-import { AnimalEvaluacionesTable } from "@/pages/animales/AnimalEvaluacionesTable";
+import { BajaAnimalModal } from "../features/animales/components/BajaAnimalModal";
+import "@/features/animales/components/animales.css";
+import { AnimalEvaluacionCCDialog } from "@/features/animales/components/AnimalEvaluacionCCDialog";
+import { AnimalEvaluacionesTable } from "@/features/animales/components/AnimalEvaluacionesTable";
 
 const CAMPOS: { label: string; render: (animal: Animal) => string }[] = [
   {

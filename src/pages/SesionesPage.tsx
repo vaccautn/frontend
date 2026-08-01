@@ -12,12 +12,12 @@ import {
 } from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaConResumen } from "@/features/sesiones/types";
 import { useSesionesFiltros } from "@/features/sesiones/hooks/useSesionesFiltros";
-import "@/pages/animales/animales.css";
-import "./sesiones.css";
+import "@/features/animales/components/animales.css";
+import "@/features/sesiones/components/sesiones.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
 import { IconPlus } from "@tabler/icons-react";
-import { SesionesFiltros } from "./SesionesFiltros";
+import { SesionesFiltros } from "../features/sesiones/components/SesionesFiltros";
 import { formatEventDateTime, localNaiveNow } from "@/utils/localDateTime";
 
 const PAGE_SIZE = 20;

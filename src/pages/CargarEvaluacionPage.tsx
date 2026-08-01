@@ -11,7 +11,7 @@ import { actualizarSesion } from "@/features/sesiones/services/sesionesService";
 import {
   RegistrarEvaluacionCCDialog,
   type EvaluacionCCPendiente,
-} from "@/pages/animales/RegistrarEvaluacionCCDialog"; // ajustar ruta real
+} from "@/features/animales/components/RegistrarEvaluacionCCDialog"; // ajustar ruta real
 import type { SesionCapturaRead } from "@/features/sesiones/types";
 import type { Animal, AnimalLoteGroup } from "@/features/animales/types";
 import { localNaiveNow } from "@/utils/localDateTime";

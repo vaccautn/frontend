@@ -16,11 +16,11 @@ import { getSesion } from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaRead } from "@/features/sesiones/types";
 import { ApiError } from "@/services/httpClient";
 import { formatEventDateTime } from "@/utils/localDateTime";
-import { ConfirmarEliminacionDialog } from "./ConfirmarEliminacionDialog";
-import { EditarEvaluacionDialog } from "./EditarEvaluacionDialog";
-import { SesionEvaluacionRow } from "./SesionEvaluacionRow";
-import { SesionEvaluacionesTable } from "./SesionesEvaluacionesTable";
-import "./sesiones.css";
+import { ConfirmarEliminacionDialog } from "../features/sesiones/components/ConfirmarEliminacionDialog";
+import { EditarEvaluacionDialog } from "../features/sesiones/components/EditarEvaluacionDialog";
+import { SesionEvaluacionRow } from "../features/sesiones/components/SesionEvaluacionRow";
+import { SesionEvaluacionesTable } from "../features/sesiones/components/SesionesEvaluacionesTable";
+import "@/features/sesiones/components/sesiones.css";
 
 type DetailStatus = "loading" | "ready" | "error" | "stale" | "ineligible";
 

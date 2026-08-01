@@ -8,7 +8,7 @@ import {
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button, Table } from "@chakra-ui/react";
 import { IconPlus } from "@tabler/icons-react";
-import "./animales.css";
+import "@/features/animales/components/animales.css";
 import { getAnimales } from "@/features/animales/services/animalesService";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import type { Animal } from "@/features/animales/types";
@@ -16,7 +16,7 @@ import type { LoteOption } from "@/features/lotes/types";
 import { useAnimalesFiltros } from "@/features/animales/hooks/useAnimalesFiltros";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { AnimalesDashboard } from "@/features/animales/components/dashboard/AnimalesDashboard";
-import { AnimalesFiltros } from "./AnimalesFiltros";
+import { AnimalesFiltros } from "../features/animales/components/AnimalesFiltros";
 
 const COLUMNAS = [
   "Caravana",
