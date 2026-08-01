@@ -1,25 +1,38 @@
-import { useCallback, useEffect, useState, type KeyboardEvent } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+  type KeyboardEvent,
+} from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button, Table } from "@chakra-ui/react";
 import { IconPlus } from "@tabler/icons-react";
 import "./animales.css";
-import { getAnimalesAgrupadosPorLote } from "@/features/animales/services/animalesService";
-import type { Animal, AnimalLoteGroup } from "@/features/animales/types";
+import { getAnimales } from "@/features/animales/services/animalesService";
+import { getLotes } from "@/features/lotes/services/lotesService";
+import type { Animal } from "@/features/animales/types";
+import type { LoteOption } from "@/features/lotes/types";
 import { useAnimalesFiltros } from "@/features/animales/hooks/useAnimalesFiltros";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { AnimalesDashboard } from "@/features/animales/components/dashboard/AnimalesDashboard";
 import { AnimalesFiltros } from "./AnimalesFiltros";
 
-const COLUMNAS = ["Caravana", "Raza", "Sexo", "Fecha de nacimiento", "Estado"];
-
-function getTituloGrupo(grupo: AnimalLoteGroup) {
-  return grupo.lote?.nombre ?? "Sin lote";
-}
+const COLUMNAS = [
+  "Caravana",
+  "Raza",
+  "Sexo",
+  "Fecha de nacimiento",
+  "Lote",
+  "Estado",
+];
 
 export function AnimalesPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [grupos, setGrupos] = useState<AnimalLoteGroup[]>([]);
+  const [animales, setAnimales] = useState<Animal[]>([]);
+  const [lotes, setLotes] = useState<LoteOption[]>([]);
+  const [loadingLotes, setLoadingLotes] = useState(true);
 
   const [initialLoading, setInitialLoading] = useState(true);
   const [refetching, setRefetching] = useState(false);
@@ -30,18 +43,32 @@ export function AnimalesPage() {
     sexo,
     raza,
     estado,
+    loteId,
     setCaravanaInput,
     setSexo,
     setRaza,
     setEstado,
+    setLoteId,
     params,
   } = useAnimalesFiltros();
+
+  useEffect(() => {
+    getLotes()
+      .then(setLotes)
+      .finally(() => setLoadingLotes(false));
+  }, []);
+
+  const loteNombrePorId = useMemo(() => {
+    const map = new Map<number, string>();
+    lotes.forEach((lote) => map.set(lote.id, lote.nombre));
+    return map;
+  }, [lotes]);
 
   const fetchAnimales = useCallback(() => {
     setRefetching(true);
     setError("");
-    getAnimalesAgrupadosPorLote(params)
-      .then(setGrupos)
+    getAnimales(params)
+      .then(setAnimales)
       .catch(() => setError("No se pudieron cargar los animales."))
       .finally(() => {
         setRefetching(false);
@@ -69,10 +96,10 @@ export function AnimalesPage() {
     }
   };
 
-  const totalAnimales = grupos.reduce(
-    (acumulado, grupo) => acumulado + grupo.animales.length,
-    0,
-  );
+  const lotesRepresentados = useMemo(() => {
+    const ids = new Set(animales.map((a) => a.lote_id ?? "sin-lote"));
+    return ids.size;
+  }, [animales]);
 
   return (
     <section>
@@ -95,10 +122,14 @@ export function AnimalesPage() {
         sexo={sexo}
         raza={raza}
         estado={estado}
+        loteId={loteId}
+        lotes={lotes}
+        loadingLotes={loadingLotes}
         onCaravanaChange={setCaravanaInput}
         onSexoChange={setSexo}
         onRazaChange={setRaza}
         onEstadoChange={setEstado}
+        onLoteChange={setLoteId}
       />
 
       {initialLoading && <p>Cargando...</p>}
@@ -114,15 +145,15 @@ export function AnimalesPage() {
           <div className="animales-table__summary">
             <div>
               <span className="animales-table__summary-label">
-                Lotes visibles
+                Lotes representados
               </span>
-              <strong>{grupos.length}</strong>
+              <strong>{lotesRepresentados}</strong>
             </div>
             <div>
               <span className="animales-table__summary-label">
                 Animales listados
               </span>
-              <strong>{totalAnimales}</strong>
+              <strong>{animales.length}</strong>
             </div>
           </div>
 
@@ -136,56 +167,41 @@ export function AnimalesPage() {
                 ))}
               </Table.Row>
             </Table.Header>
-
-            {grupos.length === 0 ? (
-              <Table.Body>
+            <Table.Body>
+              {animales.length === 0 ? (
                 <Table.Row>
                   <Table.Cell colSpan={COLUMNAS.length}>
                     No se encontraron animales con los filtros aplicados.
                   </Table.Cell>
                 </Table.Row>
-              </Table.Body>
-            ) : (
-              grupos.map((grupo) => (
-                <Table.Body key={grupo.lote?.id ?? "sin-lote"}>
-                  <Table.Row className="animales-table__group-row">
-                    <Table.Cell colSpan={COLUMNAS.length}>
-                      <div className="animales-table__group-header">
-                        <div>
-                          <p className="animales-table__group-eyebrow">Lote</p>
-                          <strong>{getTituloGrupo(grupo)}</strong>
-                        </div>
-                        <span className="animales-table__group-count">
-                          {grupo.animales.length} animal
-                          {grupo.animales.length === 1 ? "" : "es"}
-                        </span>
-                      </div>
+              ) : (
+                animales.map((animal) => (
+                  <Table.Row
+                    key={animal.id}
+                    className="animales-table__row"
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Ver detalle de ${animal.caravana ?? `animal #${animal.id}`}`}
+                    onClick={() => navigate(`/animales/${animal.id}`)}
+                    onKeyDown={(event) => handleRowKeyDown(event, animal)}>
+                    <Table.Cell>{animal.caravana ?? "—"}</Table.Cell>
+                    <Table.Cell>{animal.raza}</Table.Cell>
+                    <Table.Cell>{animal.sexo}</Table.Cell>
+                    <Table.Cell>
+                      {animal.fecha_nacimiento
+                        ? formatFecha(animal.fecha_nacimiento)
+                        : "—"}
                     </Table.Cell>
+                    <Table.Cell>
+                      {animal.lote_id !== null
+                        ? (loteNombrePorId.get(animal.lote_id) ?? "—")
+                        : "Sin lote"}
+                    </Table.Cell>
+                    <Table.Cell>{animal.estado}</Table.Cell>
                   </Table.Row>
-
-                  {grupo.animales.map((animal) => (
-                    <Table.Row
-                      key={animal.id}
-                      className="animales-table__row"
-                      tabIndex={0}
-                      role="button"
-                      aria-label={`Ver detalle de ${animal.caravana ?? `animal #${animal.id}`}`}
-                      onClick={() => navigate(`/animales/${animal.id}`)}
-                      onKeyDown={(event) => handleRowKeyDown(event, animal)}>
-                      <Table.Cell>{animal.caravana ?? "—"}</Table.Cell>
-                      <Table.Cell>{animal.raza}</Table.Cell>
-                      <Table.Cell>{animal.sexo}</Table.Cell>
-                      <Table.Cell>
-                        {animal.fecha_nacimiento
-                          ? formatFecha(animal.fecha_nacimiento)
-                          : "—"}
-                      </Table.Cell>
-                      <Table.Cell>{animal.estado}</Table.Cell>
-                    </Table.Row>
-                  ))}
-                </Table.Body>
-              ))
-            )}
+                ))
+              )}
+            </Table.Body>
           </Table.Root>
         </div>
       )}
