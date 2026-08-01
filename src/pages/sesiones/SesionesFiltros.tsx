@@ -1,5 +1,5 @@
 import { Input, Menu, Portal } from "@chakra-ui/react";
-import { IconChevronDown } from "@tabler/icons-react";
+import { IconCalendarWeek, IconChevronDown } from "@tabler/icons-react";
 import type { EstadoSesion } from "@/features/sesiones/types";
 
 const TODOS_VALUE = "__TODOS__";
@@ -76,9 +76,12 @@ export function SesionesFiltros({
         </Portal>
       </Menu.Root>
 
-      <div className="sesiones-filtros__campo">
-        <label htmlFor="fecha-desde" className="sr-only">
-          Filtrar desde
+      <div
+        className="sesiones-filtros__rango"
+        role="group"
+        aria-label="Filtrar por rango de fechas">
+        <label htmlFor="fecha-desde" className="sesiones-filtros__rango-label">
+          Desde
         </label>
         <Input
           id="fecha-desde"
@@ -86,13 +89,13 @@ export function SesionesFiltros({
           value={fechaDesde}
           onChange={(event) => onFechaDesdeChange(event.target.value)}
           aria-label="Filtrar sesiones desde una fecha"
-          className="animales-filtros__input"
+          className="sesiones-filtros__rango-input"
         />
-      </div>
 
-      <div className="sesiones-filtros__campo">
-        <label htmlFor="fecha-hasta" className="sr-only">
-          Filtrar hasta
+        <span className="sesiones-filtros__rango-divisor" aria-hidden="true" />
+
+        <label htmlFor="fecha-hasta" className="sesiones-filtros__rango-label">
+          Hasta
         </label>
         <Input
           id="fecha-hasta"
@@ -100,7 +103,7 @@ export function SesionesFiltros({
           value={fechaHasta}
           onChange={(event) => onFechaHastaChange(event.target.value)}
           aria-label="Filtrar sesiones hasta una fecha"
-          className="animales-filtros__input"
+          className="sesiones-filtros__rango-input"
         />
       </div>
 
