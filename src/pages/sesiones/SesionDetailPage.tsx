@@ -19,6 +19,7 @@ import { formatEventDateTime } from "@/utils/localDateTime";
 import { ConfirmarEliminacionDialog } from "./ConfirmarEliminacionDialog";
 import { EditarEvaluacionDialog } from "./EditarEvaluacionDialog";
 import { SesionEvaluacionRow } from "./SesionEvaluacionRow";
+import { SesionEvaluacionesTable } from "./SesionesEvaluacionesTable";
 import "./sesiones.css";
 
 type DetailStatus = "loading" | "ready" | "error" | "stale" | "ineligible";
@@ -34,8 +35,10 @@ export function SesionDetailPage() {
   const [sesion, setSesion] = useState<SesionCapturaRead | null>(null);
   const [evaluaciones, setEvaluaciones] = useState<EvaluacionCC[]>([]);
   const [errorMessage, setErrorMessage] = useState("");
-  const [editingEvaluacion, setEditingEvaluacion] = useState<EvaluacionCC | null>(null);
-  const [deletingEvaluacion, setDeletingEvaluacion] = useState<EvaluacionCC | null>(null);
+  const [editingEvaluacion, setEditingEvaluacion] =
+    useState<EvaluacionCC | null>(null);
+  const [deletingEvaluacion, setDeletingEvaluacion] =
+    useState<EvaluacionCC | null>(null);
 
   useEffect(() => {
     activeSesionIdRef.current = sesionId;
@@ -159,10 +162,7 @@ export function SesionDetailPage() {
     const mutationSesionId = sesionId;
 
     try {
-      await anularEvaluacionCcEnSesion(
-        deletingEvaluacion.id,
-        mutationSesionId,
-      );
+      await anularEvaluacionCcEnSesion(deletingEvaluacion.id, mutationSesionId);
       if (
         mutationGeneration !== requestGenerationRef.current ||
         mutationSesionId !== activeSesionIdRef.current
@@ -240,7 +240,9 @@ export function SesionDetailPage() {
         <div className="sesion-detail__state" role="alert">
           <h1 id="sesion-detail-title">No pudimos cargar la sesión</h1>
           <p>{errorMessage}</p>
-          <Button colorPalette="brand" onClick={() => setRetryGeneration((value) => value + 1)}>
+          <Button
+            colorPalette="brand"
+            onClick={() => setRetryGeneration((value) => value + 1)}>
             Reintentar
           </Button>
         </div>
@@ -251,11 +253,14 @@ export function SesionDetailPage() {
           <header className="sesion-detail__hero">
             <div>
               <span className="sesion-detail__eyebrow">Sesión cerrada</span>
-              <h1 id="sesion-detail-title">Evaluaciones de la sesión #{sesion.id}</h1>
+              <h1 id="sesion-detail-title">
+                Evaluaciones de la sesión #{sesion.id}
+              </h1>
               <p>{formatEventDateTime(sesion.fecha_inicio)}</p>
             </div>
             <span className="sesion-detail__count">
-              {evaluaciones.length} evaluación{evaluaciones.length === 1 ? "" : "es"}
+              {evaluaciones.length} evaluación
+              {evaluaciones.length === 1 ? "" : "es"}
             </span>
           </header>
 
@@ -265,17 +270,28 @@ export function SesionDetailPage() {
               <p>Esta sesión cerrada no tiene evaluaciones para revisar.</p>
             </div>
           ) : (
-            <ul className="sesion-detail__list" aria-label="Evaluaciones de la sesión">
-              {evaluaciones.map((evaluacion) => (
-                <li key={evaluacion.id}>
-                  <SesionEvaluacionRow
-                    evaluacion={evaluacion}
-                    onEdit={() => setEditingEvaluacion(evaluacion)}
-                    onDelete={() => setDeletingEvaluacion(evaluacion)}
-                  />
-                </li>
-              ))}
-            </ul>
+            <>
+              <div className="sesion-detail__table-view">
+                <SesionEvaluacionesTable
+                  evaluaciones={evaluaciones}
+                  onRowClick={setEditingEvaluacion}
+                />
+              </div>
+
+              <ul
+                className="sesion-detail__list sesion-detail__list-view"
+                aria-label="Evaluaciones de la sesión">
+                {evaluaciones.map((evaluacion) => (
+                  <li key={evaluacion.id}>
+                    <SesionEvaluacionRow
+                      evaluacion={evaluacion}
+                      onEdit={() => setEditingEvaluacion(evaluacion)}
+                      onDelete={() => setDeletingEvaluacion(evaluacion)}
+                    />
+                  </li>
+                ))}
+              </ul>
+            </>
           )}
         </>
       )}
@@ -286,9 +302,12 @@ export function SesionDetailPage() {
           evaluacion={editingEvaluacion}
           onClose={() => setEditingEvaluacion(null)}
           onSubmit={handleEditSubmit}
+          onDelete={(evaluacion) => {
+            setEditingEvaluacion(null);
+            setDeletingEvaluacion(evaluacion);
+          }}
         />
       )}
-
       {deletingEvaluacion && (
         <ConfirmarEliminacionDialog
           key={deletingEvaluacion.id}

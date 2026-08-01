@@ -359,3 +359,63 @@
   height: 38px;
   align-items: center;
 }
+
+/* Por defecto (desktop): mostrar tabla, ocultar cards */
+.sesion-detail__table-view {
+  display: block;
+}
+
+.sesion-detail__list-view {
+  display: none;
+}
+
+.sesion-evaluaciones-table__cc {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--chakra-colors-gray-100, #f3f4f6);
+  font-size: 0.8125rem;
+}
+
+.sesion-evaluaciones-table__observaciones {
+  max-width: 20rem;
+  color: var(--chakra-colors-gray-600, #4b5563);
+}
+
+.sesion-evaluaciones-table__acciones {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.sesion-evaluaciones-table__acciones-header {
+  text-align: right;
+  width: 50px;
+}
+
+.sesion-edit__footer-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.sesion-edit__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sesion-edit__footer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Debajo de ~768px: mostrar cards, ocultar tabla */
+@media (max-width: 768px) {
+  .sesion-detail__table-view {
+    display: none;
+  }
+
+  .sesion-detail__list-view {
+    display: block;
+  }
+}

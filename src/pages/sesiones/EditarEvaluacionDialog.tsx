@@ -1,5 +1,13 @@
 import { useState, type FormEvent } from "react";
-import { Button, Dialog, Field, Input, Portal, Textarea } from "@chakra-ui/react";
+import {
+  Button,
+  Dialog,
+  Field,
+  Input,
+  Portal,
+  Textarea,
+} from "@chakra-ui/react";
+import { IconTrash } from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import { normalizeBackendDetail } from "@/features/auth";
 import type {
@@ -13,12 +21,14 @@ type EditarEvaluacionDialogProps = {
   evaluacion: EvaluacionCC;
   onClose: () => void;
   onSubmit: (payload: UpdateEvaluacionCCSesionPayload) => Promise<boolean>;
+  onDelete?: (evaluacion: EvaluacionCC) => void;
 };
 
 export function EditarEvaluacionDialog({
   evaluacion,
   onClose,
   onSubmit,
+  onDelete,
 }: EditarEvaluacionDialogProps) {
   const animalRfid = getAnimalRfidLabel(evaluacion.animal_rfid);
   const [valorCc, setValorCc] = useState(String(evaluacion.valor_cc));
@@ -108,7 +118,9 @@ export function EditarEvaluacionDialog({
                     disabled={pending}
                     aria-describedby="sesion-edit-cc-help"
                   />
-                  <Field.HelperText id="sesion-edit-cc-help">Valor entero de 1 a 5.</Field.HelperText>
+                  <Field.HelperText id="sesion-edit-cc-help">
+                    Valor entero de 1 a 5.
+                  </Field.HelperText>
                   <Field.ErrorText>{valorError}</Field.ErrorText>
                 </Field.Root>
 
@@ -125,18 +137,31 @@ export function EditarEvaluacionDialog({
               </form>
             </Dialog.Body>
 
-            <Dialog.Footer>
-              <Button variant="ghost" onClick={onClose} disabled={pending}>
-                Cancelar
-              </Button>
-              <Button
-                colorPalette="brand"
-                type="submit"
-                form="sesion-edit-form"
-                loading={pending}
-                disabled={pending}>
-                Guardar cambios
-              </Button>
+            <Dialog.Footer className="sesion-edit__footer">
+              {onDelete && (
+                <Button
+                  variant="ghost"
+                  colorPalette="red"
+                  onClick={() => onDelete(evaluacion)}
+                  disabled={pending}
+                  className="sesion-edit__delete">
+                  <IconTrash size={16} stroke={1.5} />
+                  Eliminar
+                </Button>
+              )}
+              <div className="sesion-edit__footer-actions">
+                <Button variant="ghost" onClick={onClose} disabled={pending}>
+                  Cancelar
+                </Button>
+                <Button
+                  colorPalette="brand"
+                  type="submit"
+                  form="sesion-edit-form"
+                  loading={pending}
+                  disabled={pending}>
+                  Guardar cambios
+                </Button>
+              </div>
             </Dialog.Footer>
           </Dialog.Content>
         </Dialog.Positioner>
