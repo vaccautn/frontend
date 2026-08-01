@@ -1,5 +1,5 @@
 import { Input, Menu, Portal } from "@chakra-ui/react";
-import { IconCalendarWeek, IconChevronDown } from "@tabler/icons-react";
+import { IconChevronDown } from "@tabler/icons-react";
 import type { EstadoSesion } from "@/features/sesiones/types";
 
 const TODOS_VALUE = "__TODOS__";

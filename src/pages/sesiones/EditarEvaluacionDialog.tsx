@@ -3,11 +3,11 @@ import {
   Button,
   Dialog,
   Field,
-  Input,
+  Menu,
   Portal,
   Textarea,
 } from "@chakra-ui/react";
-import { IconTrash } from "@tabler/icons-react";
+import { IconChevronDown, IconTrash } from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import { normalizeBackendDetail } from "@/features/auth";
 import type {
@@ -24,6 +24,8 @@ type EditarEvaluacionDialogProps = {
   onDelete?: (evaluacion: EvaluacionCC) => void;
 };
 
+const CC_OPCIONES = [1, 2, 3, 4, 5];
+
 export function EditarEvaluacionDialog({
   evaluacion,
   onClose,
@@ -31,9 +33,8 @@ export function EditarEvaluacionDialog({
   onDelete,
 }: EditarEvaluacionDialogProps) {
   const animalRfid = getAnimalRfidLabel(evaluacion.animal_rfid);
-  const [valorCc, setValorCc] = useState(String(evaluacion.valor_cc));
+  const [valorCc, setValorCc] = useState(evaluacion.valor_cc);
   const [observaciones, setObservaciones] = useState(evaluacion.observaciones);
-  const [valorError, setValorError] = useState("");
   const [formError, setFormError] = useState("");
   const [pending, setPending] = useState(false);
 
@@ -41,23 +42,11 @@ export function EditarEvaluacionDialog({
     event.preventDefault();
     if (pending) return;
 
-    const parsedValue = Number(valorCc);
-    if (
-      valorCc.trim() === "" ||
-      !Number.isInteger(parsedValue) ||
-      parsedValue < 1 ||
-      parsedValue > 5
-    ) {
-      setValorError("Ingresá un valor entero entre 1 y 5.");
-      return;
-    }
-
-    setValorError("");
     setFormError("");
     setPending(true);
     try {
       const refreshed = await onSubmit({
-        valor_cc: parsedValue,
+        valor_cc: valorCc,
         observaciones,
       });
       if (!refreshed) return;
@@ -105,23 +94,44 @@ export function EditarEvaluacionDialog({
                 </p>
               )}
               <form id="sesion-edit-form" onSubmit={handleSubmit} noValidate>
-                <Field.Root invalid={!!valorError} required>
+                <Field.Root required>
                   <Field.Label>Condición corporal</Field.Label>
-                  <Input
-                    value={valorCc}
-                    onChange={(event) => setValorCc(event.target.value)}
-                    type="number"
-                    inputMode="numeric"
-                    min={1}
-                    max={5}
-                    step={1}
-                    disabled={pending}
-                    aria-describedby="sesion-edit-cc-help"
-                  />
-                  <Field.HelperText id="sesion-edit-cc-help">
-                    Valor entero de 1 a 5.
-                  </Field.HelperText>
-                  <Field.ErrorText>{valorError}</Field.ErrorText>
+                  <Menu.Root>
+                    <Menu.Trigger asChild>
+                      <button
+                        type="button"
+                        className="animal-evaluacion__valor-trigger"
+                        disabled={pending}
+                        aria-label="Seleccionar valor de CC">
+                        <span>{valorCc}</span>
+                        <IconChevronDown
+                          className="animal-evaluacion__valor-caret"
+                          size={16}
+                          stroke={1.5}
+                        />
+                      </button>
+                    </Menu.Trigger>
+                    <Portal>
+                      <Menu.Positioner>
+                        <Menu.Content className="animal-evaluacion__valor-menu">
+                          <Menu.RadioItemGroup
+                            value={String(valorCc)}
+                            onValueChange={(details) =>
+                              setValorCc(Number(details.value))
+                            }>
+                            {CC_OPCIONES.map((opcion) => (
+                              <Menu.RadioItem
+                                key={opcion}
+                                value={String(opcion)}>
+                                {opcion}
+                              </Menu.RadioItem>
+                            ))}
+                          </Menu.RadioItemGroup>
+                        </Menu.Content>
+                      </Menu.Positioner>
+                    </Portal>
+                  </Menu.Root>
+                  <Field.HelperText>Valor entero de 1 a 5.</Field.HelperText>
                 </Field.Root>
 
                 <Field.Root>
