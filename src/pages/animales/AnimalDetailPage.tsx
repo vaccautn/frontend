@@ -47,6 +47,8 @@ import { EvaluacionCCItem } from "./EvaluacionCCItem";
 
 import { BajaAnimalModal } from "./BajaAnimalModal";
 import "./animales.css";
+import { AnimalEvaluacionCCDialog } from "@/pages/animales/AnimalEvaluacionCCDialog";
+import { AnimalEvaluacionesTable } from "@/pages/animales/AnimalEvaluacionesTable";
 
 const CAMPOS: { label: string; render: (animal: Animal) => string }[] = [
   {
@@ -67,6 +69,8 @@ export function AnimalDetailPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
+  const [evaluacionSeleccionada, setEvaluacionSeleccionada] =
+    useState<EvaluacionCC | null>(null);
   const [animal, setAnimal] = useState<Animal | null>(null);
   const [animalLoading, setAnimalLoading] = useState(true);
   const [animalError, setAnimalError] = useState("");
@@ -521,7 +525,7 @@ export function AnimalDetailPage() {
                 </p>
               )}
 
-            {!evaluacionesLoading &&
+            {/* {!evaluacionesLoading &&
               !evaluacionesError &&
               historyItems.length > 0 && (
                 <div className="animal-evaluaciones__list">
@@ -533,7 +537,7 @@ export function AnimalDetailPage() {
                     />
                   ))}
                 </div>
-              )}
+              )} */}
           </section>
         </>
       )}
@@ -554,6 +558,37 @@ export function AnimalDetailPage() {
           animal={animalParaBaja}
           onClose={() => setAnimalParaBaja(null)}
           onSuccess={handleBajaSuccess}
+        />
+      )}
+      {!evaluacionesLoading &&
+        !evaluacionesError &&
+        historyItems.length > 0 && (
+          <>
+            <div className="animal-evaluaciones__table-view">
+              <AnimalEvaluacionesTable
+                evaluaciones={historyItems}
+                onRowClick={setEvaluacionSeleccionada}
+              />
+            </div>
+
+            <div className="animal-evaluaciones__list animal-evaluaciones__list-view">
+              {historyItems.map((evaluacion) => (
+                <EvaluacionCCItem
+                  key={evaluacion.id}
+                  evaluacion={evaluacion}
+                  onUpdated={handleRefreshEvaluaciones}
+                />
+              ))}
+            </div>
+          </>
+        )}
+      {evaluacionSeleccionada && (
+        <AnimalEvaluacionCCDialog
+          key={evaluacionSeleccionada.id}
+          evaluacion={evaluacionSeleccionada}
+          onClose={() => setEvaluacionSeleccionada(null)}
+          onSaved={handleRefreshEvaluaciones}
+          onDeleted={handleRefreshEvaluaciones}
         />
       )}
     </section>

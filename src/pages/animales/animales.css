@@ -1462,6 +1462,87 @@
   margin-top: 0.25rem;
 }
 
+/* ── Historial de evaluaciones: tabla (desktop) vs cards (mobile) ── */
+.animal-evaluaciones__table-view {
+  display: block;
+}
+
+.animal-evaluaciones__list.animal-evaluaciones__list-view {
+  display: none;
+}
+.animal-evaluaciones-table__wrapper {
+  margin-top: 0.5rem;
+}
+
+.animal-evaluaciones-table__cc {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.2rem 0.65rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.animal-evaluaciones-table__cc--3 {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.animal-evaluaciones-table__cc--4 {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.animal-evaluaciones-table__cc--2 {
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
+.animal-evaluaciones-table__cc--1,
+.animal-evaluaciones-table__cc--5 {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.animal-evaluaciones-table__observaciones {
+  max-width: 28rem;
+  color: var(--text);
+}
+
+/* ── Footer del dialog de evaluación: Eliminar a la izquierda, resto a la derecha ── */
+.animal-evaluacion__footer--split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.animal-evaluacion__footer-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* ── Botón de eliminar imagen dentro del dialog ── */
+.animal-imagenes__thumb-wrap {
+  position: relative;
+}
+
+.animal-imagenes__thumb-delete {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: rgba(21, 32, 25, 0.65);
+  color: #ffffff;
+  cursor: pointer;
+}
+
 @media (max-width: 720px) {
   .animal-evaluaciones__list {
     grid-template-columns: 1fr;
@@ -1520,6 +1601,14 @@
 
   .animal-edit-page__form {
     grid-template-columns: 1fr;
+  }
+
+  .animal-evaluaciones__table-view {
+    display: none;
+  }
+
+  .animal-evaluaciones__list.animal-evaluaciones__list-view {
+    display: grid;
   }
 }
 
