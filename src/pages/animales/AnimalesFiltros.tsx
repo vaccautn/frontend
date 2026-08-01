@@ -3,6 +3,9 @@ import { IconChevronDown } from "@tabler/icons-react";
 import { RAZAS, ESTADOS_FILTRO } from "@/features/animales/constants";
 import type { EstadoFiltro } from "@/features/animales/types";
 
+const TODAS_RAZAS_VALUE = "__TODAS__";
+const TODOS_ESTADOS_VALUE = "__TODOS__";
+
 interface AnimalesFiltrosProps {
   caravanaInput: string;
   sexo: "MACHO" | "HEMBRA" | null;
@@ -27,7 +30,10 @@ export function AnimalesFiltros({
   const estadoLabel = ESTADOS_FILTRO.find((e) => e.value === estado)?.label;
 
   return (
-    <div className="animales-filtros" role="search" aria-label="Filtros de animales">
+    <div
+      className="animales-filtros"
+      role="search"
+      aria-label="Filtros de animales">
       <div className="animales-filtros__campo">
         <label htmlFor="buscar-caravana" className="sr-only">
           Buscar por caravana
@@ -43,7 +49,10 @@ export function AnimalesFiltros({
         />
       </div>
 
-      <div className="animales-filtros__toggle" role="group" aria-label="Filtrar por sexo">
+      <div
+        className="animales-filtros__toggle"
+        role="group"
+        aria-label="Filtrar por sexo">
         <button
           type="button"
           className={`animales-filtros__toggle-btn animales-filtros__toggle-btn--macho${
@@ -85,15 +94,22 @@ export function AnimalesFiltros({
         <Portal>
           <Menu.Positioner>
             <Menu.Content className="animales-filtros__dropdown-menu">
-              <Menu.Item value="" onSelect={() => onRazaChange(null)}>
-                Todas las razas
-              </Menu.Item>
-              <Menu.Separator />
-              {RAZAS.map((r) => (
-                <Menu.Item key={r} value={r} onSelect={() => onRazaChange(r)}>
-                  {r}
-                </Menu.Item>
-              ))}
+              <Menu.RadioItemGroup
+                value={raza ?? TODAS_RAZAS_VALUE}
+                onValueChange={(details) => {
+                  const value = details.value;
+                  onRazaChange(value === TODAS_RAZAS_VALUE ? null : value);
+                }}>
+                <Menu.RadioItem value={TODAS_RAZAS_VALUE}>
+                  Todas las razas
+                </Menu.RadioItem>
+                <Menu.Separator />
+                {RAZAS.map((r) => (
+                  <Menu.RadioItem key={r} value={r}>
+                    {r}
+                  </Menu.RadioItem>
+                ))}
+              </Menu.RadioItemGroup>
             </Menu.Content>
           </Menu.Positioner>
         </Portal>
@@ -116,18 +132,26 @@ export function AnimalesFiltros({
         <Portal>
           <Menu.Positioner>
             <Menu.Content className="animales-filtros__dropdown-menu">
-              <Menu.Item value="" onSelect={() => onEstadoChange(null)}>
-                Todos
-              </Menu.Item>
-              <Menu.Separator />
-              {ESTADOS_FILTRO.map(({ value, label }) => (
-                <Menu.Item
-                  key={value}
-                  value={value}
-                  onSelect={() => onEstadoChange(value as EstadoFiltro)}>
-                  {label}
-                </Menu.Item>
-              ))}
+              <Menu.RadioItemGroup
+                value={estado ?? TODOS_ESTADOS_VALUE}
+                onValueChange={(details) => {
+                  const value = details.value;
+                  onEstadoChange(
+                    value === TODOS_ESTADOS_VALUE
+                      ? null
+                      : (value as EstadoFiltro),
+                  );
+                }}>
+                <Menu.RadioItem value={TODOS_ESTADOS_VALUE}>
+                  Todos
+                </Menu.RadioItem>
+                <Menu.Separator />
+                {ESTADOS_FILTRO.map(({ value, label }) => (
+                  <Menu.RadioItem key={value} value={value}>
+                    {label}
+                  </Menu.RadioItem>
+                ))}
+              </Menu.RadioItemGroup>
             </Menu.Content>
           </Menu.Positioner>
         </Portal>

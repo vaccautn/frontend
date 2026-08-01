@@ -21,7 +21,8 @@ export function AnimalesPage() {
   const location = useLocation();
   const [grupos, setGrupos] = useState<AnimalLoteGroup[]>([]);
 
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refetching, setRefetching] = useState(false);
   const [error, setError] = useState("");
 
   const {
@@ -37,29 +38,24 @@ export function AnimalesPage() {
   } = useAnimalesFiltros();
 
   const fetchAnimales = useCallback(() => {
-    setLoading(true);
+    setRefetching(true);
     setError("");
     getAnimalesAgrupadosPorLote(params)
       .then(setGrupos)
       .catch(() => setError("No se pudieron cargar los animales."))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setRefetching(false);
+        setInitialLoading(false);
+      });
   }, [params]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      fetchAnimales();
-    }, 0);
-
-    return () => window.clearTimeout(timer);
+    fetchAnimales();
   }, [fetchAnimales]);
 
   useEffect(() => {
     if (location.state?.refresh) {
-      const timer = window.setTimeout(() => {
-        fetchAnimales();
-      }, 0);
-
-      return () => window.clearTimeout(timer);
+      fetchAnimales();
     }
   }, [location.state, fetchAnimales]);
 
@@ -83,11 +79,6 @@ export function AnimalesPage() {
       <div className="section-header">
         <div className="title-and-description">
           <h1>Gestión de animales</h1>
-          {/*<p>
-            Consultá todos los animales registrados, buscá por caravana o filtrá
-            por sus características, agregá nuevos animales y editá su
-            información para mantener los registros siempre actualizados.
-          </p>*/}
         </div>
         <Button
           colorPalette="brand"
@@ -110,11 +101,16 @@ export function AnimalesPage() {
         onEstadoChange={setEstado}
       />
 
-      {loading && <p>Cargando...</p>}
+      {initialLoading && <p>Cargando...</p>}
       {error && <p className="status-message error">{error}</p>}
 
-      {!loading && !error && (
-        <div className="animales-table__wrapper">
+      {!initialLoading && !error && (
+        <div
+          className="animales-table__wrapper"
+          style={{
+            opacity: refetching ? 0.6 : 1,
+            transition: "opacity 0.15s",
+          }}>
           <div className="animales-table__summary">
             <div>
               <span className="animales-table__summary-label">

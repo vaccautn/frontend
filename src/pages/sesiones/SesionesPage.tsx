@@ -32,7 +32,8 @@ const ESTADO_LABELS: Record<string, string> = {
 
 export function SesionesPage() {
   const [sesiones, setSesiones] = useState<SesionCapturaConResumen[]>([]);
-  const [loading, setLoading] = useState(true);
+  const [initialLoading, setInitialLoading] = useState(true);
+  const [refetching, setRefetching] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
   const [error, setError] = useState("");
   const [hasMore, setHasMore] = useState(false);
@@ -85,7 +86,7 @@ export function SesionesPage() {
   };
 
   const fetchSesiones = useCallback(() => {
-    setLoading(true);
+    setRefetching(true);
     setError("");
     getSesionesConResumen({ ...params, limit: PAGE_SIZE, offset: 0 })
       .then((res) => {
@@ -94,15 +95,14 @@ export function SesionesPage() {
         setNextOffset(res.next_offset);
       })
       .catch(() => setError("No se pudieron cargar las sesiones."))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        setRefetching(false);
+        setInitialLoading(false);
+      });
   }, [params]);
 
   useEffect(() => {
-    const timer = window.setTimeout(() => {
-      fetchSesiones();
-    }, 0);
-
-    return () => window.clearTimeout(timer);
+    fetchSesiones();
   }, [fetchSesiones]);
 
   const cargarMas = useCallback(() => {
@@ -164,11 +164,16 @@ export function SesionesPage() {
         onClear={clearFilters}
       />
 
-      {loading && <p>Cargando...</p>}
+      {initialLoading && <p>Cargando...</p>}
       {error && <p className="status-message error">{error}</p>}
 
-      {!loading && !error && (
-        <div className="animales-table__wrapper">
+      {!initialLoading && !error && (
+        <div
+          className="animales-table__wrapper"
+          style={{
+            opacity: refetching ? 0.6 : 1,
+            transition: "opacity 0.15s",
+          }}>
           <Table.Root className="animales-table" interactive>
             <Table.Header>
               <Table.Row>

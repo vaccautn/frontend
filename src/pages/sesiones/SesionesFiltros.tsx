@@ -2,6 +2,8 @@ import { Input, Menu, Portal } from "@chakra-ui/react";
 import { IconChevronDown } from "@tabler/icons-react";
 import type { EstadoSesion } from "@/features/sesiones/types";
 
+const TODOS_VALUE = "__TODOS__";
+
 const ESTADOS: { value: EstadoSesion; label: string }[] = [
   { value: "ABIERTA", label: "Abiertas" },
   { value: "CERRADA", label: "Cerradas" },
@@ -30,7 +32,10 @@ export function SesionesFiltros({
   const estadoLabel = ESTADOS.find((item) => item.value === estado)?.label;
 
   return (
-    <div className="sesiones-filtros" role="search" aria-label="Filtros de sesiones">
+    <div
+      className="sesiones-filtros"
+      role="search"
+      aria-label="Filtros de sesiones">
       <Menu.Root>
         <Menu.Trigger asChild>
           <button
@@ -48,15 +53,24 @@ export function SesionesFiltros({
         <Portal>
           <Menu.Positioner>
             <Menu.Content className="animales-filtros__dropdown-menu">
-              <Menu.Item value="" onSelect={() => onEstadoChange(null)}>
-                Todos los estados
-              </Menu.Item>
-              <Menu.Separator />
-              {ESTADOS.map(({ value, label }) => (
-                <Menu.Item key={value} value={value} onSelect={() => onEstadoChange(value)}>
-                  {label}
-                </Menu.Item>
-              ))}
+              <Menu.RadioItemGroup
+                value={estado ?? TODOS_VALUE}
+                onValueChange={(details) => {
+                  const value = details.value;
+                  onEstadoChange(
+                    value === TODOS_VALUE ? null : (value as EstadoSesion),
+                  );
+                }}>
+                <Menu.RadioItem value={TODOS_VALUE}>
+                  Todos los estados
+                </Menu.RadioItem>
+                <Menu.Separator />
+                {ESTADOS.map(({ value, label }) => (
+                  <Menu.RadioItem key={value} value={value}>
+                    {label}
+                  </Menu.RadioItem>
+                ))}
+              </Menu.RadioItemGroup>
             </Menu.Content>
           </Menu.Positioner>
         </Portal>
