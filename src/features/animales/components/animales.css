@@ -1486,6 +1486,7 @@
 .animal-evaluaciones-table__cc--3 {
   background: var(--success-bg);
   color: var(--success);
+  padding:  0.4rem 1rem;
 }
 
 .animal-evaluaciones-table__cc--4 {
