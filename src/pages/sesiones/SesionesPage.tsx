@@ -5,9 +5,10 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import { Table, Button, Spinner } from "@chakra-ui/react";
+import { Table, Button, Dialog, Portal, Spinner } from "@chakra-ui/react";
 import {
   crearSesion,
+  eliminarSesion,
   getSesionesConResumen,
 } from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaConResumen } from "@/features/sesiones/types";
@@ -16,9 +17,10 @@ import "@/pages/animales/animales.css";
 import "./sesiones.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
 import { SesionesFiltros } from "./SesionesFiltros";
 import { formatEventDateTime, localNaiveNow } from "@/utils/localDateTime";
+import { ApiError } from "@/services/httpClient";
 
 const PAGE_SIZE = 20;
 
@@ -39,6 +41,8 @@ export function SesionesPage() {
   const [nextOffset, setNextOffset] = useState<number | null>(null);
   const navigate = useNavigate();
   const [isStarting, setIsStarting] = useState(false);
+  const [sesionAbierta, setSesionAbierta] = useState<number | null>(null);
+  const [sesionAEliminar, setSesionAEliminar] = useState<SesionCapturaConResumen | null>(null);
   const {
     estado,
     fechaDesde,
@@ -58,10 +62,41 @@ export function SesionesPage() {
     try {
       const nuevaSesion = await crearSesion({ fecha_inicio: localNaiveNow() });
       navigate(`/sesiones/${nuevaSesion.id}/cargar`);
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409 && error.data?.sesion_id) {
+        setSesionAbierta(error.data.sesion_id);
+      } else {
       toast.error("No se pudo iniciar la sesion de evaluacion.");
+      }
     } finally {
       setIsStarting(false);
+    }
+  };
+
+  const descartarEIniciar = async () => {
+    if (sesionAbierta === null) return;
+    setIsStarting(true);
+    try {
+      await eliminarSesion(sesionAbierta);
+      const nuevaSesion = await crearSesion({ fecha_inicio: localNaiveNow() });
+      navigate(`/sesiones/${nuevaSesion.id}/cargar`);
+    } catch {
+      toast.error("No se pudo descartar la sesion abierta.");
+    } finally {
+      setIsStarting(false);
+      setSesionAbierta(null);
+    }
+  };
+
+  const confirmarEliminacion = async () => {
+    if (!sesionAEliminar) return;
+    try {
+      await eliminarSesion(sesionAEliminar.id);
+      toast.success("Sesion descartada correctamente.");
+      setSesionAEliminar(null);
+      fetchSesiones();
+    } catch {
+      toast.error("No se pudo eliminar la sesion.");
     }
   };
 
@@ -177,6 +212,7 @@ export function SesionesPage() {
                 <Table.ColumnHeader>Evaluaciones</Table.ColumnHeader>
                 <Table.ColumnHeader>Moda CC</Table.ColumnHeader>
                 <Table.ColumnHeader>Rango</Table.ColumnHeader>
+                <Table.ColumnHeader>Acciones</Table.ColumnHeader>
                 {CC_VALORES.map((v) => (
                   <Table.ColumnHeader
                     key={v}
@@ -189,7 +225,7 @@ export function SesionesPage() {
             <Table.Body>
               {sesiones.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={5 + CC_VALORES.length}>
+                  <Table.Cell colSpan={6 + CC_VALORES.length}>
                     No se encontraron sesiones con los filtros aplicados.
                   </Table.Cell>
                 </Table.Row>
@@ -213,6 +249,18 @@ export function SesionesPage() {
                     onKeyDown={(event) => handleRowKeyDown(event, sesion)}>
                     <Table.Cell>
                       {formatEventDateTime(sesion.fecha_inicio)}
+                    </Table.Cell>
+                    <Table.Cell>
+                      {sesion.estado === "ABIERTA" && (
+                        <Button size="xs" onClick={(event) => { event.stopPropagation(); navigate(`/sesiones/${sesion.id}/cargar`); }}>
+                          <IconPencil size={15} /> Editar
+                        </Button>
+                      )}
+                      {sesion.estado !== "CANCELADA" && (
+                        <Button size="xs" colorPalette="red" onClick={(event) => { event.stopPropagation(); setSesionAEliminar(sesion); }}>
+                          <IconTrash size={15} /> Eliminar
+                        </Button>
+                      )}
                     </Table.Cell>
                     <Table.Cell>
                       {ESTADO_LABELS[sesion.estado] ?? sesion.estado}
@@ -243,6 +291,12 @@ export function SesionesPage() {
           )}
         </div>
       )}
+      <Dialog.Root open={sesionAbierta !== null} onOpenChange={(details) => !details.open && setSesionAbierta(null)}>
+        <Portal><Dialog.Backdrop /><Dialog.Positioner><Dialog.Content><Dialog.Header><Dialog.Title>Hay una sesion abierta</Dialog.Title></Dialog.Header><Dialog.Body>Queres continuar editandola o descartarla para iniciar una nueva?</Dialog.Body><Dialog.Footer><Button onClick={() => sesionAbierta !== null && navigate(`/sesiones/${sesionAbierta}/cargar`)}>Continuar editando</Button><Button colorPalette="red" onClick={descartarEIniciar}>Descartar e iniciar nueva</Button></Dialog.Footer></Dialog.Content></Dialog.Positioner></Portal>
+      </Dialog.Root>
+      <Dialog.Root open={sesionAEliminar !== null} onOpenChange={(details) => !details.open && setSesionAEliminar(null)}>
+        <Portal><Dialog.Backdrop /><Dialog.Positioner><Dialog.Content><Dialog.Header><Dialog.Title>Eliminar sesion</Dialog.Title></Dialog.Header><Dialog.Body>Se descartaran todas las evaluaciones de esta sesion.</Dialog.Body><Dialog.Footer><Button onClick={() => setSesionAEliminar(null)}>Cancelar</Button><Button colorPalette="red" onClick={confirmarEliminacion}>Eliminar</Button></Dialog.Footer></Dialog.Content></Dialog.Positioner></Portal>
+      </Dialog.Root>
     </section>
   );
 }

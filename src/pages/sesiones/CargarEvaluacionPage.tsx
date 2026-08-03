@@ -5,7 +5,9 @@ import { toast } from "react-toastify";
 import { getSesion } from "@/features/sesiones/services/sesionesService";
 import {
   getAnimalesAgrupadosPorLote,
+  getEvaluacionesCc,
   registrarEvaluacionCCCompleta,
+  updateEvaluacionCcEnSesion,
 } from "@/features/animales/services/animalesService";
 import { actualizarSesion } from "@/features/sesiones/services/sesionesService";
 import {
@@ -13,7 +15,7 @@ import {
   type EvaluacionCCPendiente,
 } from "@/pages/animales/RegistrarEvaluacionCCDialog"; // ajustar ruta real
 import type { SesionCapturaRead } from "@/features/sesiones/types";
-import type { Animal, AnimalLoteGroup } from "@/features/animales/types";
+import type { Animal, AnimalLoteGroup, EvaluacionCC } from "@/features/animales/types";
 import { localNaiveNow } from "@/utils/localDateTime";
 
 export function CargarEvaluacionesPage() {
@@ -33,24 +35,42 @@ export function CargarEvaluacionesPage() {
   const [evaluaciones, setEvaluaciones] = useState<
     Map<number, EvaluacionCCPendiente>
   >(new Map());
+  const [evaluacionesPersistidas, setEvaluacionesPersistidas] = useState<Map<number, EvaluacionCC>>(new Map());
 
   useEffect(() => {
     setLoading(true);
     Promise.all([
       getSesion(sesionId),
       getAnimalesAgrupadosPorLote({ estado: "ACTIVO" }),
+      getEvaluacionesCc({ sesionId }),
     ])
-      .then(([sesionData, gruposData]) => {
+      .then(([sesionData, gruposData, evaluacionesData]) => {
         setSesion(sesionData);
         setGrupos(gruposData);
+        setEvaluacionesPersistidas(new Map(evaluacionesData.map((item) => [item.animal_id, item])));
       })
       .catch(() => toast.error("No se pudo cargar la sesión."))
       .finally(() => setLoading(false));
   }, [sesionId]);
 
   const handleGuardarEvaluacion = useCallback(
-    (data: EvaluacionCCPendiente) => {
+    async (data: EvaluacionCCPendiente) => {
       if (!animalSeleccionado) return;
+      const existente = evaluacionesPersistidas.get(animalSeleccionado.id);
+      if (existente) {
+        try {
+          const actualizada = await updateEvaluacionCcEnSesion(existente.id, sesionId, {
+            valor_cc: data.valorCc,
+            observaciones: data.observaciones,
+          });
+          setEvaluacionesPersistidas((prev) => new Map(prev).set(animalSeleccionado.id, actualizada));
+          toast.success("Evaluacion actualizada.");
+        } catch {
+          toast.error("No se pudo actualizar la evaluacion.");
+        }
+        setAnimalSeleccionado(null);
+        return;
+      }
       setEvaluaciones((prev) => {
         const next = new Map(prev);
         next.set(animalSeleccionado.id, data);
@@ -58,7 +78,7 @@ export function CargarEvaluacionesPage() {
       });
       setAnimalSeleccionado(null);
     },
-    [animalSeleccionado],
+    [animalSeleccionado, evaluacionesPersistidas, sesionId],
   );
 
   const handleFinalizarCarga = useCallback(async () => {
@@ -179,7 +199,7 @@ export function CargarEvaluacionesPage() {
                 <Table.Cell>{animal.raza}</Table.Cell>
                 <Table.Cell>{grupo.lote?.nombre ?? "Sin lote"}</Table.Cell>
                 <Table.Cell>
-                  {evaluaciones.get(animal.id)?.valorCc ?? "—"}
+                  {evaluaciones.get(animal.id)?.valorCc ?? evaluacionesPersistidas.get(animal.id)?.valor_cc ?? "—"}
                 </Table.Cell>
               </Table.Row>
             )),
@@ -192,7 +212,14 @@ export function CargarEvaluacionesPage() {
         open={!!animalSeleccionado}
         valorInicial={
           animalSeleccionado
-            ? evaluaciones.get(animalSeleccionado.id)
+            ? evaluaciones.get(animalSeleccionado.id) ?? (evaluacionesPersistidas.has(animalSeleccionado.id) ? {
+                valorCc: evaluacionesPersistidas.get(animalSeleccionado.id)!.valor_cc,
+                escalaMin: evaluacionesPersistidas.get(animalSeleccionado.id)!.escala_min,
+                escalaMax: evaluacionesPersistidas.get(animalSeleccionado.id)!.escala_max,
+                observaciones: evaluacionesPersistidas.get(animalSeleccionado.id)!.observaciones,
+                fecha: evaluacionesPersistidas.get(animalSeleccionado.id)!.fecha,
+                files: [],
+              } : undefined)
             : undefined
         }
         onClose={() => setAnimalSeleccionado(null)}
