@@ -1491,17 +1491,20 @@
 .animal-evaluaciones-table__cc--4 {
   background: var(--warning-bg);
   color: var(--warning);
+  padding:  0.4rem 1rem;
 }
 
 .animal-evaluaciones-table__cc--2 {
   background: var(--orange-bg);
   color: var(--orange);
+  padding:  0.4rem 1rem;
 }
 
 .animal-evaluaciones-table__cc--1,
 .animal-evaluaciones-table__cc--5 {
   background: var(--danger-bg);
   color: var(--danger);
+  padding: 0.4rem 1rem;
 }
 
 .animal-evaluaciones-table__observaciones {

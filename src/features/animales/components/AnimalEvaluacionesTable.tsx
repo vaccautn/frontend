@@ -39,7 +39,7 @@ export function AnimalEvaluacionesTable({
               <Table.Cell>
                 <span
                   className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${evaluacion.valor_cc}`}>
-                  CC {evaluacion.valor_cc}
+                  {evaluacion.valor_cc}
                 </span>
               </Table.Cell>
               <Table.Cell>
