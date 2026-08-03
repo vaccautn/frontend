@@ -17,6 +17,7 @@ import {
 import type { SesionCapturaRead } from "@/features/sesiones/types";
 import type { Animal, AnimalLoteGroup, EvaluacionCC } from "@/features/animales/types";
 import { localNaiveNow } from "@/utils/localDateTime";
+import { ApiError } from "@/services/httpClient";
 
 export function CargarEvaluacionesPage() {
   const { id } = useParams<{ id: string }>();
@@ -140,11 +141,20 @@ export function CargarEvaluacionesPage() {
         estado: "CERRADA",
         fecha_fin: localNaiveNow(),
       });
-    } catch {
+    } catch (error) {
       setIsFinalizando(false);
-      toast.error(
-        "Las evaluaciones se guardaron, pero no se pudo cerrar la sesión. Intentá finalizar de nuevo.",
-      );
+      if (error instanceof ApiError && error.status === 409) {
+        toast.error(
+          "La sesión no se pudo cerrar porque no tiene evaluaciones vigentes. Volvé a cargar la sesión y verificá las evaluaciones guardadas.",
+        );
+      } else if (error instanceof ApiError && error.status === 404) {
+        toast.error("La sesión ya no está disponible. Volviendo al listado.");
+        navigate("/sesiones");
+      } else {
+        toast.error(
+          "Las evaluaciones se guardaron, pero ocurrió un error al cerrar la sesión. Revisá tu conexión e intentá finalizar de nuevo.",
+        );
+      }
       return;
     }
 
