@@ -2,7 +2,7 @@
   display: flex;
   flex-wrap: wrap;
   gap: 0.75rem;
-  align-items: center;
+  align-items: flex-end;
   margin: 1rem 0;
 }
 
@@ -12,14 +12,16 @@
 }
 
 .sesiones-filtros__clear {
-  min-height: 38px;
+  height: 38px;
+  display: flex;
+  align-items: center;
   padding: 0.55rem 0.85rem;
   border: 1px solid var(--border);
-  border-radius: 6px;
+  border-radius: 4px;
   background: var(--panel);
   color: var(--text-h);
   cursor: pointer;
-  font: inherit;
+  font-size: 14.4px;
 }
 
 .sesiones-filtros__clear:hover {
@@ -257,6 +259,24 @@
   line-height: 1.55;
 }
 
+.sesiones-filtros__rango {
+  display: flex;
+  align-items: flex-end;
+  gap: 0.5rem;
+}
+
+.sesiones-filtros__campo-label {
+  display: block;
+  font-size: 0.75rem;
+  color: var(--chakra-colors-gray-500, #6b7280);
+  margin-bottom: 0.25rem;
+}
+
+.sesiones-filtros__rango-icono {
+  color: var(--chakra-colors-gray-400, #9ca3af);
+  margin-bottom: 0.55rem;
+}
+
 @media (max-width: 640px) {
   .sesion-detail__hero {
     flex-direction: column;
@@ -276,5 +296,126 @@
   .sesiones-filtros__campo {
     flex: 1 1 auto;
     min-width: 0;
+  }
+}
+
+/* El rango de fechas: un solo control compuesto, no dos cajas sueltas */
+.sesiones-filtros__rango {
+  height: 38px;
+  display: flex;
+  align-items: center;
+
+  gap: 0.5rem;
+  flex-shrink: 1;
+  min-height: 38px;
+  padding: 0.45rem 0.7rem;
+  background: white;
+  border: 1px solid var(--chakra-colors-gray-200, #e5e7eb);
+  border-radius: 4px;
+  transition:
+    border-color 0.15s,
+    box-shadow 0.15s;
+}
+
+.sesiones-filtros__rango:focus-within {
+  border-color: var(--chakra-colors-brand-500, #8a6d3b);
+  box-shadow: 0 0 0 3px var(--chakra-colors-brand-100, #f0e6d2);
+}
+
+.sesiones-filtros__rango-icono {
+  color: var(--chakra-colors-gray-400, #9ca3af);
+}
+
+.sesiones-filtros__rango-label {
+  font-size: 14.4px;
+  color: var(--chakra-colors-gray-500, #6b7280);
+  white-space: nowrap;
+}
+
+.sesiones-filtros__rango-input {
+  border: none !important;
+  background: transparent !important;
+  padding: 0 !important;
+  height: auto !important;
+  width: 8.5rem;
+  font-size: 0.875rem;
+  color: var(--chakra-colors-gray-800, #1f2937);
+}
+
+.sesiones-filtros__rango-input:focus-visible {
+  outline: none;
+  box-shadow: none !important;
+}
+
+.sesiones-filtros__rango-divisor {
+  width: 1px;
+  height: 1.25rem;
+  background: var(--chakra-colors-gray-200, #e5e7eb);
+  flex-shrink: 0;
+}
+
+.chakra-menu__trigger {
+  display: flex;
+  height: 38px;
+  align-items: center;
+}
+
+/* Por defecto (desktop): mostrar tabla, ocultar cards */
+.sesion-detail__table-view {
+  display: block;
+}
+
+.sesion-detail__list-view {
+  display: none;
+}
+
+.sesion-evaluaciones-table__cc {
+  display: inline-block;
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  background: var(--chakra-colors-gray-100, #f3f4f6);
+  font-size: 0.8125rem;
+}
+
+.sesion-evaluaciones-table__observaciones {
+  max-width: 20rem;
+  color: var(--chakra-colors-gray-600, #4b5563);
+}
+
+.sesion-evaluaciones-table__acciones {
+  display: flex;
+  gap: 0.25rem;
+  justify-content: flex-end;
+}
+
+.sesion-evaluaciones-table__acciones-header {
+  text-align: right;
+  width: 50px;
+}
+
+.sesion-edit__footer-actions {
+  display: flex;
+  gap: 1rem;
+}
+
+.sesion-edit__footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.sesion-edit__footer-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+/* Debajo de ~768px: mostrar cards, ocultar tabla */
+@media (max-width: 768px) {
+  .sesion-detail__table-view {
+    display: none;
+  }
+
+  .sesion-detail__list-view {
+    display: block;
   }
 }

@@ -4,6 +4,8 @@ import { IconChevronDown } from "@tabler/icons-react";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import type { LoteOption } from "@/features/lotes/types";
 
+const TODOS_VALUE = "__TODOS__";
+
 type Props = {
   loteId: number | null;
   onChange: (id: number | null) => void;
@@ -43,18 +45,22 @@ export function DashboardLoteFiltro({ loteId, onChange }: Props) {
       <Portal>
         <Menu.Positioner>
           <Menu.Content className="animales-filtros__dropdown-menu">
-            <Menu.Item value="" onSelect={() => onChange(null)}>
-              Todos los lotes
-            </Menu.Item>
-            <Menu.Separator />
-            {lotes.map((lote) => (
-              <Menu.Item
-                key={lote.id}
-                value={String(lote.id)}
-                onSelect={() => onChange(lote.id)}>
-                {lote.nombre}
-              </Menu.Item>
-            ))}
+            <Menu.RadioItemGroup
+              value={loteId === null ? TODOS_VALUE : String(loteId)}
+              onValueChange={(details) => {
+                const value = details.value;
+                onChange(value === TODOS_VALUE ? null : Number(value));
+              }}>
+              <Menu.RadioItem value={TODOS_VALUE}>
+                Todos los lotes
+              </Menu.RadioItem>
+              <Menu.Separator />
+              {lotes.map((lote) => (
+                <Menu.RadioItem key={lote.id} value={String(lote.id)}>
+                  {lote.nombre}
+                </Menu.RadioItem>
+              ))}
+            </Menu.RadioItemGroup>
           </Menu.Content>
         </Menu.Positioner>
       </Portal>

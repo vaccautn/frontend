@@ -195,7 +195,7 @@ export function RegistrarEvaluacionCCDialog({
                 noValidate
                 className="animal-form__fields">
                 <Field.Root invalid={!!errors.valorCc} required>
-                  <Field.Label>Valor de CC</Field.Label>
+                  <Field.Label>Condición corporal</Field.Label>
                   <Menu.Root>
                     <Menu.Trigger asChild>
                       <button
