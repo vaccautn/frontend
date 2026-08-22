@@ -211,13 +211,35 @@
   border-bottom: none;
 }
 
-.sesion-detail__table-actions-label {
-  display: inline-block;
-  min-width: 4.5rem;
-}
-
 .sesion-evaluacion-row:hover {
   background: var(--bg);
+}
+
+.sesion-evaluacion-row__toggle-cell {
+  width: 2.5rem;
+  padding-inline: 0.5rem !important;
+}
+
+.sesion-evaluacion-row__toggle {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.sesion-evaluacion-row__toggle:hover,
+.sesion-evaluacion-row__toggle:focus-visible {
+  background: var(--verde-pastel);
+  color: var(--accent-strong);
 }
 
 .sesion-evaluacion-row__animal {
@@ -226,7 +248,7 @@
 }
 
 .sesion-evaluacion-row__observaciones {
-  max-width: 22rem;
+  max-width: 16rem;
   overflow: hidden;
   color: var(--text);
   text-overflow: ellipsis;
@@ -274,11 +296,20 @@
   color: var(--danger);
 }
 
-.sesion-evaluacion-row__acciones {
+.sesion-evaluacion-row__panel-row td {
+  background: var(--bg);
+}
+
+.sesion-evaluacion-row__panel {
+  padding: 1rem !important;
+}
+
+.sesion-evaluacion-row__panel-actions {
   display: flex;
   align-items: center;
+  justify-content: flex-end;
   gap: 0.35rem;
-  white-space: nowrap;
+  margin-bottom: 0.75rem;
 }
 
 .sesion-evaluacion-row__action {
@@ -292,24 +323,19 @@
   background: transparent;
   color: var(--text);
   cursor: pointer;
-  opacity: 0;
   transition:
-    opacity 0.15s,
     background 0.15s,
     color 0.15s;
 }
 
-.sesion-evaluacion-row:hover .sesion-evaluacion-row__action,
+.sesion-evaluacion-row__action:hover,
 .sesion-evaluacion-row__action:focus-visible {
-  opacity: 1;
-}
-
-.sesion-evaluacion-row__action:hover {
   background: var(--verde-pastel);
   color: var(--accent-strong);
 }
 
-.sesion-evaluacion-row__action--danger:hover {
+.sesion-evaluacion-row__action--danger:hover,
+.sesion-evaluacion-row__action--danger:focus-visible {
   background: var(--danger-bg);
   color: var(--danger);
 }

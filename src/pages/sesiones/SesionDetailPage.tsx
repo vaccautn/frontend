@@ -19,6 +19,7 @@ import { formatEventDateTime } from "@/utils/localDateTime";
 import { ConfirmarEliminacionDialog } from "./ConfirmarEliminacionDialog";
 import { EditarEvaluacionDialog } from "./EditarEvaluacionDialog";
 import { SesionEvaluacionRow } from "./SesionEvaluacionRow";
+import "@/pages/animales/animales.css";
 import "./sesiones.css";
 
 type DetailStatus = "loading" | "ready" | "error" | "stale" | "ineligible";
@@ -269,13 +270,13 @@ export function SesionDetailPage() {
               <table className="sesion-detail__table" aria-label="Evaluaciones de la sesión">
                 <thead>
                   <tr>
+                    <th scope="col" className="sesion-evaluacion-row__toggle-cell">
+                      <span className="sr-only">Desplegar fotos</span>
+                    </th>
                     <th scope="col">Animal</th>
                     <th scope="col">Calificación</th>
                     <th scope="col">Observaciones</th>
                     <th scope="col">Hora</th>
-                    <th scope="col">
-                      <span className="sesion-detail__table-actions-label">Acciones</span>
-                    </th>
                   </tr>
                 </thead>
                 <tbody>
