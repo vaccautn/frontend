@@ -251,6 +251,17 @@ export function SesionesPage() {
                       {formatEventDateTime(sesion.fecha_inicio)}
                     </Table.Cell>
                     <Table.Cell>
+                      {ESTADO_LABELS[sesion.estado] ?? sesion.estado}
+                    </Table.Cell>
+                    <Table.Cell>{sesion.evaluaciones_count}</Table.Cell>
+                    <Table.Cell>{sesion.valor_cc_moda ?? "-"}</Table.Cell>
+                    <Table.Cell>
+                      {sesion.valor_cc_min !== null &&
+                      sesion.valor_cc_max !== null
+                        ? `${sesion.valor_cc_min} - ${sesion.valor_cc_max}`
+                        : "-"}
+                    </Table.Cell>
+                    <Table.Cell>
                       <div className="sesiones-table__acciones">
                         {sesion.estado === "ABIERTA" && (
                           <button
@@ -277,17 +288,6 @@ export function SesionesPage() {
                           </button>
                         )}
                       </div>
-                    </Table.Cell>
-                    <Table.Cell>
-                      {ESTADO_LABELS[sesion.estado] ?? sesion.estado}
-                    </Table.Cell>
-                    <Table.Cell>{sesion.evaluaciones_count}</Table.Cell>
-                    <Table.Cell>{sesion.valor_cc_moda ?? "-"}</Table.Cell>
-                    <Table.Cell>
-                      {sesion.valor_cc_min !== null &&
-                      sesion.valor_cc_max !== null
-                        ? `${sesion.valor_cc_min} - ${sesion.valor_cc_max}`
-                        : "-"}
                     </Table.Cell>
                     {CC_VALORES.map((v) => (
                       <Table.Cell key={v} className="sesiones-table__cc-cell">
