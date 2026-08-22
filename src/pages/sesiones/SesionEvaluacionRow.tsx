@@ -1,12 +1,6 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Dialog, Menu, Portal, Spinner } from "@chakra-ui/react";
-import {
-  IconPencil,
-  IconPhoto,
-  IconPlus,
-  IconTrash,
-  IconX,
-} from "@tabler/icons-react";
+import { IconPencil, IconPhoto, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
 import type { EvaluacionCC, EvidenciaImagenRead } from "@/features/animales/types";
 import {
   eliminarImagenEvaluacion,
@@ -38,10 +32,9 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
   const [confirmDeleteImage, setConfirmDeleteImage] = useState<EvidenciaImagenRead | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
-  // Carga las fotos de la evaluación (animal + sesión) recién al abrir el popup.
+  // Carga las fotos de la evaluación (animal + sesión) apenas se monta la fila,
+  // para saber si corresponde mostrar el ícono de "tiene fotos".
   useEffect(() => {
-    if (!imagenesOpen || imagenesLoaded) return;
-
     let isMounted = true;
 
     void Promise.resolve().then(async () => {
@@ -64,7 +57,7 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
     return () => {
       isMounted = false;
     };
-  }, [imagenesOpen, imagenesLoaded, evaluacion.id]);
+  }, [evaluacion.id]);
 
   useEffect(() => {
     if (!fullscreenImage) return;
@@ -111,16 +104,26 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
     }
   };
 
+  const tieneFotos = imagenesLoaded && imagenes.length > 0;
+
   return (
-    <tr className="sesion-evaluacion-row">
+    <tr
+      className="sesion-evaluacion-row"
+      tabIndex={0}
+      aria-label={`Ver fotos del ${animalAccessibleName}`}
+      onClick={() => setImagenesOpen(true)}
+      onKeyDown={(event) => {
+        if (event.key === "Enter" || event.key === " ") {
+          event.preventDefault();
+          setImagenesOpen(true);
+        }
+      }}>
       <td className="sesion-evaluacion-row__toggle-cell">
-        <button
-          type="button"
-          className="sesion-evaluacion-row__toggle"
-          aria-label={`Ver fotos del ${animalAccessibleName}`}
-          onClick={() => setImagenesOpen(true)}>
-          <IconPhoto size={16} stroke={1.5} />
-        </button>
+        {tieneFotos && (
+          <span className="sesion-evaluacion-row__photo-indicator" aria-hidden="true">
+            <IconPhoto size={16} stroke={1.5} />
+          </span>
+        )}
       </td>
       <td className="sesion-evaluacion-row__animal">{animalRfid}</td>
       <td>
@@ -134,6 +137,28 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
         {evaluacion.observaciones?.trim() || "Sin observaciones."}
       </td>
       <td className="sesion-evaluacion-row__hora">{formatEventDateTime(evaluacion.fecha)}</td>
+      <td className="sesion-evaluacion-row__acciones">
+        <button
+          type="button"
+          className="sesion-evaluacion-row__action"
+          onClick={(event) => {
+            event.stopPropagation();
+            onEdit();
+          }}
+          aria-label={`Editar evaluación del ${animalAccessibleName}`}>
+          <IconPencil size={16} stroke={1.5} />
+        </button>
+        <button
+          type="button"
+          className="sesion-evaluacion-row__action sesion-evaluacion-row__action--danger"
+          onClick={(event) => {
+            event.stopPropagation();
+            onDelete();
+          }}
+          aria-label={`Eliminar evaluación del ${animalAccessibleName}`}>
+          <IconTrash size={16} stroke={1.5} />
+        </button>
+      </td>
 
       <Dialog.Root
         open={imagenesOpen}
@@ -148,22 +173,6 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
                   <p className="sesion-evaluacion-popup__subtitle">
                     CC {evaluacion.valor_cc} · {formatEventDateTime(evaluacion.fecha)}
                   </p>
-                </div>
-                <div className="sesion-evaluacion-row__panel-actions">
-                  <button
-                    type="button"
-                    className="sesion-evaluacion-row__action"
-                    onClick={onEdit}
-                    aria-label={`Editar evaluación del ${animalAccessibleName}`}>
-                    <IconPencil size={16} stroke={1.5} />
-                  </button>
-                  <button
-                    type="button"
-                    className="sesion-evaluacion-row__action sesion-evaluacion-row__action--danger"
-                    onClick={onDelete}
-                    aria-label={`Eliminar evaluación del ${animalAccessibleName}`}>
-                    <IconTrash size={16} stroke={1.5} />
-                  </button>
                 </div>
               </Dialog.Header>
 
@@ -189,7 +198,7 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
                           <button
                             type="button"
                             className="animal-imagenes__thumb"
-                            aria-label="Ver foto en pantalla completa"
+                            aria-label="Ver foto en pantalla completa (click derecho para eliminar)"
                             onClick={() => setFullscreenImage(imagen)}>
                             <img src={imagen.url} alt="Evidencia visual de la evaluación" />
                           </button>

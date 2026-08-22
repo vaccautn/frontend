@@ -196,21 +196,23 @@ export function CargarEvaluacionesPage() {
         <div className="title-and-description">
           <h1>Cargando evaluaciones — Sesión #{sesion.id}</h1>
           <p>{evaluaciones.size} evaluación(es) cargadas en esta sesión.</p>
+        </div>
+        <div className="sesion-detail__hero-actions">
           <button
             type="button"
-            className="animal-detail__action animal-detail__action--danger sesion-detail__delete-trigger"
+            className="animal-detail__action animal-detail__action--danger"
             onClick={() => setConfirmDeleteSesion(true)}>
             <IconTrash size={16} stroke={1.5} />
             Eliminar sesión
           </button>
+          <Button
+            colorPalette="brand"
+            onClick={handleFinalizarCarga}
+            loading={isFinalizando}
+            loadingText="Guardando...">
+            Finalizar carga
+          </Button>
         </div>
-        <Button
-          colorPalette="brand"
-          onClick={handleFinalizarCarga}
-          loading={isFinalizando}
-          loadingText="Guardando...">
-          Finalizar carga
-        </Button>
       </div>
 
       <Table.Root className="animales-table" interactive>

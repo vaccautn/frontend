@@ -269,17 +269,19 @@ export function SesionDetailPage() {
               <span className="sesion-detail__eyebrow">Sesión cerrada</span>
               <h1 id="sesion-detail-title">Evaluaciones de la sesión #{sesion.id}</h1>
               <p>{formatEventDateTime(sesion.fecha_inicio)}</p>
+            </div>
+            <div className="sesion-detail__hero-actions">
+              <span className="sesion-detail__count">
+                {evaluaciones.length} evaluación{evaluaciones.length === 1 ? "" : "es"}
+              </span>
               <button
                 type="button"
-                className="animal-detail__action animal-detail__action--danger sesion-detail__delete-trigger"
+                className="animal-detail__action animal-detail__action--danger"
                 onClick={() => setConfirmDeleteSesion(true)}>
                 <IconTrash size={16} stroke={1.5} />
                 Eliminar sesión
               </button>
             </div>
-            <span className="sesion-detail__count">
-              {evaluaciones.length} evaluación{evaluaciones.length === 1 ? "" : "es"}
-            </span>
           </header>
 
           {evaluaciones.length === 0 ? (
@@ -299,6 +301,9 @@ export function SesionDetailPage() {
                     <th scope="col">Calificación</th>
                     <th scope="col">Observaciones</th>
                     <th scope="col">Hora</th>
+                    <th scope="col" className="sesion-evaluacion-row__acciones">
+                      <span className="sr-only">Acciones</span>
+                    </th>
                   </tr>
                 </thead>
                 <tbody>
