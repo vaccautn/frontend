@@ -39,20 +39,7 @@ export function registerAnimal(
 
 export function getAnimales(params: AnimalListParams = {}): Promise<Animal[]> {
   const token = getAccessToken();
-  const searchParams = new URLSearchParams();
-
-  if (params.estado) {
-    searchParams.set("estado", params.estado);
-  }
-  if (params.sexo) {
-    searchParams.set("sexo", params.sexo);
-  }
-  if (params.raza) {
-    searchParams.set("raza", params.raza);
-  }
-  if (params.caravana) {
-    searchParams.set("caravana", params.caravana);
-  }
+  const searchParams = buildAnimalSearchParams(params);
 
   const queryString = searchParams.toString();
   const path = queryString ? `/animales/?${queryString}` : "/animales/";
@@ -63,6 +50,16 @@ export function getAnimalesAgrupadosPorLote(
   params: AnimalListParams = {},
 ): Promise<AnimalLoteGroup[]> {
   const token = getAccessToken();
+  const searchParams = buildAnimalSearchParams(params);
+
+  const queryString = searchParams.toString();
+  const path = queryString
+    ? `/animales/agrupados-por-lote?${queryString}`
+    : "/animales/agrupados-por-lote";
+  return getJson<AnimalLoteGroup[]>(path, token);
+}
+
+function buildAnimalSearchParams(params: AnimalListParams): URLSearchParams {
   const searchParams = new URLSearchParams();
 
   if (params.estado) {
@@ -77,12 +74,11 @@ export function getAnimalesAgrupadosPorLote(
   if (params.caravana) {
     searchParams.set("caravana", params.caravana);
   }
+  if (params.lote_id !== undefined) {
+    searchParams.set("lote_id", params.lote_id.toString());
+  }
 
-  const queryString = searchParams.toString();
-  const path = queryString
-    ? `/animales/agrupados-por-lote?${queryString}`
-    : "/animales/agrupados-por-lote";
-  return getJson<AnimalLoteGroup[]>(path, token);
+  return searchParams;
 }
 
 export function getAnimal(id: number): Promise<Animal> {

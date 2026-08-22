@@ -30,14 +30,6 @@ export type Animal = {
   actualizado_en: string;
 };
 
-export type RegisterAnimalPayload = {
-  caravana: string;
-  raza: string;
-  sexo: string;
-  fecha_nacimiento: string;
-  lote_id: number | null;
-};
-
 export type AnimalLoteGroup = {
   lote: {
     id: number;
@@ -49,6 +41,14 @@ export type AnimalLoteGroup = {
     actualizado_en: string;
   } | null;
   animales: Animal[];
+};
+
+export type RegisterAnimalPayload = {
+  caravana: string;
+  raza: string;
+  sexo: string;
+  fecha_nacimiento: string;
+  lote_id: number | null;
 };
 
 export type UpdateAnimalPayload = {
@@ -66,6 +66,7 @@ export type AnimalListParams = {
   sexo?: SexoAnimal;
   raza?: string;
   caravana?: string;
+  lote_id?: number;
 };
 
 export type EvaluacionCCEstado = "BORRADOR" | "CONFIRMADA" | "ANULADA";

@@ -14,13 +14,13 @@ import { actualizarSesion, eliminarSesion } from "@/features/sesiones/services/s
 import {
   RegistrarEvaluacionCCDialog,
   type EvaluacionCCPendiente,
-} from "@/pages/animales/RegistrarEvaluacionCCDialog"; // ajustar ruta real
+} from "@/features/animales/components/RegistrarEvaluacionCCDialog"; // ajustar ruta real
 import type { SesionCapturaRead } from "@/features/sesiones/types";
 import type { Animal, AnimalLoteGroup, EvaluacionCC } from "@/features/animales/types";
 import { localNaiveNow } from "@/utils/localDateTime";
 import { ApiError } from "@/services/httpClient";
-import "@/pages/animales/animales.css";
-import "./sesiones.css";
+import "@/features/animales/components/animales.css";
+import "@/features/sesiones/components/sesiones.css";
 
 export function CargarEvaluacionesPage() {
   const { id } = useParams<{ id: string }>();

@@ -30,6 +30,35 @@
   background: var(--panel);
 }
 
+.animales-table__summary {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.9rem 1rem;
+  border-bottom: 1px solid var(--border);
+  background:
+    linear-gradient(135deg, rgba(108, 143, 92, 0.12), rgba(255, 255, 255, 0)),
+    var(--bg);
+}
+
+.animales-table__summary div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.animales-table__summary strong {
+  color: var(--text-h);
+  font-size: 1.15rem;
+}
+
+.animales-table__summary-label {
+  color: var(--text);
+  font-size: 0.78rem;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
 .animales-table th,
 .animales-table td {
   padding: 0.75rem;
@@ -51,6 +80,41 @@
 
 .animales-table__row:hover {
   background: var(--verde-pastel);
+}
+
+.animales-table__group-row td {
+  padding: 0;
+  background: #f3f0e8;
+  border-bottom: 1px solid var(--border);
+}
+
+.animales-table__group-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+  padding: 0.85rem 1rem;
+}
+
+.animales-table__group-eyebrow {
+  margin: 0 0 0.2rem;
+  color: var(--accent-strong);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.animales-table__group-count {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.28rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--panel);
+  color: var(--text-h);
+  font-size: 0.82rem;
+  font-weight: 700;
 }
 
 .animales-table__row:focus-visible {
@@ -179,175 +243,7 @@
   text-align: center;
 }
 
-.animal-evaluaciones__list {
-  display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 0.85rem;
-}
-
-@media (max-width: 900px) {
-  .animal-evaluaciones__list {
-    grid-template-columns: repeat(2, minmax(0, 1fr));
-  }
-}
-
-.animal-evaluaciones__item {
-  padding: 1rem;
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  background: var(--panel);
-  overflow: hidden;
-}
-
-.animal-evaluaciones__item-header {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 1rem;
-  margin: -1rem -1rem 0.85rem;
-  padding: 0.6rem 1rem;
-  background: var(--verde-pastel);
-  border-bottom: 1px solid var(--border);
-  color: var(--accent-strong);
-}
-
-.animal-evaluaciones__item-header > span {
-  opacity: 0.75;
-}
-
-/* ── Codificación semáforo según el valor de CC ── */
-
-.animal-evaluaciones__item-header--cc-3 {
-  background: var(--success-bg);
-  border-bottom-color: var(--success-border);
-  color: var(--success);
-}
-
-.animal-evaluaciones__item-header--cc-4 {
-  background: var(--warning-bg);
-  border-bottom-color: var(--warning-border);
-  color: var(--warning);
-}
-
-.animal-evaluaciones__item-header--cc-2 {
-  background: var(--orange-bg);
-  border-bottom-color: var(--orange-border);
-  color: var(--orange);
-}
-
-.animal-evaluaciones__item-header--cc-1,
-.animal-evaluaciones__item-header--cc-5 {
-  background: var(--danger-bg);
-  border-bottom-color: var(--danger-border);
-  color: var(--danger);
-}
-
-.animal-evaluaciones__value {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.animal-evaluaciones__edit-trigger-btn {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 24px;
-  height: 24px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity 0.15s,
-    background 0.15s,
-    color 0.15s;
-}
-
-.animal-evaluaciones__item:hover .animal-evaluaciones__edit-trigger-btn,
-.animal-evaluaciones__edit-trigger-btn:focus-visible {
-  opacity: 1;
-}
-
-.animal-evaluaciones__edit-trigger-btn:hover {
-  background: var(--panel);
-  color: var(--accent-strong);
-}
-
-.animal-evaluaciones__edit {
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-}
-
-.animal-evaluaciones__edit-trigger {
-  min-height: 32px;
-  padding: 0.3rem 0.6rem;
-  font-size: 0.85rem;
-  width: auto;
-}
-
-.animal-evaluaciones__edit-confirm,
-.animal-evaluaciones__edit-cancel {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-width: 40px;
-  height: 32px;
-  padding: 0 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--panel);
-  cursor: pointer;
-  outline: none;
-  transition:
-    background 0.15s,
-    border-color 0.15s,
-    color 0.15s;
-}
-
-.animal-evaluaciones__edit-confirm {
-  border-color: var(--accent);
-  background: var(--accent-strong);
-  color: #ffffff;
-}
-
-.animal-evaluaciones__edit-confirm:hover {
-  background: var(--accent-strong);
-  border-color: var(--accent-strong);
-  filter: brightness(1.08);
-}
-
-.animal-evaluaciones__edit-confirm:focus-visible,
-.animal-evaluaciones__edit-cancel:focus-visible {
-  outline: 3px solid var(--focus);
-  outline-offset: 1px;
-}
-
-.animal-evaluaciones__edit-cancel {
-  color: var(--text);
-}
-
-.animal-evaluaciones__edit-cancel:hover {
-  background: var(--danger-bg);
-  border-color: var(--danger-border);
-  color: var(--danger);
-}
-
-.animal-evaluaciones__edit-confirm:disabled,
-.animal-evaluaciones__edit-cancel:disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-  filter: none;
-}
-
-.animal-evaluaciones__meta {
-  margin-bottom: 0.45rem;
-  color: var(--text);
-  font-size: 0.9rem;
-}
+/* ── Historial de evaluaciones: ver estilos de tabla más abajo ── */
 
 .animal-detail__action {
   display: inline-flex;
@@ -1398,17 +1294,186 @@
   margin-top: 0.25rem;
 }
 
-@media (max-width: 720px) {
-  .animal-evaluaciones__list {
-    grid-template-columns: 1fr;
-  }
+/* ── Historial de evaluaciones: tabla con filas expandibles ── */
+.animal-evaluaciones-table__wrapper {
+  margin-top: 0.5rem;
+  overflow-x: auto;
+}
 
+.animal-evaluaciones-table__cc {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+.animal-evaluaciones-table__cc--3 {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.animal-evaluaciones-table__cc--4 {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.animal-evaluaciones-table__cc--2 {
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
+.animal-evaluaciones-table__cc--1,
+.animal-evaluaciones-table__cc--5 {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.animal-evaluaciones-table__observaciones {
+  max-width: 28rem;
+  color: var(--text);
+}
+
+.animal-evaluaciones-table__row--expanded {
+  background: var(--verde-pastel);
+}
+
+.animal-evaluaciones-table__col-toggle {
+  width: 2rem;
+  text-align: right;
+}
+
+.animal-evaluaciones-table__chevron {
+  color: var(--text);
+  opacity: 0.6;
+  transition: transform 0.18s ease;
+}
+
+.animal-evaluaciones-table__chevron--open {
+  transform: rotate(180deg);
+  opacity: 1;
+}
+
+.animal-evaluaciones-table__expand-row td {
+  padding: 0;
+  border-bottom: 1px solid var(--border);
+  background: var(--panel);
+  cursor: default;
+}
+
+.animal-evaluaciones-table__detail {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  padding: 1rem 1.25rem 1.25rem;
+  cursor: default;
+}
+
+.animal-evaluaciones-table__detail-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.animal-evaluaciones-table__detail-label {
+  color: var(--accent-strong);
+  font-size: 0.74rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.animal-evaluaciones-table__detail-section p {
+  margin: 0;
+  color: var(--text);
+}
+
+.animal-evaluaciones-table__detail-empty {
+  margin: 0;
+  color: var(--text);
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.animal-evaluaciones-table__detail-imagenes {
+  margin-top: 0.15rem;
+}
+
+.animal-evaluaciones-table__detail-edit {
+  display: inline-flex;
+  align-self: flex-start;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.45rem 0.85rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--accent-strong);
+  font-weight: 600;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.animal-evaluaciones-table__detail-edit:hover {
+  background: var(--verde-pastel);
+  border-color: var(--accent);
+}
+
+/* ── Footer del dialog de evaluación: Eliminar a la izquierda, resto a la derecha ── */
+.animal-evaluacion__footer--split {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.animal-evaluacion__footer-actions {
+  display: flex;
+  gap: 0.75rem;
+}
+
+/* ── Botón de eliminar imagen dentro del dialog ── */
+.animal-imagenes__thumb-wrap {
+  position: relative;
+}
+
+.animal-imagenes__thumb-delete {
+  position: absolute;
+  top: 2px;
+  right: 2px;
+  width: 20px;
+  height: 20px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 6px;
+  background: rgba(21, 32, 25, 0.65);
+  color: #ffffff;
+  cursor: pointer;
+}
+
+@media (max-width: 720px) {
   .animales-table__wrapper {
     overflow-x: auto;
   }
 
+  .animales-table__summary {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
   .animales-table {
     display: block;
+  }
+
+  .animales-table__group-header {
+    flex-direction: column;
+    align-items: flex-start;
   }
 
   .baja-modal__summary {
@@ -1446,6 +1511,10 @@
 
   .animal-edit-page__form {
     grid-template-columns: 1fr;
+  }
+
+  .animal-evaluaciones-table__observaciones {
+    max-width: 12rem;
   }
 }
 

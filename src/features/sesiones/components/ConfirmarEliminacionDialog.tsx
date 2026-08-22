@@ -67,8 +67,8 @@ export function ConfirmarEliminacionDialog({
 
             <Dialog.Body>
               <p className="sesion-delete__warning">
-                Esta evaluación dejará de aparecer en el detalle y en los resúmenes
-                de la sesión. Su registro se conservará.
+                Esta evaluación dejará de aparecer en el detalle y en los
+                resúmenes de la sesión.
               </p>
               {errorMessage && (
                 <p className="status-message error" role="alert">
