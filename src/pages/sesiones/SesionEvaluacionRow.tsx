@@ -150,75 +150,77 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
       {expanded && (
         <tr className="sesion-evaluacion-row__panel-row">
           <td className="sesion-evaluacion-row__panel" colSpan={5}>
-            <div className="sesion-evaluacion-row__panel-actions">
-              <button
-                type="button"
-                className="sesion-evaluacion-row__action"
-                onClick={onEdit}
-                aria-label={`Editar evaluación del ${animalAccessibleName}`}>
-                <IconPencil size={16} stroke={1.5} />
-              </button>
-              <button
-                type="button"
-                className="sesion-evaluacion-row__action sesion-evaluacion-row__action--danger"
-                onClick={onDelete}
-                aria-label={`Eliminar evaluación del ${animalAccessibleName}`}>
-                <IconTrash size={16} stroke={1.5} />
-              </button>
-            </div>
+            <div className="sesion-evaluacion-row__panel-body">
+              {imagenesLoading && (
+                <div className="animal-imagenes__loading">
+                  <Spinner size="xs" />
+                  <span>Cargando fotos...</span>
+                </div>
+              )}
 
-            {imagenesLoading && (
-              <div className="animal-imagenes__loading">
-                <Spinner size="xs" />
-                <span>Cargando fotos...</span>
-              </div>
-            )}
+              {!imagenesLoading && imagenesError && (
+                <p className="status-message error" role="alert">
+                  {imagenesError}
+                </p>
+              )}
 
-            {!imagenesLoading && imagenesError && (
-              <p className="status-message error" role="alert">
-                {imagenesError}
-              </p>
-            )}
+              {!imagenesLoading && !imagenesError && (
+                <div className="animal-imagenes__grid">
+                  {imagenes.map((imagen) => (
+                    <Menu.Root key={imagen.id}>
+                      <Menu.ContextTrigger asChild>
+                        <button
+                          type="button"
+                          className="animal-imagenes__thumb"
+                          aria-label="Ver foto en pantalla completa"
+                          onClick={() => setFullscreenImage(imagen)}>
+                          <img src={imagen.url} alt="Evidencia visual de la evaluación" />
+                        </button>
+                      </Menu.ContextTrigger>
+                      <Portal>
+                        <Menu.Positioner>
+                          <Menu.Content className="animal-evaluacion__valor-menu">
+                            <Menu.Item
+                              value="eliminar"
+                              className="animal-imagenes__menu-delete-item"
+                              onSelect={() => setConfirmDeleteImage(imagen)}>
+                              <IconTrash size={14} stroke={1.75} />
+                              Eliminar foto
+                            </Menu.Item>
+                          </Menu.Content>
+                        </Menu.Positioner>
+                      </Portal>
+                    </Menu.Root>
+                  ))}
 
-            {!imagenesLoading && !imagenesError && (
-              <div className="animal-imagenes__grid">
-                {imagenes.map((imagen) => (
-                  <Menu.Root key={imagen.id}>
-                    <Menu.ContextTrigger asChild>
-                      <button
-                        type="button"
-                        className="animal-imagenes__thumb"
-                        aria-label="Ver foto en pantalla completa"
-                        onClick={() => setFullscreenImage(imagen)}>
-                        <img src={imagen.url} alt="Evidencia visual de la evaluación" />
-                      </button>
-                    </Menu.ContextTrigger>
-                    <Portal>
-                      <Menu.Positioner>
-                        <Menu.Content className="animal-evaluacion__valor-menu">
-                          <Menu.Item
-                            value="eliminar"
-                            className="animal-imagenes__menu-delete-item"
-                            onSelect={() => setConfirmDeleteImage(imagen)}>
-                            <IconTrash size={14} stroke={1.75} />
-                            Eliminar foto
-                          </Menu.Item>
-                        </Menu.Content>
-                      </Menu.Positioner>
-                    </Portal>
-                  </Menu.Root>
-                ))}
+                  <button
+                    type="button"
+                    className="animal-imagenes__add-thumb"
+                    aria-label="Agregar foto"
+                    onClick={handleAddImageClick}
+                    disabled={isUploading}>
+                    {isUploading ? <Spinner size="xs" /> : <IconPlus size={20} stroke={1.75} />}
+                  </button>
+                </div>
+              )}
 
+              <div className="sesion-evaluacion-row__panel-actions">
                 <button
                   type="button"
-                  className="animal-imagenes__add-thumb"
-                  aria-label="Agregar foto"
-                  onClick={handleAddImageClick}
-                  disabled={isUploading}>
-                  {isUploading ? <Spinner size="xs" /> : <IconPlus size={20} stroke={1.75} />}
+                  className="sesion-evaluacion-row__action"
+                  onClick={onEdit}
+                  aria-label={`Editar evaluación del ${animalAccessibleName}`}>
+                  <IconPencil size={16} stroke={1.5} />
+                </button>
+                <button
+                  type="button"
+                  className="sesion-evaluacion-row__action sesion-evaluacion-row__action--danger"
+                  onClick={onDelete}
+                  aria-label={`Eliminar evaluación del ${animalAccessibleName}`}>
+                  <IconTrash size={16} stroke={1.5} />
                 </button>
               </div>
-            )}
+            </div>
 
             <input
               ref={fileInputRef}
