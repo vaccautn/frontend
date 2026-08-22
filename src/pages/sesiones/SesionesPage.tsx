@@ -17,7 +17,7 @@ import "@/pages/animales/animales.css";
 import "./sesiones.css";
 import { useNavigate } from "react-router-dom";
 import { toast } from "react-toastify";
-import { IconPencil, IconPlus, IconTrash } from "@tabler/icons-react";
+import { IconPlus } from "@tabler/icons-react";
 import { SesionesFiltros } from "./SesionesFiltros";
 import { formatEventDateTime, localNaiveNow } from "@/utils/localDateTime";
 import { ApiError } from "@/services/httpClient";
@@ -25,12 +25,6 @@ import { ApiError } from "@/services/httpClient";
 const PAGE_SIZE = 20;
 
 const CC_VALORES = ["1", "2", "3", "4", "5"] as const;
-
-const ESTADO_LABELS: Record<string, string> = {
-  ABIERTA: "Abierta",
-  CERRADA: "Cerrada",
-  CANCELADA: "Cancelada",
-};
 
 export function SesionesPage() {
   const [sesiones, setSesiones] = useState<SesionCapturaConResumen[]>([]);
@@ -42,17 +36,8 @@ export function SesionesPage() {
   const navigate = useNavigate();
   const [isStarting, setIsStarting] = useState(false);
   const [sesionAbierta, setSesionAbierta] = useState<number | null>(null);
-  const [sesionAEliminar, setSesionAEliminar] = useState<SesionCapturaConResumen | null>(null);
-  const {
-    estado,
-    fechaDesde,
-    fechaHasta,
-    params,
-    setEstado,
-    setFechaDesde,
-    setFechaHasta,
-    clearFilters,
-  } = useSesionesFiltros();
+  const { fechaDesde, fechaHasta, params, setFechaDesde, setFechaHasta, clearFilters } =
+    useSesionesFiltros();
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreRef = useRef(false);
@@ -88,21 +73,14 @@ export function SesionesPage() {
     }
   };
 
-  const confirmarEliminacion = async () => {
-    if (!sesionAEliminar) return;
-    try {
-      await eliminarSesion(sesionAEliminar.id);
-      toast.success("Sesion descartada correctamente.");
-      setSesionAEliminar(null);
-      fetchSesiones();
-    } catch {
-      toast.error("No se pudo eliminar la sesion.");
-    }
-  };
+  const esFilaNavegable = (sesion: SesionCapturaConResumen) =>
+    sesion.estado === "ABIERTA" || sesion.estado === "CERRADA";
 
   const abrirDetalle = (sesion: SesionCapturaConResumen) => {
     if (sesion.estado === "CERRADA") {
       navigate(`/sesiones/${sesion.id}`);
+    } else if (sesion.estado === "ABIERTA") {
+      navigate(`/sesiones/${sesion.id}/cargar`);
     }
   };
 
@@ -110,10 +88,7 @@ export function SesionesPage() {
     event: KeyboardEvent<HTMLTableRowElement>,
     sesion: SesionCapturaConResumen,
   ) => {
-    if (
-      sesion.estado === "CERRADA" &&
-      (event.key === "Enter" || event.key === " ")
-    ) {
+    if (esFilaNavegable(sesion) && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
       abrirDetalle(sesion);
     }
@@ -190,10 +165,8 @@ export function SesionesPage() {
       </div>
 
       <SesionesFiltros
-        estado={estado}
         fechaDesde={fechaDesde}
         fechaHasta={fechaHasta}
-        onEstadoChange={setEstado}
         onFechaDesdeChange={setFechaDesde}
         onFechaHastaChange={setFechaHasta}
         onClear={clearFilters}
@@ -208,11 +181,9 @@ export function SesionesPage() {
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader>Fecha</Table.ColumnHeader>
-                <Table.ColumnHeader>Estado</Table.ColumnHeader>
                 <Table.ColumnHeader>Evaluaciones</Table.ColumnHeader>
                 <Table.ColumnHeader>Moda CC</Table.ColumnHeader>
                 <Table.ColumnHeader>Rango</Table.ColumnHeader>
-                <Table.ColumnHeader>Acciones</Table.ColumnHeader>
                 {CC_VALORES.map((v) => (
                   <Table.ColumnHeader
                     key={v}
@@ -225,77 +196,49 @@ export function SesionesPage() {
             <Table.Body>
               {sesiones.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={6 + CC_VALORES.length}>
+                  <Table.Cell colSpan={4 + CC_VALORES.length}>
                     No se encontraron sesiones con los filtros aplicados.
                   </Table.Cell>
                 </Table.Row>
               ) : (
-                sesiones.map((sesion) => (
-                  <Table.Row
-                    key={sesion.id}
-                    className={`animales-table__row sesiones-table__row${
-                      sesion.estado === "CERRADA"
-                        ? " sesiones-table__row--interactive"
-                        : " sesiones-table__row--static"
-                    }`}
-                    tabIndex={sesion.estado === "CERRADA" ? 0 : undefined}
-                    role={sesion.estado === "CERRADA" ? "link" : undefined}
-                    aria-label={
-                      sesion.estado === "CERRADA"
-                        ? `Ver evaluaciones de la sesión ${sesion.id}`
-                        : undefined
-                    }
-                    onClick={() => abrirDetalle(sesion)}
-                    onKeyDown={(event) => handleRowKeyDown(event, sesion)}>
-                    <Table.Cell>
-                      {formatEventDateTime(sesion.fecha_inicio)}
-                    </Table.Cell>
-                    <Table.Cell>
-                      {ESTADO_LABELS[sesion.estado] ?? sesion.estado}
-                    </Table.Cell>
-                    <Table.Cell>{sesion.evaluaciones_count}</Table.Cell>
-                    <Table.Cell>{sesion.valor_cc_moda ?? "-"}</Table.Cell>
-                    <Table.Cell>
-                      {sesion.valor_cc_min !== null &&
-                      sesion.valor_cc_max !== null
-                        ? `${sesion.valor_cc_min} - ${sesion.valor_cc_max}`
-                        : "-"}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <div className="sesiones-table__acciones">
-                        {sesion.estado === "ABIERTA" && (
-                          <button
-                            type="button"
-                            className="sesiones-table__action"
-                            aria-label={`Editar sesión ${sesion.id}`}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              navigate(`/sesiones/${sesion.id}/cargar`);
-                            }}>
-                            <IconPencil size={16} stroke={1.5} />
-                          </button>
-                        )}
-                        {sesion.estado !== "CANCELADA" && (
-                          <button
-                            type="button"
-                            className="sesiones-table__action sesiones-table__action--danger"
-                            aria-label={`Eliminar sesión ${sesion.id}`}
-                            onClick={(event) => {
-                              event.stopPropagation();
-                              setSesionAEliminar(sesion);
-                            }}>
-                            <IconTrash size={16} stroke={1.5} />
-                          </button>
-                        )}
-                      </div>
-                    </Table.Cell>
-                    {CC_VALORES.map((v) => (
-                      <Table.Cell key={v} className="sesiones-table__cc-cell">
-                        {sesion.distribucion[v] ?? 0}
+                sesiones.map((sesion) => {
+                  const navegable = esFilaNavegable(sesion);
+                  return (
+                    <Table.Row
+                      key={sesion.id}
+                      className={`animales-table__row sesiones-table__row${
+                        navegable ? " sesiones-table__row--interactive" : " sesiones-table__row--static"
+                      }`}
+                      tabIndex={navegable ? 0 : undefined}
+                      role={navegable ? "link" : undefined}
+                      aria-label={
+                        navegable
+                          ? sesion.estado === "CERRADA"
+                            ? `Ver evaluaciones de la sesión ${sesion.id}`
+                            : `Continuar cargando la sesión ${sesion.id}`
+                          : undefined
+                      }
+                      onClick={() => abrirDetalle(sesion)}
+                      onKeyDown={(event) => handleRowKeyDown(event, sesion)}>
+                      <Table.Cell>
+                        {formatEventDateTime(sesion.fecha_inicio)}
                       </Table.Cell>
-                    ))}
-                  </Table.Row>
-                ))
+                      <Table.Cell>{sesion.evaluaciones_count}</Table.Cell>
+                      <Table.Cell>{sesion.valor_cc_moda ?? "-"}</Table.Cell>
+                      <Table.Cell>
+                        {sesion.valor_cc_min !== null &&
+                        sesion.valor_cc_max !== null
+                          ? `${sesion.valor_cc_min} - ${sesion.valor_cc_max}`
+                          : "-"}
+                      </Table.Cell>
+                      {CC_VALORES.map((v) => (
+                        <Table.Cell key={v} className="sesiones-table__cc-cell">
+                          {sesion.distribucion[v] ?? 0}
+                        </Table.Cell>
+                      ))}
+                    </Table.Row>
+                  );
+                })
               )}
             </Table.Body>
           </Table.Root>
@@ -309,9 +252,6 @@ export function SesionesPage() {
       )}
       <Dialog.Root open={sesionAbierta !== null} onOpenChange={(details) => !details.open && setSesionAbierta(null)}>
         <Portal><Dialog.Backdrop /><Dialog.Positioner><Dialog.Content><Dialog.Header><Dialog.Title>Hay una sesion abierta</Dialog.Title></Dialog.Header><Dialog.Body>Queres continuar editandola o descartarla para iniciar una nueva?</Dialog.Body><Dialog.Footer><Button onClick={() => sesionAbierta !== null && navigate(`/sesiones/${sesionAbierta}/cargar`)}>Continuar editando</Button><Button colorPalette="red" onClick={descartarEIniciar}>Descartar e iniciar nueva</Button></Dialog.Footer></Dialog.Content></Dialog.Positioner></Portal>
-      </Dialog.Root>
-      <Dialog.Root open={sesionAEliminar !== null} onOpenChange={(details) => !details.open && setSesionAEliminar(null)}>
-        <Portal><Dialog.Backdrop /><Dialog.Positioner><Dialog.Content><Dialog.Header><Dialog.Title>Eliminar sesion</Dialog.Title></Dialog.Header><Dialog.Body>Se descartaran todas las evaluaciones de esta sesion.</Dialog.Body><Dialog.Footer><Button onClick={() => setSesionAEliminar(null)}>Cancelar</Button><Button colorPalette="red" onClick={confirmarEliminacion}>Eliminar</Button></Dialog.Footer></Dialog.Content></Dialog.Positioner></Portal>
       </Dialog.Root>
     </section>
   );

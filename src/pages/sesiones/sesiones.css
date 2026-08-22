@@ -77,45 +77,6 @@
   background: var(--panel);
 }
 
-.sesiones-table__acciones {
-  display: flex;
-  align-items: center;
-  gap: 0.35rem;
-}
-
-.sesiones-table__action {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  width: 28px;
-  height: 28px;
-  border: none;
-  border-radius: 6px;
-  background: transparent;
-  color: var(--text);
-  cursor: pointer;
-  opacity: 0;
-  transition:
-    opacity 0.15s,
-    background 0.15s,
-    color 0.15s;
-}
-
-.sesiones-table__row:hover .sesiones-table__action,
-.sesiones-table__action:focus-visible {
-  opacity: 1;
-}
-
-.sesiones-table__action:hover {
-  background: var(--verde-pastel);
-  color: var(--accent-strong);
-}
-
-.sesiones-table__action--danger:hover {
-  background: var(--danger-bg);
-  color: var(--danger);
-}
-
 .sesion-detail {
   display: flex;
   flex-direction: column;
@@ -143,6 +104,11 @@
 .sesion-detail__hero p {
   margin: 0.4rem 0 0;
   color: var(--text);
+}
+
+.sesion-detail__delete-trigger {
+  margin-top: 0.6rem;
+  margin-inline-start: -0.6rem;
 }
 
 .sesion-detail__eyebrow {
@@ -213,6 +179,15 @@
 
 .sesion-evaluacion-row:hover {
   background: var(--bg);
+}
+
+.sesion-evaluacion-row--expanded,
+.sesion-evaluacion-row--expanded:hover {
+  background: var(--verde-pastel);
+}
+
+.sesion-evaluacion-row--expanded td {
+  border-bottom: none;
 }
 
 .sesion-evaluacion-row__toggle-cell {
@@ -297,11 +272,11 @@
 }
 
 .sesion-evaluacion-row__panel-row td {
-  background: var(--bg);
+  background: var(--verde-pastel);
 }
 
 .sesion-evaluacion-row__panel {
-  padding: 1rem !important;
+  padding: 0 1rem 0.9rem 3rem !important;
 }
 
 .sesion-evaluacion-row__panel-actions {
@@ -309,7 +284,7 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.35rem;
-  margin-bottom: 0.75rem;
+  margin-bottom: 0.5rem;
 }
 
 .sesion-evaluacion-row__action {
@@ -330,7 +305,7 @@
 
 .sesion-evaluacion-row__action:hover,
 .sesion-evaluacion-row__action:focus-visible {
-  background: var(--verde-pastel);
+  background: var(--panel);
   color: var(--accent-strong);
 }
 

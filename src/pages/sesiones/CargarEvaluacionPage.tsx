@@ -1,7 +1,8 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Table } from "@chakra-ui/react";
+import { Button, Dialog, Portal, Table } from "@chakra-ui/react";
 import { toast } from "react-toastify";
+import { IconTrash } from "@tabler/icons-react";
 import { getSesion } from "@/features/sesiones/services/sesionesService";
 import {
   getAnimalesAgrupadosPorLote,
@@ -9,7 +10,7 @@ import {
   registrarEvaluacionCCCompleta,
   updateEvaluacionCcEnSesion,
 } from "@/features/animales/services/animalesService";
-import { actualizarSesion } from "@/features/sesiones/services/sesionesService";
+import { actualizarSesion, eliminarSesion } from "@/features/sesiones/services/sesionesService";
 import {
   RegistrarEvaluacionCCDialog,
   type EvaluacionCCPendiente,
@@ -18,6 +19,8 @@ import type { SesionCapturaRead } from "@/features/sesiones/types";
 import type { Animal, AnimalLoteGroup, EvaluacionCC } from "@/features/animales/types";
 import { localNaiveNow } from "@/utils/localDateTime";
 import { ApiError } from "@/services/httpClient";
+import "@/pages/animales/animales.css";
+import "./sesiones.css";
 
 export function CargarEvaluacionesPage() {
   const { id } = useParams<{ id: string }>();
@@ -31,6 +34,8 @@ export function CargarEvaluacionesPage() {
   );
   const [loading, setLoading] = useState(true);
   const [isFinalizando, setIsFinalizando] = useState(false);
+  const [confirmDeleteSesion, setConfirmDeleteSesion] = useState(false);
+  const [isDeletingSesion, setIsDeletingSesion] = useState(false);
 
   // Evaluaciones cargadas en memoria, todavía no persistidas en el backend.
   const [evaluaciones, setEvaluaciones] = useState<
@@ -170,6 +175,18 @@ export function CargarEvaluacionesPage() {
     navigate("/sesiones");
   }, [evaluaciones, sesionId, navigate]);
 
+  const handleDeleteSesion = async () => {
+    setIsDeletingSesion(true);
+    try {
+      await eliminarSesion(sesionId);
+      toast.success("Sesión eliminada correctamente.");
+      navigate("/sesiones");
+    } catch {
+      toast.error("No se pudo eliminar la sesión.");
+      setIsDeletingSesion(false);
+    }
+  };
+
   if (loading) return <p>Cargando...</p>;
   if (!sesion) return <p>Sesión no encontrada.</p>;
 
@@ -179,6 +196,13 @@ export function CargarEvaluacionesPage() {
         <div className="title-and-description">
           <h1>Cargando evaluaciones — Sesión #{sesion.id}</h1>
           <p>{evaluaciones.size} evaluación(es) cargadas en esta sesión.</p>
+          <button
+            type="button"
+            className="animal-detail__action animal-detail__action--danger sesion-detail__delete-trigger"
+            onClick={() => setConfirmDeleteSesion(true)}>
+            <IconTrash size={16} stroke={1.5} />
+            Eliminar sesión
+          </button>
         </div>
         <Button
           colorPalette="brand"
@@ -235,6 +259,39 @@ export function CargarEvaluacionesPage() {
         onClose={() => setAnimalSeleccionado(null)}
         onGuardar={handleGuardarEvaluacion}
       />
+
+      <Dialog.Root
+        open={confirmDeleteSesion}
+        onOpenChange={(details) => !details.open && setConfirmDeleteSesion(false)}>
+        <Portal>
+          <Dialog.Backdrop className="animal-evaluacion__backdrop" />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Eliminar sesión</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                Se eliminará la sesión #{sesionId} y todas las evaluaciones cargadas hasta
+                ahora. Esta acción no se puede deshacer.
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Button
+                  variant="ghost"
+                  onClick={() => setConfirmDeleteSesion(false)}
+                  disabled={isDeletingSesion}>
+                  Cancelar
+                </Button>
+                <Button
+                  colorPalette="red"
+                  onClick={handleDeleteSesion}
+                  loading={isDeletingSesion}>
+                  Eliminar
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
     </section>
   );
 }

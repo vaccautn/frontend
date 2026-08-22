@@ -114,7 +114,7 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
 
   return (
     <>
-      <tr className="sesion-evaluacion-row">
+      <tr className={`sesion-evaluacion-row${expanded ? " sesion-evaluacion-row--expanded" : ""}`}>
         <td className="sesion-evaluacion-row__toggle-cell">
           <button
             type="button"
