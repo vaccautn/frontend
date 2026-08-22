@@ -138,26 +138,28 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
       </td>
       <td className="sesion-evaluacion-row__hora">{formatEventDateTime(evaluacion.fecha)}</td>
       <td className="sesion-evaluacion-row__acciones">
-        <button
-          type="button"
-          className="sesion-evaluacion-row__action"
-          onClick={(event) => {
-            event.stopPropagation();
-            onEdit();
-          }}
-          aria-label={`Editar evaluación del ${animalAccessibleName}`}>
-          <IconPencil size={16} stroke={1.5} />
-        </button>
-        <button
-          type="button"
-          className="sesion-evaluacion-row__action sesion-evaluacion-row__action--danger"
-          onClick={(event) => {
-            event.stopPropagation();
-            onDelete();
-          }}
-          aria-label={`Eliminar evaluación del ${animalAccessibleName}`}>
-          <IconTrash size={16} stroke={1.5} />
-        </button>
+        <span className="sesion-evaluacion-row__acciones-inner">
+          <button
+            type="button"
+            className="sesion-evaluacion-row__action"
+            onClick={(event) => {
+              event.stopPropagation();
+              onEdit();
+            }}
+            aria-label={`Editar evaluación del ${animalAccessibleName}`}>
+            <IconPencil size={16} stroke={1.5} />
+          </button>
+          <button
+            type="button"
+            className="sesion-evaluacion-row__action sesion-evaluacion-row__action--danger"
+            onClick={(event) => {
+              event.stopPropagation();
+              onDelete();
+            }}
+            aria-label={`Eliminar evaluación del ${animalAccessibleName}`}>
+            <IconTrash size={16} stroke={1.5} />
+          </button>
+        </span>
       </td>
 
       <Dialog.Root

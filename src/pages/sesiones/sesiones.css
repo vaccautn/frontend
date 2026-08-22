@@ -278,10 +278,13 @@
 
 .sesion-evaluacion-row__acciones {
   width: 5rem;
-  display: flex;
+  white-space: nowrap;
+}
+
+.sesion-evaluacion-row__acciones-inner {
+  display: inline-flex;
   align-items: center;
   gap: 0.35rem;
-  white-space: nowrap;
 }
 
 .sesion-evaluacion-row__acciones .sesion-evaluacion-row__action {
