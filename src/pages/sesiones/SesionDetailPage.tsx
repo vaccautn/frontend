@@ -15,6 +15,8 @@ import type {
 } from "@/features/animales/types";
 import { eliminarSesion, getSesion } from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaRead } from "@/features/sesiones/types";
+import { SesionDashboard } from "@/features/sesiones/components/dashboard/SesionDashboard";
+import { useSesionDashboard } from "@/features/sesiones/hooks/useSesionDashboard";
 import { ApiError } from "@/services/httpClient";
 import { formatEventDateTime } from "@/utils/localDateTime";
 import { ConfirmarEliminacionDialog } from "./ConfirmarEliminacionDialog";
@@ -40,6 +42,7 @@ export function SesionDetailPage() {
   const [deletingEvaluacion, setDeletingEvaluacion] = useState<EvaluacionCC | null>(null);
   const [confirmDeleteSesion, setConfirmDeleteSesion] = useState(false);
   const [isDeletingSesion, setIsDeletingSesion] = useState(false);
+  const dashboard = useSesionDashboard(sesionId);
 
   useEffect(() => {
     activeSesionIdRef.current = sesionId;
@@ -283,6 +286,12 @@ export function SesionDetailPage() {
               </button>
             </div>
           </header>
+
+          <SesionDashboard
+            data={dashboard.data}
+            loading={dashboard.loading}
+            error={dashboard.error}
+          />
 
           {evaluaciones.length === 0 ? (
             <div className="sesion-detail__empty" role="status">
