@@ -43,7 +43,6 @@ import {
 } from "@/features/animales/utils/animalesValidation";
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
-import { EvaluacionCCItem } from "../features/animales/components/EvaluacionCCItem";
 
 import { BajaAnimalModal } from "../features/animales/components/BajaAnimalModal";
 import "@/features/animales/components/animales.css";
@@ -525,19 +524,6 @@ export function AnimalDetailPage() {
                 </p>
               )}
 
-            {/* {!evaluacionesLoading &&
-              !evaluacionesError &&
-              historyItems.length > 0 && (
-                <div className="animal-evaluaciones__list">
-                  {historyItems.map((evaluacion) => (
-                    <EvaluacionCCItem
-                      key={evaluacion.id}
-                      evaluacion={evaluacion}
-                      onUpdated={handleRefreshEvaluaciones}
-                    />
-                  ))}
-                </div>
-              )} */}
           </section>
         </>
       )}
@@ -563,24 +549,10 @@ export function AnimalDetailPage() {
       {!evaluacionesLoading &&
         !evaluacionesError &&
         historyItems.length > 0 && (
-          <>
-            <div className="animal-evaluaciones__table-view">
-              <AnimalEvaluacionesTable
-                evaluaciones={historyItems}
-                onRowClick={setEvaluacionSeleccionada}
-              />
-            </div>
-
-            <div className="animal-evaluaciones__list animal-evaluaciones__list-view">
-              {historyItems.map((evaluacion) => (
-                <EvaluacionCCItem
-                  key={evaluacion.id}
-                  evaluacion={evaluacion}
-                  onUpdated={handleRefreshEvaluaciones}
-                />
-              ))}
-            </div>
-          </>
+          <AnimalEvaluacionesTable
+            evaluaciones={historyItems}
+            onEdit={setEvaluacionSeleccionada}
+          />
         )}
       {evaluacionSeleccionada && (
         <AnimalEvaluacionCCDialog

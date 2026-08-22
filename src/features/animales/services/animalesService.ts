@@ -9,8 +9,8 @@ import {
 } from "@/services/httpClient";
 import type {
   Animal,
-  AnimalLoteGroup,
   AnimalListParams,
+  AnimalLoteGroup,
   DashboardAnimalesData,
   DashboardAnimalData,
   EvaluacionCC,
@@ -83,7 +83,7 @@ function buildAnimalSearchParams(params: AnimalListParams): URLSearchParams {
 
 export function getAnimal(id: number): Promise<Animal> {
   const token = getAccessToken();
-  return getJson<Animal>(`/animales/${id}/`, token);
+  return getJson<Animal>(`/animales/${id}`, token);
 }
 
 type EvaluacionesFiltros = {
