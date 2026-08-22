@@ -215,11 +215,6 @@
   white-space: nowrap;
 }
 
-.sesion-evaluacion-row__hora {
-  color: var(--text);
-  white-space: nowrap;
-}
-
 .sesion-evaluacion-row__badge {
   display: inline-flex;
   padding: 0.3rem 0.65rem;

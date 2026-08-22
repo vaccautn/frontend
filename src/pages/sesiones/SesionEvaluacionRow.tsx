@@ -136,7 +136,6 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
       <td className="sesion-evaluacion-row__observaciones">
         {evaluacion.observaciones?.trim() || "Sin observaciones."}
       </td>
-      <td className="sesion-evaluacion-row__hora">{formatEventDateTime(evaluacion.fecha)}</td>
       <td className="sesion-evaluacion-row__acciones">
         <span className="sesion-evaluacion-row__acciones-inner">
           <button

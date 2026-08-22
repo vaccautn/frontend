@@ -18,7 +18,7 @@ import type { SesionCapturaRead } from "@/features/sesiones/types";
 import { SesionDashboard } from "@/features/sesiones/components/dashboard/SesionDashboard";
 import { useSesionDashboard } from "@/features/sesiones/hooks/useSesionDashboard";
 import { ApiError } from "@/services/httpClient";
-import { formatEventDateTime } from "@/utils/localDateTime";
+import { formatEventDate, formatEventDateTime } from "@/utils/localDateTime";
 import { ConfirmarEliminacionDialog } from "./ConfirmarEliminacionDialog";
 import { EditarEvaluacionDialog } from "./EditarEvaluacionDialog";
 import { SesionEvaluacionRow } from "./SesionEvaluacionRow";
@@ -270,7 +270,9 @@ export function SesionDetailPage() {
           <header className="sesion-detail__hero">
             <div>
               <span className="sesion-detail__eyebrow">Sesión cerrada</span>
-              <h1 id="sesion-detail-title">Evaluaciones de la sesión #{sesion.id}</h1>
+              <h1 id="sesion-detail-title">
+                Evaluaciones de la sesión del {formatEventDate(sesion.fecha_inicio)}
+              </h1>
               <p>{formatEventDateTime(sesion.fecha_inicio)}</p>
             </div>
             <div className="sesion-detail__hero-actions">
@@ -302,7 +304,6 @@ export function SesionDetailPage() {
                     <th scope="col">Animal</th>
                     <th scope="col">Calificación</th>
                     <th scope="col">Observaciones</th>
-                    <th scope="col">Hora</th>
                     <th scope="col" className="sesion-evaluacion-row__acciones">
                       <span className="sr-only">Acciones</span>
                     </th>
