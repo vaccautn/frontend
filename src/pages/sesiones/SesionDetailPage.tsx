@@ -293,7 +293,7 @@ export function SesionDetailPage() {
                 <thead>
                   <tr>
                     <th scope="col" className="sesion-evaluacion-row__toggle-cell">
-                      <span className="sr-only">Desplegar fotos</span>
+                      <span className="sr-only">Ver fotos</span>
                     </th>
                     <th scope="col">Animal</th>
                     <th scope="col">Calificación</th>

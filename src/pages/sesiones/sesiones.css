@@ -181,11 +181,6 @@
   background: var(--bg);
 }
 
-.sesion-evaluacion-row--expanded,
-.sesion-evaluacion-row--expanded:hover {
-  background: var(--bg);
-}
-
 .sesion-evaluacion-row__toggle-cell {
   width: 2.5rem;
   padding-inline: 0.5rem !important;
@@ -267,20 +262,24 @@
   color: var(--danger);
 }
 
-.sesion-evaluacion-row__panel-row td {
-  background: var(--bg);
+.sesion-evaluacion-popup {
+  width: min(560px, calc(100vw - 2rem)) !important;
+  max-width: min(560px, calc(100vw - 2rem)) !important;
+  background: var(--panel);
+  box-shadow: var(--shadow);
 }
 
-.sesion-evaluacion-row__panel {
-  padding: 0.75rem 1rem 0.9rem 3rem !important;
-}
-
-.sesion-evaluacion-row__panel-body {
+.sesion-evaluacion-popup__header {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   justify-content: space-between;
-  flex-wrap: wrap;
-  gap: 0.75rem;
+  gap: 1rem;
+}
+
+.sesion-evaluacion-popup__subtitle {
+  margin: 0.2rem 0 0;
+  color: var(--text);
+  font-size: 0.85rem;
 }
 
 .sesion-evaluacion-row__panel-actions {
