@@ -7,9 +7,12 @@ import LoginPage from "@/pages/LoginPage";
 
 import { DashboardPage } from "@/pages/Dashboard";
 import { AnimalesPage } from "@/pages/animales/AnimalesPage";
-import { EvaluacionesPage } from "@/pages/Evaluaciones";
+import { AnimalDetailPage } from "@/pages/animales/AnimalDetailPage";
+import { SesionesPage } from "@/pages/sesiones/SesionesPage";
+
 import AnimalesNuevoPage from "@/pages/animales/AnimalesNuevoPage";
-import AnimalesEditarPage from "@/pages/animales/AnimalesEditarPage";
+import { CargarEvaluacionesPage } from "@/pages/sesiones/CargarEvaluacionPage";
+import { SesionDetailPage } from "@/pages/sesiones/SesionDetailPage";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard
@@ -31,19 +34,23 @@ export const router = createBrowserRouter([
           {
             path: "/animales",
             element: <AnimalesPage />,
-            children: [
-              { path: "nuevo", element: <AnimalesNuevoPage /> },
-              { path: ":id/editar", element: <AnimalesEditarPage /> },
-            ],
+            children: [{ path: "nuevo", element: <AnimalesNuevoPage /> }],
           },
-          { path: "/animales/nuevo", element: <AnimalesNuevoPage /> },
-          { path: "/evaluaciones", element: <EvaluacionesPage /> },
+          { path: "/animales/:id", element: <AnimalDetailPage /> },
+          {
+            path: "/sesiones",
+            element: <SesionesPage />,
+            // children: [{ path: "nuevo", element: <AnimalesNuevoPage /> }],
+          },
+
+          { path: "/sesiones/:id", element: <SesionDetailPage /> },
+          { path: "/sesiones/:id/cargar", element: <CargarEvaluacionesPage /> },
         ],
       },
     ],
   },
 
-  { path: "/", element: <Navigate to="/dashboard" replace /> },
-  // 404 -> Deberia haber una pag de 404 en vez de dashboard
-  { path: "*", element: <Navigate to="/dashboard" replace /> },
+  { path: "/", element: <Navigate to="/animales" replace /> },
+  // 404 -> Deberia haber una pag de 404 en vez de animales
+  { path: "*", element: <Navigate to="/animales" replace /> },
 ]);

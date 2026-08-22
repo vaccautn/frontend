@@ -7,9 +7,11 @@ import {
   Input,
   NativeSelect,
   Portal,
+  Textarea,
 } from "@chakra-ui/react";
+import { IconArrowNarrowLeft, IconPlus } from "@tabler/icons-react";
 import { registerAnimal } from "@/features/animales/services/animalesService";
-import { getLotes } from "@/features/lotes/services/lotesService";
+import { getLotes, createLote } from "@/features/lotes/services/lotesService";
 import { ApiError } from "@/services/httpClient";
 import {
   initialRodeoNuevoValues,
@@ -17,13 +19,14 @@ import {
   type RodeoNuevoFieldErrors,
   type RodeoNuevoValues,
 } from "@/features/animales/utils/animalesValidation";
-import { normalizeBackendDetail } from "@/features/auth";
+import { normalizeBackendDetail, useAuth } from "@/features/auth";
 import { RAZAS, SEXOS } from "@/features/animales/constants";
 import type { LoteOption } from "@/features/lotes/types";
 import { toast } from "react-toastify";
 
 function AnimalesNuevoPage() {
   const navigate = useNavigate();
+  const { user } = useAuth();
   const [open, setOpen] = useState(true);
   const [values, setValues] = useState<RodeoNuevoValues>(
     initialRodeoNuevoValues,
@@ -35,12 +38,25 @@ function AnimalesNuevoPage() {
   const [lotesLoading, setLotesLoading] = useState(true);
   const [lotesError, setLotesError] = useState("");
 
+  const [isCreatingLote, setIsCreatingLote] = useState(false);
+  const [nuevoLoteNombre, setNuevoLoteNombre] = useState("");
+  const [nuevoLoteDescripcion, setNuevoLoteDescripcion] = useState("");
+  const [nuevoLoteError, setNuevoLoteError] = useState("");
+
   useEffect(() => {
     getLotes()
       .then(setLotes)
-      .catch(() => setLotesError("No se pudieron cargar los lotes disponibles."))
+      .catch(() =>
+        setLotesError("No se pudieron cargar los lotes disponibles."),
+      )
       .finally(() => setLotesLoading(false));
   }, []);
+
+  useEffect(() => {
+    if (!lotesLoading && !lotesError && lotes.length === 0) {
+      setIsCreatingLote(true);
+    }
+  }, [lotesLoading, lotesError, lotes.length]);
 
   const close = (refresh = false) => {
     setOpen(false);
@@ -55,25 +71,59 @@ function AnimalesNuevoPage() {
       setFormError("");
     };
 
+  const toggleCreatingLote = () => {
+    setIsCreatingLote((current) => !current);
+    setNuevoLoteError("");
+    setErrors((current) => ({ ...current, lote_id: undefined }));
+  };
+
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
     if (isSubmitting) return;
 
+    setNuevoLoteError("");
+
     const nextErrors = validateRodeoNuevoForm(values);
+    if (isCreatingLote) {
+      delete nextErrors.lote_id;
+    }
     setErrors(nextErrors);
+
+    if (isCreatingLote && !nuevoLoteNombre.trim()) {
+      setNuevoLoteError("El nombre del lote es obligatorio.");
+      return;
+    }
     if (Object.keys(nextErrors).length > 0) return;
 
     setIsSubmitting(true);
     try {
+      let loteId: number;
+
+      if (isCreatingLote) {
+        const nuevoLote = await createLote({
+          nombre: nuevoLoteNombre.trim(),
+          descripcion: nuevoLoteDescripcion.trim(),
+          usuario_administrador_id: user?.id ?? 0,
+          activo: true,
+        });
+        loteId = nuevoLote.id;
+      } else {
+        loteId = Number(values.lote_id);
+      }
+
       await registerAnimal({
         caravana: values.caravana.trim(),
         raza: values.raza,
         sexo: values.sexo,
         fecha_nacimiento: values.fecha_nacimiento,
-        lote_id: Number(values.lote_id),
+        lote_id: loteId,
       });
 
-      toast.success("Animal registrado correctamente.");
+      toast.success(
+        isCreatingLote
+          ? "Lote y animal registrados correctamente."
+          : "Animal registrado correctamente.",
+      );
       close(true);
     } catch (error) {
       if (error instanceof ApiError) {
@@ -180,33 +230,94 @@ function AnimalesNuevoPage() {
                   <Field.ErrorText>{errors.fecha_nacimiento}</Field.ErrorText>
                 </Field.Root>
 
-                <Field.Root invalid={!!errors.lote_id}>
-                  <Field.Label>Lote</Field.Label>
-                  <NativeSelect.Root>
-                    <NativeSelect.Field
-                      value={values.lote_id}
-                      onChange={updateField("lote_id")}>
-                      <option value="">
-                        {lotesLoading
-                          ? "Cargando lotes..."
-                          : "Selecciona un lote"}
-                      </option>
-                      {lotes.map((lote) => (
-                        <option key={lote.id} value={lote.id}>
-                          {lote.nombre}
+                {!isCreatingLote && (
+                  <Field.Root invalid={!!errors.lote_id}>
+                    <Field.Label className="label_button">
+                      Lote
+                      <div className="animal-form__lote-toggle">
+                        <IconPlus stroke={1.5} />
+                        <button
+                          type="button"
+                          className="animal-form__link-button"
+                          onClick={toggleCreatingLote}>
+                          {isCreatingLote
+                            ? "Usar lote existente"
+                            : "Crear nuevo lote"}
+                        </button>
+                      </div>
+                    </Field.Label>
+                    <NativeSelect.Root>
+                      <NativeSelect.Field
+                        value={values.lote_id}
+                        onChange={updateField("lote_id")}>
+                        <option value="">
+                          {lotesLoading
+                            ? "Cargando lotes..."
+                            : "Selecciona un lote"}
                         </option>
-                      ))}
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                  </NativeSelect.Root>
-                  <Field.ErrorText>{errors.lote_id}</Field.ErrorText>
-                  {lotesError && <p className="status-message error">{lotesError}</p>}
-                  {!lotesLoading && lotes.length === 0 && !lotesError && (
+                        {lotes.map((lote) => (
+                          <option key={lote.id} value={lote.id}>
+                            {lote.nombre}
+                          </option>
+                        ))}
+                      </NativeSelect.Field>
+                      <NativeSelect.Indicator />
+                    </NativeSelect.Root>
+                    <Field.ErrorText>{errors.lote_id}</Field.ErrorText>
+                    {lotesError && (
+                      <p className="status-message error">{lotesError}</p>
+                    )}
+                  </Field.Root>
+                )}
+
+                {isCreatingLote && (
+                  <>
+                    <Field.Root invalid={!!nuevoLoteError}>
+                      <Field.Label className="label_button">
+                        Nombre del lote
+                        <div className="animal-form__lote-toggle">
+                          <IconArrowNarrowLeft stroke={1.5} />
+                          <button
+                            type="button"
+                            className="animal-form__link-button"
+                            onClick={toggleCreatingLote}>
+                            {isCreatingLote
+                              ? "Usar lote existente"
+                              : "Crear nuevo lote"}
+                          </button>
+                        </div>
+                      </Field.Label>
+                      <Input
+                        value={nuevoLoteNombre}
+                        onChange={(event) => {
+                          setNuevoLoteNombre(event.target.value);
+                          setNuevoLoteError("");
+                        }}
+                      />
+                      <Field.ErrorText>{nuevoLoteError}</Field.ErrorText>
+                    </Field.Root>
+
+                    <Field.Root>
+                      <Field.Label>Descripción del lote</Field.Label>
+                      <Textarea
+                        value={nuevoLoteDescripcion}
+                        onChange={(event) =>
+                          setNuevoLoteDescripcion(event.target.value)
+                        }
+                        rows={2}
+                      />
+                    </Field.Root>
+                  </>
+                )}
+
+                {!lotesLoading &&
+                  lotes.length === 0 &&
+                  !lotesError &&
+                  !isCreatingLote && (
                     <p className="status-message error">
                       No tenes lotes disponibles para registrar animales.
                     </p>
                   )}
-                </Field.Root>
               </form>
             </Drawer.Body>
 
