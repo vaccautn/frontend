@@ -12,6 +12,7 @@
   cursor: pointer;
   text-decoration: none;
   transition: background-color 0.15s ease;
+  text-wrap: nowrap;
 }
 
 .primary-btn:hover:not(:disabled) {

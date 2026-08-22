@@ -1,8 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import type {
-  AnimalListParams,
-  EstadoFiltro,
-} from "@/features/animales/types";
+import type { AnimalListParams, EstadoFiltro } from "@/features/animales/types";
 
 const DEBOUNCE_MS = 300;
 
@@ -12,6 +9,7 @@ export function useAnimalesFiltros() {
   const [sexo, setSexo] = useState<"MACHO" | "HEMBRA" | null>(null);
   const [raza, setRaza] = useState<string | null>(null);
   const [estado, setEstado] = useState<EstadoFiltro | null>("ACTIVO");
+  const [loteId, setLoteId] = useState<number | null>(null);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -27,18 +25,21 @@ export function useAnimalesFiltros() {
       ...(sexo ? { sexo } : {}),
       ...(raza ? { raza } : {}),
       ...(trimmedCaravana ? { caravana: trimmedCaravana } : {}),
+      ...(loteId !== null ? { lote_id: loteId } : {}),
     };
-  }, [estado, sexo, raza, debouncedCaravana]);
+  }, [estado, sexo, raza, debouncedCaravana, loteId]);
 
   return {
     caravanaInput,
     sexo,
     raza,
     estado,
+    loteId,
     setCaravanaInput,
     setSexo,
     setRaza,
     setEstado,
+    setLoteId,
     params,
   };
 }

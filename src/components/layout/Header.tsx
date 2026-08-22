@@ -12,11 +12,15 @@ import {
 const pageTitles: Record<string, string> = {
   "/dashboard": "Inicio",
   "/evaluaciones": "Evaluaciones de condición corporal",
+  "/sesiones": "Sesiones de evaluación",
 };
 
 function getPageTitle(pathname: string) {
   if (pathname.startsWith("/animales")) {
     return "Información de animales";
+  }
+  if (pathname.startsWith("/sesiones")) {
+    return "Sesiones de evaluación";
   }
 
   return pageTitles[pathname] ?? "Sin título";
