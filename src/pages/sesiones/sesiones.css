@@ -77,6 +77,45 @@
   background: var(--panel);
 }
 
+.sesiones-table__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+}
+
+.sesiones-table__action {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  opacity: 0;
+  transition:
+    opacity 0.15s,
+    background 0.15s,
+    color 0.15s;
+}
+
+.sesiones-table__row:hover .sesiones-table__action,
+.sesiones-table__action:focus-visible {
+  opacity: 1;
+}
+
+.sesiones-table__action:hover {
+  background: var(--verde-pastel);
+  color: var(--accent-strong);
+}
+
+.sesiones-table__action--danger:hover {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
 .sesion-detail {
   display: flex;
   flex-direction: column;

@@ -251,16 +251,32 @@ export function SesionesPage() {
                       {formatEventDateTime(sesion.fecha_inicio)}
                     </Table.Cell>
                     <Table.Cell>
-                      {sesion.estado === "ABIERTA" && (
-                        <Button size="xs" onClick={(event) => { event.stopPropagation(); navigate(`/sesiones/${sesion.id}/cargar`); }}>
-                          <IconPencil size={15} /> Editar
-                        </Button>
-                      )}
-                      {sesion.estado !== "CANCELADA" && (
-                        <Button size="xs" colorPalette="red" onClick={(event) => { event.stopPropagation(); setSesionAEliminar(sesion); }}>
-                          <IconTrash size={15} /> Eliminar
-                        </Button>
-                      )}
+                      <div className="sesiones-table__acciones">
+                        {sesion.estado === "ABIERTA" && (
+                          <button
+                            type="button"
+                            className="sesiones-table__action"
+                            aria-label={`Editar sesión ${sesion.id}`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              navigate(`/sesiones/${sesion.id}/cargar`);
+                            }}>
+                            <IconPencil size={16} stroke={1.5} />
+                          </button>
+                        )}
+                        {sesion.estado !== "CANCELADA" && (
+                          <button
+                            type="button"
+                            className="sesiones-table__action sesiones-table__action--danger"
+                            aria-label={`Eliminar sesión ${sesion.id}`}
+                            onClick={(event) => {
+                              event.stopPropagation();
+                              setSesionAEliminar(sesion);
+                            }}>
+                            <IconTrash size={16} stroke={1.5} />
+                          </button>
+                        )}
+                      </div>
                     </Table.Cell>
                     <Table.Cell>
                       {ESTADO_LABELS[sesion.estado] ?? sesion.estado}
