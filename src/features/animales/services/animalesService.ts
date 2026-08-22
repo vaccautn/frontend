@@ -10,6 +10,7 @@ import {
 import type {
   Animal,
   AnimalListParams,
+  AnimalLoteGroup,
   DashboardAnimalesData,
   DashboardAnimalData,
   EvaluacionCC,
@@ -56,6 +57,32 @@ export function getAnimales(params: AnimalListParams = {}): Promise<Animal[]> {
   const queryString = searchParams.toString();
   const path = queryString ? `/animales/?${queryString}` : "/animales/";
   return getJson<Animal[]>(path, token);
+}
+
+export function getAnimalesAgrupadosPorLote(
+  params: AnimalListParams = {},
+): Promise<AnimalLoteGroup[]> {
+  const token = getAccessToken();
+  const searchParams = new URLSearchParams();
+
+  if (params.estado) {
+    searchParams.set("estado", params.estado);
+  }
+  if (params.sexo) {
+    searchParams.set("sexo", params.sexo);
+  }
+  if (params.raza) {
+    searchParams.set("raza", params.raza);
+  }
+  if (params.caravana) {
+    searchParams.set("caravana", params.caravana);
+  }
+
+  const queryString = searchParams.toString();
+  const path = queryString
+    ? `/animales/agrupados-por-lote?${queryString}`
+    : "/animales/agrupados-por-lote";
+  return getJson<AnimalLoteGroup[]>(path, token);
 }
 
 export function getAnimal(id: number): Promise<Animal> {

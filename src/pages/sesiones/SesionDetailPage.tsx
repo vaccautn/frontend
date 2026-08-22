@@ -265,17 +265,31 @@ export function SesionDetailPage() {
               <p>Esta sesión cerrada no tiene evaluaciones para revisar.</p>
             </div>
           ) : (
-            <ul className="sesion-detail__list" aria-label="Evaluaciones de la sesión">
-              {evaluaciones.map((evaluacion) => (
-                <li key={evaluacion.id}>
-                  <SesionEvaluacionRow
-                    evaluacion={evaluacion}
-                    onEdit={() => setEditingEvaluacion(evaluacion)}
-                    onDelete={() => setDeletingEvaluacion(evaluacion)}
-                  />
-                </li>
-              ))}
-            </ul>
+            <div className="sesion-detail__table-wrapper">
+              <table className="sesion-detail__table" aria-label="Evaluaciones de la sesión">
+                <thead>
+                  <tr>
+                    <th scope="col">Animal</th>
+                    <th scope="col">Calificación</th>
+                    <th scope="col">Observaciones</th>
+                    <th scope="col">Hora</th>
+                    <th scope="col">
+                      <span className="sesion-detail__table-actions-label">Acciones</span>
+                    </th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {evaluaciones.map((evaluacion) => (
+                    <SesionEvaluacionRow
+                      key={evaluacion.id}
+                      evaluacion={evaluacion}
+                      onEdit={() => setEditingEvaluacion(evaluacion)}
+                      onDelete={() => setDeletingEvaluacion(evaluacion)}
+                    />
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
         </>
       )}

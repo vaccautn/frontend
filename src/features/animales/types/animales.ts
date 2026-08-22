@@ -38,6 +38,19 @@ export type RegisterAnimalPayload = {
   lote_id: number | null;
 };
 
+export type AnimalLoteGroup = {
+  lote: {
+    id: number;
+    nombre: string;
+    descripcion: string;
+    usuario_administrador_id: number;
+    activo: boolean;
+    creado_en: string;
+    actualizado_en: string;
+  } | null;
+  animales: Animal[];
+};
+
 export type UpdateAnimalPayload = {
   caravana?: string;
   raza?: string;
