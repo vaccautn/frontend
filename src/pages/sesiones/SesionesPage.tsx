@@ -24,8 +24,6 @@ import { ApiError } from "@/services/httpClient";
 
 const PAGE_SIZE = 20;
 
-const CC_VALORES = ["1", "2", "3", "4", "5"] as const;
-
 export function SesionesPage() {
   const [sesiones, setSesiones] = useState<SesionCapturaConResumen[]>([]);
   const [loading, setLoading] = useState(true);
@@ -182,21 +180,12 @@ export function SesionesPage() {
               <Table.Row>
                 <Table.ColumnHeader>Fecha</Table.ColumnHeader>
                 <Table.ColumnHeader>Evaluaciones</Table.ColumnHeader>
-                <Table.ColumnHeader>Moda CC</Table.ColumnHeader>
-                <Table.ColumnHeader>Rango</Table.ColumnHeader>
-                {CC_VALORES.map((v) => (
-                  <Table.ColumnHeader
-                    key={v}
-                    className="sesiones-table__cc-header">
-                    CC {v}
-                  </Table.ColumnHeader>
-                ))}
               </Table.Row>
             </Table.Header>
             <Table.Body>
               {sesiones.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={4 + CC_VALORES.length}>
+                  <Table.Cell colSpan={2}>
                     No se encontraron sesiones con los filtros aplicados.
                   </Table.Cell>
                 </Table.Row>
@@ -224,18 +213,6 @@ export function SesionesPage() {
                         {formatEventDateTime(sesion.fecha_inicio)}
                       </Table.Cell>
                       <Table.Cell>{sesion.evaluaciones_count}</Table.Cell>
-                      <Table.Cell>{sesion.valor_cc_moda ?? "-"}</Table.Cell>
-                      <Table.Cell>
-                        {sesion.valor_cc_min !== null &&
-                        sesion.valor_cc_max !== null
-                          ? `${sesion.valor_cc_min} - ${sesion.valor_cc_max}`
-                          : "-"}
-                      </Table.Cell>
-                      {CC_VALORES.map((v) => (
-                        <Table.Cell key={v} className="sesiones-table__cc-cell">
-                          {sesion.distribucion[v] ?? 0}
-                        </Table.Cell>
-                      ))}
                     </Table.Row>
                   );
                 })
