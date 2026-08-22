@@ -88,6 +88,11 @@
   margin-inline-start: -0.75rem;
 }
 
+.sesion-detail__delete-trigger {
+  align-self: flex-start;
+  margin-inline-start: -0.6rem;
+}
+
 .sesion-detail__hero {
   display: flex;
   align-items: flex-start;

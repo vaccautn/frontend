@@ -277,13 +277,6 @@ export function SesionDetailPage() {
               <span className="sesion-detail__count">
                 {evaluaciones.length} evaluación{evaluaciones.length === 1 ? "" : "es"}
               </span>
-              <button
-                type="button"
-                className="animal-detail__action animal-detail__action--danger"
-                onClick={() => setConfirmDeleteSesion(true)}>
-                <IconTrash size={16} stroke={1.5} />
-                Eliminar sesión
-              </button>
             </div>
           </header>
 
@@ -328,6 +321,14 @@ export function SesionDetailPage() {
               </table>
             </div>
           )}
+
+          <button
+            type="button"
+            className="animal-detail__action animal-detail__action--danger sesion-detail__delete-trigger"
+            onClick={() => setConfirmDeleteSesion(true)}>
+            <IconTrash size={16} stroke={1.5} />
+            Eliminar sesión
+          </button>
         </>
       )}
 
