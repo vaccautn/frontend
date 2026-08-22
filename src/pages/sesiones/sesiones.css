@@ -28,11 +28,6 @@
   background: var(--verde-pastel);
 }
 
-.sesiones-filtros__clear:disabled {
-  opacity: 0.65;
-  cursor: not-allowed;
-}
-
 .sesiones-histograma {
   display: flex;
   align-items: flex-end;

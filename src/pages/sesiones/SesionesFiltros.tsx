@@ -45,13 +45,11 @@ export function SesionesFiltros({
         />
       </div>
 
-      <button
-        type="button"
-        className="sesiones-filtros__clear"
-        onClick={onClear}
-        disabled={!fechaDesde && !fechaHasta}>
-        Limpiar filtros
-      </button>
+      {(fechaDesde || fechaHasta) && (
+        <button type="button" className="sesiones-filtros__clear" onClick={onClear}>
+          Limpiar filtros
+        </button>
+      )}
     </div>
   );
 }
