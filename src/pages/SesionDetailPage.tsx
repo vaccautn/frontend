@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState } from "react";
-import { Button, Spinner } from "@chakra-ui/react";
-import { IconArrowLeft } from "@tabler/icons-react";
+import { Button, Dialog, Portal, Spinner } from "@chakra-ui/react";
+import { toast } from "react-toastify";
+import { IconArrowLeft, IconTrash } from "@tabler/icons-react";
 import { useNavigate, useParams } from "react-router-dom";
 import { normalizeBackendDetail } from "@/features/auth";
 import {
@@ -12,14 +13,17 @@ import type {
   EvaluacionCC,
   UpdateEvaluacionCCSesionPayload,
 } from "@/features/animales/types";
-import { getSesion } from "@/features/sesiones/services/sesionesService";
+import { eliminarSesion, getSesion } from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaRead } from "@/features/sesiones/types";
+import { SesionDashboard } from "@/features/sesiones/components/dashboard/SesionDashboard";
+import { useSesionDashboard } from "@/features/sesiones/hooks/useSesionDashboard";
 import { ApiError } from "@/services/httpClient";
-import { formatEventDateTime } from "@/utils/localDateTime";
+import { formatEventDate, formatEventDateTime } from "@/utils/localDateTime";
 import { ConfirmarEliminacionDialog } from "../features/sesiones/components/ConfirmarEliminacionDialog";
 import { EditarEvaluacionDialog } from "../features/sesiones/components/EditarEvaluacionDialog";
 import { SesionEvaluacionRow } from "../features/sesiones/components/SesionEvaluacionRow";
 import { SesionEvaluacionesTable } from "../features/sesiones/components/SesionesEvaluacionesTable";
+import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
 
 type DetailStatus = "loading" | "ready" | "error" | "stale" | "ineligible";
@@ -39,6 +43,9 @@ export function SesionDetailPage() {
     useState<EvaluacionCC | null>(null);
   const [deletingEvaluacion, setDeletingEvaluacion] =
     useState<EvaluacionCC | null>(null);
+  const [confirmDeleteSesion, setConfirmDeleteSesion] = useState(false);
+  const [isDeletingSesion, setIsDeletingSesion] = useState(false);
+  const dashboard = useSesionDashboard(sesionId);
 
   useEffect(() => {
     activeSesionIdRef.current = sesionId;
@@ -204,6 +211,18 @@ export function SesionDetailPage() {
     }
   };
 
+  const handleDeleteSesion = async () => {
+    setIsDeletingSesion(true);
+    try {
+      await eliminarSesion(sesionId);
+      toast.success("Sesión eliminada correctamente.");
+      navigate("/sesiones");
+    } catch {
+      toast.error("No se pudo eliminar la sesión.");
+      setIsDeletingSesion(false);
+    }
+  };
+
   return (
     <section className="sesion-detail" aria-label="Detalle de sesión">
       <Button
@@ -254,15 +273,22 @@ export function SesionDetailPage() {
             <div>
               <span className="sesion-detail__eyebrow">Sesión cerrada</span>
               <h1 id="sesion-detail-title">
-                Evaluaciones de la sesión #{sesion.id}
+                Evaluaciones de la sesión del {formatEventDate(sesion.fecha_inicio)}
               </h1>
               <p>{formatEventDateTime(sesion.fecha_inicio)}</p>
             </div>
-            <span className="sesion-detail__count">
-              {evaluaciones.length} evaluación
-              {evaluaciones.length === 1 ? "" : "es"}
-            </span>
+            <div className="sesion-detail__hero-actions">
+              <span className="sesion-detail__count">
+                {evaluaciones.length} evaluación{evaluaciones.length === 1 ? "" : "es"}
+              </span>
+            </div>
           </header>
+
+          <SesionDashboard
+            data={dashboard.data}
+            loading={dashboard.loading}
+            error={dashboard.error}
+          />
 
           {evaluaciones.length === 0 ? (
             <div className="sesion-detail__empty" role="status">
@@ -293,6 +319,14 @@ export function SesionDetailPage() {
               </ul>
             </>
           )}
+
+          <button
+            type="button"
+            className="animal-detail__action animal-detail__action--danger sesion-detail__delete-trigger"
+            onClick={() => setConfirmDeleteSesion(true)}>
+            <IconTrash size={16} stroke={1.5} />
+            Eliminar sesión
+          </button>
         </>
       )}
 
@@ -316,6 +350,39 @@ export function SesionDetailPage() {
           onConfirm={handleDeleteConfirm}
         />
       )}
+
+      <Dialog.Root
+        open={confirmDeleteSesion}
+        onOpenChange={(details) => !details.open && setConfirmDeleteSesion(false)}>
+        <Portal>
+          <Dialog.Backdrop className="animal-evaluacion__backdrop" />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Eliminar sesión</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                Se eliminará la sesión #{sesionId} y todas sus evaluaciones. Esta acción no
+                se puede deshacer.
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Button
+                  variant="ghost"
+                  onClick={() => setConfirmDeleteSesion(false)}
+                  disabled={isDeletingSesion}>
+                  Cancelar
+                </Button>
+                <Button
+                  colorPalette="red"
+                  onClick={handleDeleteSesion}
+                  loading={isDeletingSesion}>
+                  Eliminar
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
     </section>
   );
 }

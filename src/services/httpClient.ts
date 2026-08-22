@@ -2,18 +2,24 @@ const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
 
 type ApiErrorBody = {
-  detail?: string;
+  detail?: string | { message?: string; sesion_id?: number };
 };
 
 export class ApiError extends Error {
   status: number;
   detail: string;
+  data?: { message?: string; sesion_id?: number };
 
-  constructor(status: number, detail: string) {
-    super(detail);
+  constructor(status: number, detail: ApiErrorBody["detail"]) {
+    const message =
+      typeof detail === "string"
+        ? detail
+        : detail?.message ?? "No se pudo completar la operacion.";
+    super(message);
     this.name = "ApiError";
     this.status = status;
-    this.detail = detail;
+    this.detail = message;
+    this.data = typeof detail === "object" ? detail : undefined;
   }
 }
 

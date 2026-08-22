@@ -5,9 +5,10 @@ import {
   useState,
   type KeyboardEvent,
 } from "react";
-import { Table, Button, Spinner } from "@chakra-ui/react";
+import { Table, Button, Dialog, Portal, Spinner } from "@chakra-ui/react";
 import {
   crearSesion,
+  eliminarSesion,
   getSesionesConResumen,
 } from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaConResumen } from "@/features/sesiones/types";
@@ -19,16 +20,9 @@ import { toast } from "react-toastify";
 import { IconPlus } from "@tabler/icons-react";
 import { SesionesFiltros } from "../features/sesiones/components/SesionesFiltros";
 import { formatEventDateTime, localNaiveNow } from "@/utils/localDateTime";
+import { ApiError } from "@/services/httpClient";
 
 const PAGE_SIZE = 20;
-
-const CC_VALORES = ["1", "2", "3", "4", "5"] as const;
-
-const ESTADO_LABELS: Record<string, string> = {
-  ABIERTA: "Abierta",
-  CERRADA: "Cerrada",
-  CANCELADA: "Cancelada",
-};
 
 export function SesionesPage() {
   const [sesiones, setSesiones] = useState<SesionCapturaConResumen[]>([]);
@@ -40,16 +34,9 @@ export function SesionesPage() {
   const [nextOffset, setNextOffset] = useState<number | null>(null);
   const navigate = useNavigate();
   const [isStarting, setIsStarting] = useState(false);
-  const {
-    estado,
-    fechaDesde,
-    fechaHasta,
-    params,
-    setEstado,
-    setFechaDesde,
-    setFechaHasta,
-    clearFilters,
-  } = useSesionesFiltros();
+  const [sesionAbierta, setSesionAbierta] = useState<number | null>(null);
+  const { fechaDesde, fechaHasta, params, setFechaDesde, setFechaHasta, clearFilters } =
+    useSesionesFiltros();
 
   const sentinelRef = useRef<HTMLDivElement | null>(null);
   const loadingMoreRef = useRef(false);
@@ -59,16 +46,40 @@ export function SesionesPage() {
     try {
       const nuevaSesion = await crearSesion({ fecha_inicio: localNaiveNow() });
       navigate(`/sesiones/${nuevaSesion.id}/cargar`);
-    } catch {
+    } catch (error) {
+      if (error instanceof ApiError && error.status === 409 && error.data?.sesion_id) {
+        setSesionAbierta(error.data.sesion_id);
+      } else {
       toast.error("No se pudo iniciar la sesion de evaluacion.");
+      }
     } finally {
       setIsStarting(false);
     }
   };
 
+  const descartarEIniciar = async () => {
+    if (sesionAbierta === null) return;
+    setIsStarting(true);
+    try {
+      await eliminarSesion(sesionAbierta);
+      const nuevaSesion = await crearSesion({ fecha_inicio: localNaiveNow() });
+      navigate(`/sesiones/${nuevaSesion.id}/cargar`);
+    } catch {
+      toast.error("No se pudo descartar la sesion abierta.");
+    } finally {
+      setIsStarting(false);
+      setSesionAbierta(null);
+    }
+  };
+
+  const esFilaNavegable = (sesion: SesionCapturaConResumen) =>
+    sesion.estado === "ABIERTA" || sesion.estado === "CERRADA";
+
   const abrirDetalle = (sesion: SesionCapturaConResumen) => {
     if (sesion.estado === "CERRADA") {
       navigate(`/sesiones/${sesion.id}`);
+    } else if (sesion.estado === "ABIERTA") {
+      navigate(`/sesiones/${sesion.id}/cargar`);
     }
   };
 
@@ -76,10 +87,7 @@ export function SesionesPage() {
     event: KeyboardEvent<HTMLTableRowElement>,
     sesion: SesionCapturaConResumen,
   ) => {
-    if (
-      sesion.estado === "CERRADA" &&
-      (event.key === "Enter" || event.key === " ")
-    ) {
+    if (esFilaNavegable(sesion) && (event.key === "Enter" || event.key === " ")) {
       event.preventDefault();
       abrirDetalle(sesion);
     }
@@ -155,10 +163,8 @@ export function SesionesPage() {
       </div>
 
       <SesionesFiltros
-        estado={estado}
         fechaDesde={fechaDesde}
         fechaHasta={fechaHasta}
-        onEstadoChange={setEstado}
         onFechaDesdeChange={setFechaDesde}
         onFechaHastaChange={setFechaHasta}
         onClear={clearFilters}
@@ -178,65 +184,43 @@ export function SesionesPage() {
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader>Fecha</Table.ColumnHeader>
-                <Table.ColumnHeader>Estado</Table.ColumnHeader>
                 <Table.ColumnHeader>Evaluaciones</Table.ColumnHeader>
-                <Table.ColumnHeader>Moda CC</Table.ColumnHeader>
-                <Table.ColumnHeader>Rango</Table.ColumnHeader>
-                {CC_VALORES.map((v) => (
-                  <Table.ColumnHeader
-                    key={v}
-                    className="sesiones-table__cc-header">
-                    CC {v}
-                  </Table.ColumnHeader>
-                ))}
               </Table.Row>
             </Table.Header>
             <Table.Body>
               {sesiones.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={5 + CC_VALORES.length}>
+                  <Table.Cell colSpan={2}>
                     No se encontraron sesiones con los filtros aplicados.
                   </Table.Cell>
                 </Table.Row>
               ) : (
-                sesiones.map((sesion) => (
-                  <Table.Row
-                    key={sesion.id}
-                    className={`animales-table__row sesiones-table__row${
-                      sesion.estado === "CERRADA"
-                        ? " sesiones-table__row--interactive"
-                        : " sesiones-table__row--static"
-                    }`}
-                    tabIndex={sesion.estado === "CERRADA" ? 0 : undefined}
-                    role={sesion.estado === "CERRADA" ? "link" : undefined}
-                    aria-label={
-                      sesion.estado === "CERRADA"
-                        ? `Ver evaluaciones de la sesión ${sesion.id}`
-                        : undefined
-                    }
-                    onClick={() => abrirDetalle(sesion)}
-                    onKeyDown={(event) => handleRowKeyDown(event, sesion)}>
-                    <Table.Cell>
-                      {formatEventDateTime(sesion.fecha_inicio)}
-                    </Table.Cell>
-                    <Table.Cell>
-                      {ESTADO_LABELS[sesion.estado] ?? sesion.estado}
-                    </Table.Cell>
-                    <Table.Cell>{sesion.evaluaciones_count}</Table.Cell>
-                    <Table.Cell>{sesion.valor_cc_moda ?? "-"}</Table.Cell>
-                    <Table.Cell>
-                      {sesion.valor_cc_min !== null &&
-                      sesion.valor_cc_max !== null
-                        ? `${sesion.valor_cc_min} - ${sesion.valor_cc_max}`
-                        : "-"}
-                    </Table.Cell>
-                    {CC_VALORES.map((v) => (
-                      <Table.Cell key={v} className="sesiones-table__cc-cell">
-                        {sesion.distribucion[v] ?? 0}
+                sesiones.map((sesion) => {
+                  const navegable = esFilaNavegable(sesion);
+                  return (
+                    <Table.Row
+                      key={sesion.id}
+                      className={`animales-table__row sesiones-table__row${
+                        navegable ? " sesiones-table__row--interactive" : " sesiones-table__row--static"
+                      }`}
+                      tabIndex={navegable ? 0 : undefined}
+                      role={navegable ? "link" : undefined}
+                      aria-label={
+                        navegable
+                          ? sesion.estado === "CERRADA"
+                            ? `Ver evaluaciones de la sesión ${sesion.id}`
+                            : `Continuar cargando la sesión ${sesion.id}`
+                          : undefined
+                      }
+                      onClick={() => abrirDetalle(sesion)}
+                      onKeyDown={(event) => handleRowKeyDown(event, sesion)}>
+                      <Table.Cell>
+                        {formatEventDateTime(sesion.fecha_inicio)}
                       </Table.Cell>
-                    ))}
-                  </Table.Row>
-                ))
+                      <Table.Cell>{sesion.evaluaciones_count}</Table.Cell>
+                    </Table.Row>
+                  );
+                })
               )}
             </Table.Body>
           </Table.Root>
@@ -248,6 +232,9 @@ export function SesionesPage() {
           )}
         </div>
       )}
+      <Dialog.Root open={sesionAbierta !== null} onOpenChange={(details) => !details.open && setSesionAbierta(null)}>
+        <Portal><Dialog.Backdrop /><Dialog.Positioner><Dialog.Content><Dialog.Header><Dialog.Title>Hay una sesion abierta</Dialog.Title></Dialog.Header><Dialog.Body>Queres continuar editandola o descartarla para iniciar una nueva?</Dialog.Body><Dialog.Footer><Button onClick={() => sesionAbierta !== null && navigate(`/sesiones/${sesionAbierta}/cargar`)}>Continuar editando</Button><Button colorPalette="red" onClick={descartarEIniciar}>Descartar e iniciar nueva</Button></Dialog.Footer></Dialog.Content></Dialog.Positioner></Portal>
+      </Dialog.Root>
     </section>
   );
 }

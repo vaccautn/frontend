@@ -1,87 +1,25 @@
-import { Input, Menu, Portal } from "@chakra-ui/react";
-import { IconChevronDown } from "@tabler/icons-react";
-import type { EstadoSesion } from "@/features/sesiones/types";
-
-const TODOS_VALUE = "__TODOS__";
-
-const ESTADOS: { value: EstadoSesion; label: string }[] = [
-  { value: "ABIERTA", label: "Abiertas" },
-  { value: "CERRADA", label: "Cerradas" },
-  { value: "CANCELADA", label: "Canceladas" },
-];
+import { Input } from "@chakra-ui/react";
 
 type SesionesFiltrosProps = {
-  estado: EstadoSesion | null;
   fechaDesde: string;
   fechaHasta: string;
-  onEstadoChange: (value: EstadoSesion | null) => void;
   onFechaDesdeChange: (value: string) => void;
   onFechaHastaChange: (value: string) => void;
   onClear: () => void;
 };
 
 export function SesionesFiltros({
-  estado,
   fechaDesde,
   fechaHasta,
-  onEstadoChange,
   onFechaDesdeChange,
   onFechaHastaChange,
   onClear,
 }: SesionesFiltrosProps) {
-  const estadoLabel = ESTADOS.find((item) => item.value === estado)?.label;
-
   return (
-    <div
-      className="sesiones-filtros"
-      role="search"
-      aria-label="Filtros de sesiones">
-      <Menu.Root>
-        <Menu.Trigger asChild>
-          <button
-            type="button"
-            className="animales-filtros__dropdown"
-            aria-label="Filtrar por estado de sesión">
-            <span>{estadoLabel ?? "Todos los estados"}</span>
-            <IconChevronDown
-              className="animales-filtros__dropdown-caret"
-              size={16}
-              stroke={1.5}
-            />
-          </button>
-        </Menu.Trigger>
-        <Portal>
-          <Menu.Positioner>
-            <Menu.Content className="animales-filtros__dropdown-menu">
-              <Menu.RadioItemGroup
-                value={estado ?? TODOS_VALUE}
-                onValueChange={(details) => {
-                  const value = details.value;
-                  onEstadoChange(
-                    value === TODOS_VALUE ? null : (value as EstadoSesion),
-                  );
-                }}>
-                <Menu.RadioItem value={TODOS_VALUE}>
-                  Todos los estados
-                </Menu.RadioItem>
-                <Menu.Separator />
-                {ESTADOS.map(({ value, label }) => (
-                  <Menu.RadioItem key={value} value={value}>
-                    {label}
-                  </Menu.RadioItem>
-                ))}
-              </Menu.RadioItemGroup>
-            </Menu.Content>
-          </Menu.Positioner>
-        </Portal>
-      </Menu.Root>
-
-      <div
-        className="sesiones-filtros__rango"
-        role="group"
-        aria-label="Filtrar por rango de fechas">
-        <label htmlFor="fecha-desde" className="sesiones-filtros__rango-label">
-          Desde
+    <div className="sesiones-filtros" role="search" aria-label="Filtros de sesiones">
+      <div className="sesiones-filtros__campo">
+        <label htmlFor="fecha-desde" className="sr-only">
+          Filtrar desde
         </label>
         <Input
           id="fecha-desde"
@@ -89,13 +27,13 @@ export function SesionesFiltros({
           value={fechaDesde}
           onChange={(event) => onFechaDesdeChange(event.target.value)}
           aria-label="Filtrar sesiones desde una fecha"
-          className="sesiones-filtros__rango-input"
+          className="animales-filtros__input"
         />
+      </div>
 
-        <span className="sesiones-filtros__rango-divisor" aria-hidden="true" />
-
-        <label htmlFor="fecha-hasta" className="sesiones-filtros__rango-label">
-          Hasta
+      <div className="sesiones-filtros__campo">
+        <label htmlFor="fecha-hasta" className="sr-only">
+          Filtrar hasta
         </label>
         <Input
           id="fecha-hasta"
@@ -103,17 +41,15 @@ export function SesionesFiltros({
           value={fechaHasta}
           onChange={(event) => onFechaHastaChange(event.target.value)}
           aria-label="Filtrar sesiones hasta una fecha"
-          className="sesiones-filtros__rango-input"
+          className="animales-filtros__input"
         />
       </div>
 
-      <button
-        type="button"
-        className="sesiones-filtros__clear"
-        onClick={onClear}
-        disabled={!estado && !fechaDesde && !fechaHasta}>
-        Limpiar filtros
-      </button>
+      {(fechaDesde || fechaHasta) && (
+        <button type="button" className="sesiones-filtros__clear" onClick={onClear}>
+          Limpiar filtros
+        </button>
+      )}
     </div>
   );
 }

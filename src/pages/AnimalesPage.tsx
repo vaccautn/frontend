@@ -107,9 +107,7 @@ export function AnimalesPage() {
         <div className="title-and-description">
           <h1>Gestión de animales</h1>
         </div>
-        <Button
-          colorPalette="brand"
-          onClick={() => navigate("/animales/nuevo")}>
+        <Button colorPalette="brand" onClick={() => navigate("/animales/nuevo")}>
           <IconPlus size={18} stroke={1.5} />
           Agregar animal
         </Button>
@@ -161,9 +159,7 @@ export function AnimalesPage() {
             <Table.Header>
               <Table.Row>
                 {COLUMNAS.map((columna) => (
-                  <Table.ColumnHeader key={columna}>
-                    {columna}
-                  </Table.ColumnHeader>
+                  <Table.ColumnHeader key={columna}>{columna}</Table.ColumnHeader>
                 ))}
               </Table.Row>
             </Table.Header>

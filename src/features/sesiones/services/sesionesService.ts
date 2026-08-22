@@ -1,4 +1,4 @@
-import { getJson, patchJson, postJson } from "@/services/httpClient";
+import { deleteRequest, getJson, patchJson, postJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 import type {
   DashboardSesionData,
@@ -78,4 +78,8 @@ export function actualizarSesion(
     datos,
     token,
   );
+}
+
+export function eliminarSesion(sesionId: number): Promise<void> {
+  return deleteRequest(`/sesiones-captura/${sesionId}`, getAccessToken());
 }
