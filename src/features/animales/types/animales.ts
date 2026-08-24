@@ -135,7 +135,7 @@ export interface RegistrarEvaluacionCCParams {
 
 export interface RegistrarEvaluacionCCResult {
   evaluacion: EvaluacionCC;
-  imagenesConError: boolean;
+  imagenesError?: string;
 }
 
 // ── Dashboard de animales (rodeo) ─────────────────────────────────────────────

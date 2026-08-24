@@ -35,7 +35,7 @@ type RegistrarEvaluacionCCDialogProps = {
   open: boolean;
   valorInicial?: EvaluacionCCPendiente;
   onClose: () => void;
-  onGuardar: (data: EvaluacionCCPendiente) => void;
+  onGuardar: (data: EvaluacionCCPendiente) => Promise<boolean>;
 };
 
 type FormValues = {
@@ -63,6 +63,7 @@ export function RegistrarEvaluacionCCDialog({
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState("");
   const [files, setFiles] = useState<File[]>([]);
+  const [isSaving, setIsSaving] = useState(false);
 
   const scaleLabel = useMemo(
     () => `${DEFAULT_CC_SCALE.min} a ${DEFAULT_CC_SCALE.max}`,
@@ -90,6 +91,7 @@ export function RegistrarEvaluacionCCDialog({
     }
     setErrors({});
     setFormError("");
+    setIsSaving(false);
   }, [open, valorInicial]);
 
   const updateField =
@@ -108,9 +110,9 @@ export function RegistrarEvaluacionCCDialog({
     setFormError("");
   };
 
-  const handleGuardar = (event: FormEvent<HTMLFormElement>) => {
+  const handleGuardar = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
-    if (!animal) return;
+    if (!animal || isSaving) return;
 
     if (animal.estado !== "ACTIVO") {
       setFormError(
@@ -140,7 +142,9 @@ export function RegistrarEvaluacionCCDialog({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    onGuardar({
+    setFormError("");
+    setIsSaving(true);
+    const guardado = await onGuardar({
       valorCc: Number(normalizedScore),
       escalaMin: DEFAULT_CC_SCALE.min,
       escalaMax: DEFAULT_CC_SCALE.max,
@@ -148,17 +152,20 @@ export function RegistrarEvaluacionCCDialog({
       fecha: localNaiveNow(),
       files,
     });
+    setIsSaving(false);
 
-    setValues(INITIAL_VALUES);
-    setFiles([]);
-    setFormError("");
-    onClose();
+    if (guardado) {
+      setValues(INITIAL_VALUES);
+      setFiles([]);
+      setFormError("");
+      onClose();
+    }
   };
 
   return (
     <Dialog.Root
       open={open}
-      onOpenChange={(details) => !details.open && onClose()}>
+      onOpenChange={(details) => !details.open && !isSaving && onClose()}>
       <Portal>
         <Dialog.Backdrop className="animal-evaluacion__backdrop" />
         <Dialog.Positioner>
@@ -176,7 +183,8 @@ export function RegistrarEvaluacionCCDialog({
                 <button
                   type="button"
                   className="animal-form__close"
-                  aria-label="Cerrar">
+                  aria-label="Cerrar"
+                  disabled={isSaving}>
                   ✕
                 </button>
               </Dialog.CloseTrigger>
@@ -310,13 +318,19 @@ export function RegistrarEvaluacionCCDialog({
               <p>La fecha y hora se registran automáticamente al guardar</p>
             </div>
             <Dialog.Footer className="animal-evaluacion__footer">
-              <Button type="button" variant="outline" onClick={onClose}>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onClose}
+                disabled={isSaving}>
                 Cancelar
               </Button>
               <Button
                 type="submit"
                 form="animal-evaluacion-form"
                 colorPalette="brand"
+                loading={isSaving}
+                loadingText="Guardando..."
                 disabled={!animal || animal.estado !== "ACTIVO"}>
                 Guardar valor
               </Button>

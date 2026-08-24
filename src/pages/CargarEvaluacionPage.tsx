@@ -8,6 +8,7 @@ import {
   getAnimalesAgrupadosPorLote,
   getEvaluacionesCc,
   registrarEvaluacionCCCompleta,
+  subirImagenesEvaluacion,
   updateEvaluacionCcEnSesion,
 } from "@/features/animales/services/animalesService";
 import { actualizarSesion, eliminarSesion } from "@/features/sesiones/services/sesionesService";
@@ -18,6 +19,8 @@ import {
 import type { SesionCapturaRead } from "@/features/sesiones/types";
 import type { Animal, AnimalLoteGroup, EvaluacionCC } from "@/features/animales/types";
 import { localNaiveNow } from "@/utils/localDateTime";
+import { normalizeBackendDetail } from "@/features/auth";
+import { getImagenUploadErrorMessage } from "@/features/animales/utils/imagenUploadErrors";
 import { ApiError } from "@/services/httpClient";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
@@ -37,10 +40,6 @@ export function CargarEvaluacionesPage() {
   const [confirmDeleteSesion, setConfirmDeleteSesion] = useState(false);
   const [isDeletingSesion, setIsDeletingSesion] = useState(false);
 
-  // Evaluaciones cargadas en memoria, todavía no persistidas en el backend.
-  const [evaluaciones, setEvaluaciones] = useState<
-    Map<number, EvaluacionCCPendiente>
-  >(new Map());
   const [evaluacionesPersistidas, setEvaluacionesPersistidas] = useState<Map<number, EvaluacionCC>>(new Map());
 
   useEffect(() => {
@@ -59,41 +58,46 @@ export function CargarEvaluacionesPage() {
       .finally(() => setLoading(false));
   }, [sesionId]);
 
+  // Cada evaluación (y sus imágenes) se crea y valida contra el modelo de IA
+  // apenas se guarda el diálogo, no al finalizar la carga — así el usuario se
+  // entera al toque si una foto fue rechazada por no contener un bovino.
   const handleGuardarEvaluacion = useCallback(
-    async (data: EvaluacionCCPendiente) => {
-      if (!animalSeleccionado) return;
-      const existente = evaluacionesPersistidas.get(animalSeleccionado.id);
+    async (data: EvaluacionCCPendiente): Promise<boolean> => {
+      if (!animalSeleccionado) return false;
+      const animalId = animalSeleccionado.id;
+      const existente = evaluacionesPersistidas.get(animalId);
+
       if (existente) {
         try {
           const actualizada = await updateEvaluacionCcEnSesion(existente.id, sesionId, {
             valor_cc: data.valorCc,
             observaciones: data.observaciones,
           });
-          setEvaluacionesPersistidas((prev) => new Map(prev).set(animalSeleccionado.id, actualizada));
-          toast.success("Evaluacion actualizada.");
-        } catch {
-          toast.error("No se pudo actualizar la evaluacion.");
+          setEvaluacionesPersistidas((prev) => new Map(prev).set(animalId, actualizada));
+
+          if (data.files.length > 0) {
+            try {
+              await subirImagenesEvaluacion(actualizada.id, data.files);
+              toast.success("Evaluación actualizada e imágenes subidas correctamente.");
+            } catch (error) {
+              toast.error(getImagenUploadErrorMessage(error, data.files.length));
+            }
+          } else {
+            toast.success("Evaluación actualizada.");
+          }
+          return true;
+        } catch (error) {
+          toast.error(
+            error instanceof ApiError
+              ? normalizeBackendDetail(error.detail)
+              : "No se pudo actualizar la evaluación. Probá nuevamente.",
+          );
+          return false;
         }
-        setAnimalSeleccionado(null);
-        return;
       }
-      setEvaluaciones((prev) => {
-        const next = new Map(prev);
-        next.set(animalSeleccionado.id, data);
-        return next;
-      });
-      setAnimalSeleccionado(null);
-    },
-    [animalSeleccionado, evaluacionesPersistidas, sesionId],
-  );
 
-  const handleFinalizarCarga = useCallback(async () => {
-    setIsFinalizando(true);
-    const entries = Array.from(evaluaciones.entries());
-
-    const resultados = await Promise.allSettled(
-      entries.map(async ([animalId, data]) => {
-        const { imagenesConError } = await registrarEvaluacionCCCompleta({
+      try {
+        const { evaluacion, imagenesError } = await registrarEvaluacionCCCompleta({
           sesionId,
           animalId,
           valorCc: data.valorCc,
@@ -103,43 +107,32 @@ export function CargarEvaluacionesPage() {
           fecha: data.fecha,
           files: data.files,
         });
-        return { animalId, imagenesConError };
-      }),
-    );
+        setEvaluacionesPersistidas((prev) => new Map(prev).set(animalId, evaluacion));
 
-    const exitosos = new Set<number>();
-    const fallidos: number[] = [];
-    let algunaImagenConError = false;
-
-    resultados.forEach((res, idx) => {
-      const [animalId] = entries[idx];
-      if (res.status === "fulfilled") {
-        exitosos.add(animalId);
-        if (res.value.imagenesConError) algunaImagenConError = true;
-      } else {
-        fallidos.push(animalId);
+        if (imagenesError) {
+          toast.error(imagenesError);
+        } else {
+          toast.success(
+            data.files.length > 0
+              ? "Evaluación registrada e imágenes subidas correctamente."
+              : "Evaluación registrada.",
+          );
+        }
+        return true;
+      } catch (error) {
+        toast.error(
+          error instanceof ApiError
+            ? normalizeBackendDetail(error.detail)
+            : "No se pudo registrar la evaluación. Probá nuevamente.",
+        );
+        return false;
       }
-    });
+    },
+    [animalSeleccionado, evaluacionesPersistidas, sesionId],
+  );
 
-    if (fallidos.length > 0) {
-      // Sacamos las que sí se guardaron para no reenviarlas de nuevo.
-      // No cerramos la sesión: queda abierta para que el usuario reintente.
-      setEvaluaciones((prev) => {
-        const next = new Map(prev);
-        exitosos.forEach((id) => next.delete(id));
-        return next;
-      });
-      setIsFinalizando(false);
-      toast.error(
-        `No se pudieron guardar ${fallidos.length} de ${entries.length} evaluación(es). Revisá e intentá de nuevo.`,
-      );
-      return;
-    }
-
-    // Todas las evaluaciones se guardaron: limpiamos el estado local antes de
-    // intentar cerrar la sesión para que, si el cierre falla y el usuario
-    // reintenta, no se reenvíen evaluaciones que ya quedaron persistidas.
-    setEvaluaciones(new Map());
+  const handleFinalizarCarga = useCallback(async () => {
+    setIsFinalizando(true);
 
     try {
       await actualizarSesion(sesionId, {
@@ -157,23 +150,16 @@ export function CargarEvaluacionesPage() {
         navigate("/sesiones");
       } else {
         toast.error(
-          "Las evaluaciones se guardaron, pero ocurrió un error al cerrar la sesión. Revisá tu conexión e intentá finalizar de nuevo.",
+          "Ocurrió un error al cerrar la sesión. Revisá tu conexión e intentá finalizar de nuevo.",
         );
       }
       return;
     }
 
     setIsFinalizando(false);
-
-    if (algunaImagenConError) {
-      toast.warning(
-        "Las evaluaciones se registraron, pero alguna imagen no pudo subirse.",
-      );
-    } else {
-      toast.success("Sesión finalizada correctamente.");
-    }
+    toast.success("Sesión finalizada correctamente.");
     navigate("/sesiones");
-  }, [evaluaciones, sesionId, navigate]);
+  }, [sesionId, navigate]);
 
   const handleDeleteSesion = async () => {
     setIsDeletingSesion(true);
@@ -195,7 +181,7 @@ export function CargarEvaluacionesPage() {
       <div className="section-header">
         <div className="title-and-description">
           <h1>Cargando evaluaciones — Sesión #{sesion.id}</h1>
-          <p>{evaluaciones.size} evaluación(es) cargadas en esta sesión.</p>
+          <p>{evaluacionesPersistidas.size} evaluación(es) cargadas en esta sesión.</p>
         </div>
         <div className="sesion-detail__hero-actions">
           <button
@@ -235,7 +221,7 @@ export function CargarEvaluacionesPage() {
                 <Table.Cell>{animal.raza}</Table.Cell>
                 <Table.Cell>{grupo.lote?.nombre ?? "Sin lote"}</Table.Cell>
                 <Table.Cell>
-                  {evaluaciones.get(animal.id)?.valorCc ?? evaluacionesPersistidas.get(animal.id)?.valor_cc ?? "—"}
+                  {evaluacionesPersistidas.get(animal.id)?.valor_cc ?? "—"}
                 </Table.Cell>
               </Table.Row>
             )),
@@ -247,15 +233,15 @@ export function CargarEvaluacionesPage() {
         animal={animalSeleccionado}
         open={!!animalSeleccionado}
         valorInicial={
-          animalSeleccionado
-            ? evaluaciones.get(animalSeleccionado.id) ?? (evaluacionesPersistidas.has(animalSeleccionado.id) ? {
+          animalSeleccionado && evaluacionesPersistidas.has(animalSeleccionado.id)
+            ? {
                 valorCc: evaluacionesPersistidas.get(animalSeleccionado.id)!.valor_cc,
                 escalaMin: evaluacionesPersistidas.get(animalSeleccionado.id)!.escala_min,
                 escalaMax: evaluacionesPersistidas.get(animalSeleccionado.id)!.escala_max,
                 observaciones: evaluacionesPersistidas.get(animalSeleccionado.id)!.observaciones,
                 fecha: evaluacionesPersistidas.get(animalSeleccionado.id)!.fecha,
                 files: [],
-              } : undefined)
+              }
             : undefined
         }
         onClose={() => setAnimalSeleccionado(null)}

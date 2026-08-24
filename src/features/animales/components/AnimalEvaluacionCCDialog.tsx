@@ -29,6 +29,7 @@ import type {
   EvidenciaImagenRead,
 } from "@/features/animales/types";
 import { formatFechaDeTimestamp } from "@/features/animales/utils/formatDate";
+import { getImagenUploadErrorMessage } from "@/features/animales/utils/imagenUploadErrors";
 import { ApiError } from "@/services/httpClient";
 
 function buildScaleOptions() {
@@ -138,13 +139,13 @@ export function AnimalEvaluacionCCDialog({
     try {
       const nuevas = await subirImagenesEvaluacion(evaluacion.id, files);
       setImagenes((current) => [...current, ...nuevas]);
-    } catch (error) {
-      toast.error(
-        error instanceof ApiError
-          ? (normalizeBackendDetail(error.detail) ??
-              "No pudimos subir una o más imágenes.")
-          : "No pudimos subir una o más imágenes.",
+      toast.success(
+        nuevas.length > 1
+          ? "Imágenes subidas correctamente."
+          : "Imagen subida correctamente.",
       );
+    } catch (error) {
+      toast.error(getImagenUploadErrorMessage(error, files.length));
     } finally {
       setIsUploading(false);
     }
