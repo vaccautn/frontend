@@ -24,6 +24,7 @@ import type {
   RegistrarEvaluacionCCResult,
 } from "@/features/animales/types";
 import { getSesionActiva } from "@/features/sesiones/services/sesionesService";
+import { getImagenUploadErrorMessage } from "@/features/animales/utils/imagenUploadErrors";
 import { localNaiveNow } from "@/utils/localDateTime";
 
 export function registerAnimal(
@@ -240,14 +241,14 @@ export async function registrarEvaluacionCCCompleta(
     fecha,
   });
 
-  let imagenesConError = false;
+  let imagenesError: string | undefined;
   if (params.files && params.files.length > 0) {
     try {
       await subirImagenesEvaluacion(evaluacion.id, params.files);
-    } catch {
-      imagenesConError = true;
+    } catch (error) {
+      imagenesError = getImagenUploadErrorMessage(error, params.files.length);
     }
   }
 
-  return { evaluacion, imagenesConError };
+  return { evaluacion, imagenesError };
 }
