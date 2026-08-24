@@ -1,6 +1,7 @@
 import { useEffect, useRef, useState, type ChangeEvent } from "react";
 import { Dialog, Menu, Portal, Spinner } from "@chakra-ui/react";
 import { IconPencil, IconPhoto, IconPlus, IconTrash, IconX } from "@tabler/icons-react";
+import { toast } from "react-toastify";
 import type { EvaluacionCC, EvidenciaImagenRead } from "@/features/animales/types";
 import {
   eliminarImagenEvaluacion,
@@ -8,6 +9,7 @@ import {
   subirImagenesEvaluacion,
 } from "@/features/animales/services/animalesService";
 import { getAnimalRfidLabel } from "@/features/animales/utils/animalRfid";
+import { getImagenUploadErrorMessage } from "@/features/animales/utils/imagenUploadErrors";
 import { formatEventDateTime } from "@/utils/localDateTime";
 
 type SesionEvaluacionRowProps = {
@@ -78,11 +80,17 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
     if (files.length === 0) return;
 
     setIsUploading(true);
+    setImagenesError("");
     try {
       const nuevas = await subirImagenesEvaluacion(evaluacion.id, files);
       setImagenes((current) => [...current, ...nuevas]);
-    } catch {
-      setImagenesError("No pudimos subir una o más fotos.");
+      toast.success(
+        nuevas.length > 1
+          ? "Fotos subidas correctamente."
+          : "Foto subida correctamente.",
+      );
+    } catch (error) {
+      setImagenesError(getImagenUploadErrorMessage(error, files.length));
     } finally {
       setIsUploading(false);
     }
