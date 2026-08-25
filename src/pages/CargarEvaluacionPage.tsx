@@ -1,6 +1,6 @@
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Dialog, Portal, Table } from "@chakra-ui/react";
+import { Button, Dialog, Input, Portal, Table } from "@chakra-ui/react";
 import { toast } from "react-toastify";
 import { IconTrash } from "@tabler/icons-react";
 import { getSesion } from "@/features/sesiones/services/sesionesService";
@@ -8,19 +8,21 @@ import {
   getAnimalesAgrupadosPorLote,
   getEvaluacionesCc,
   registrarEvaluacionCCCompleta,
-  subirImagenesEvaluacion,
   updateEvaluacionCcEnSesion,
 } from "@/features/animales/services/animalesService";
+import { getLotes } from "@/features/lotes/services/lotesService";
 import { actualizarSesion, eliminarSesion } from "@/features/sesiones/services/sesionesService";
+import { AnimalesFiltros } from "@/features/animales/components/AnimalesFiltros";
+import { useAnimalesFiltros } from "@/features/animales/hooks/useAnimalesFiltros";
 import {
   RegistrarEvaluacionCCDialog,
   type EvaluacionCCPendiente,
 } from "@/features/animales/components/RegistrarEvaluacionCCDialog"; // ajustar ruta real
 import type { SesionCapturaRead } from "@/features/sesiones/types";
 import type { Animal, AnimalLoteGroup, EvaluacionCC } from "@/features/animales/types";
-import { localNaiveNow } from "@/utils/localDateTime";
+import type { LoteOption } from "@/features/lotes/types";
+import { formatEventDate, localNaiveNow } from "@/utils/localDateTime";
 import { normalizeBackendDetail } from "@/features/auth";
-import { getImagenUploadErrorMessage } from "@/features/animales/utils/imagenUploadErrors";
 import { ApiError } from "@/services/httpClient";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
@@ -32,31 +34,98 @@ export function CargarEvaluacionesPage() {
 
   const [sesion, setSesion] = useState<SesionCapturaRead | null>(null);
   const [grupos, setGrupos] = useState<AnimalLoteGroup[]>([]);
+  const [lotes, setLotes] = useState<LoteOption[]>([]);
+  const [loadingLotes, setLoadingLotes] = useState(true);
   const [animalSeleccionado, setAnimalSeleccionado] = useState<Animal | null>(
     null,
   );
   const [loading, setLoading] = useState(true);
+  const [refetchingGrupos, setRefetchingGrupos] = useState(false);
   const [isFinalizando, setIsFinalizando] = useState(false);
   const [confirmDeleteSesion, setConfirmDeleteSesion] = useState(false);
   const [isDeletingSesion, setIsDeletingSesion] = useState(false);
+  const [fechaSesionInput, setFechaSesionInput] = useState("");
+  const [isActualizandoFecha, setIsActualizandoFecha] = useState(false);
 
   const [evaluacionesPersistidas, setEvaluacionesPersistidas] = useState<Map<number, EvaluacionCC>>(new Map());
 
+  const {
+    caravanaInput,
+    sexo,
+    raza,
+    estado,
+    loteId,
+    setCaravanaInput,
+    setSexo,
+    setRaza,
+    setEstado,
+    setLoteId,
+    params: filtrosParams,
+  } = useAnimalesFiltros();
+
+  useEffect(() => {
+    getLotes()
+      .then(setLotes)
+      .finally(() => setLoadingLotes(false));
+  }, []);
+
   useEffect(() => {
     setLoading(true);
-    Promise.all([
-      getSesion(sesionId),
-      getAnimalesAgrupadosPorLote({ estado: "ACTIVO" }),
-      getEvaluacionesCc({ sesionId }),
-    ])
-      .then(([sesionData, gruposData, evaluacionesData]) => {
+    Promise.all([getSesion(sesionId), getEvaluacionesCc({ sesionId })])
+      .then(([sesionData, evaluacionesData]) => {
         setSesion(sesionData);
-        setGrupos(gruposData);
+        setFechaSesionInput(sesionData.fecha_inicio.slice(0, 10));
         setEvaluacionesPersistidas(new Map(evaluacionesData.map((item) => [item.animal_id, item])));
       })
       .catch(() => toast.error("No se pudo cargar la sesión."))
       .finally(() => setLoading(false));
   }, [sesionId]);
+
+  // Los mismos filtros que la página de animales (caravana, sexo, raza,
+  // estado, lote), para encontrar rápido a quién falta evaluar en la sesión.
+  useEffect(() => {
+    setRefetchingGrupos(true);
+    getAnimalesAgrupadosPorLote(filtrosParams)
+      .then(setGrupos)
+      .catch(() => toast.error("No se pudieron cargar los animales."))
+      .finally(() => setRefetchingGrupos(false));
+  }, [filtrosParams]);
+
+  const hoyStr = useMemo(() => localNaiveNow().slice(0, 10), []);
+
+  // Fecha con la que se registra cada evaluación nueva: el día elegido para
+  // la sesión (para simular carga histórica), con la hora actual.
+  const fechaEvaluacionBase = useMemo(() => {
+    if (!sesion) return localNaiveNow();
+    return `${sesion.fecha_inicio.slice(0, 10)}${localNaiveNow().slice(10)}`;
+  }, [sesion]);
+
+  const handleConfirmarFechaSesion = async () => {
+    if (!sesion || !fechaSesionInput) return;
+    if (fechaSesionInput === sesion.fecha_inicio.slice(0, 10)) return;
+    if (fechaSesionInput > hoyStr) {
+      toast.error("La fecha de la sesión no puede ser posterior a hoy.");
+      return;
+    }
+
+    setIsActualizandoFecha(true);
+    try {
+      const actualizada = await actualizarSesion(sesionId, {
+        fecha_inicio: `${fechaSesionInput}${sesion.fecha_inicio.slice(10)}`,
+      });
+      setSesion(actualizada);
+      setFechaSesionInput(actualizada.fecha_inicio.slice(0, 10));
+      toast.success("Fecha de la sesión actualizada.");
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? normalizeBackendDetail(error.detail)
+          : "No se pudo actualizar la fecha de la sesión.",
+      );
+    } finally {
+      setIsActualizandoFecha(false);
+    }
+  };
 
   // Cada evaluación (y sus imágenes) se crea y valida contra el modelo de IA
   // apenas se guarda el diálogo, no al finalizar la carga — así el usuario se
@@ -74,17 +143,7 @@ export function CargarEvaluacionesPage() {
             observaciones: data.observaciones,
           });
           setEvaluacionesPersistidas((prev) => new Map(prev).set(animalId, actualizada));
-
-          if (data.files.length > 0) {
-            try {
-              await subirImagenesEvaluacion(actualizada.id, data.files);
-              toast.success("Evaluación actualizada e imágenes subidas correctamente.");
-            } catch (error) {
-              toast.error(getImagenUploadErrorMessage(error, data.files.length));
-            }
-          } else {
-            toast.success("Evaluación actualizada.");
-          }
+          toast.success("Evaluación actualizada.");
           return true;
         } catch (error) {
           toast.error(
@@ -180,7 +239,7 @@ export function CargarEvaluacionesPage() {
     <section>
       <div className="section-header">
         <div className="title-and-description">
-          <h1>Cargando evaluaciones — Sesión #{sesion.id}</h1>
+          <h1>Cargando evaluación del {formatEventDate(sesion.fecha_inicio)}</h1>
           <p>{evaluacionesPersistidas.size} evaluación(es) cargadas en esta sesión.</p>
         </div>
         <div className="sesion-detail__hero-actions">
@@ -201,7 +260,55 @@ export function CargarEvaluacionesPage() {
         </div>
       </div>
 
-      <Table.Root className="animales-table" interactive>
+      <div className="cargar-evaluacion__fecha-sesion">
+        <div className="sesiones-filtros__campo">
+          <label htmlFor="fecha-sesion" className="cargar-evaluacion__fecha-label">
+            Fecha de la evaluación:
+          </label>
+          <Input
+            id="fecha-sesion"
+            type="date"
+            max={hoyStr}
+            value={fechaSesionInput}
+            onChange={(event) => setFechaSesionInput(event.target.value)}
+            aria-label="Fecha a la que pertenece la sesión"
+            className="animales-filtros__input"
+          />
+        </div>
+        <Button
+          colorPalette="brand"
+          onClick={handleConfirmarFechaSesion}
+          loading={isActualizandoFecha}
+          disabled={
+            !fechaSesionInput ||
+            fechaSesionInput === sesion.fecha_inicio.slice(0, 10)
+          }>
+          Confirmar fecha
+        </Button>
+      </div>
+
+      <AnimalesFiltros
+        caravanaInput={caravanaInput}
+        sexo={sexo}
+        raza={raza}
+        estado={estado}
+        loteId={loteId}
+        lotes={lotes}
+        loadingLotes={loadingLotes}
+        onCaravanaChange={setCaravanaInput}
+        onSexoChange={setSexo}
+        onRazaChange={setRaza}
+        onEstadoChange={setEstado}
+        onLoteChange={setLoteId}
+      />
+
+      <Table.Root
+        className="animales-table"
+        interactive
+        style={{
+          opacity: refetchingGrupos ? 0.6 : 1,
+          transition: "opacity 0.15s",
+        }}>
         <Table.Header>
           <Table.Row>
             <Table.ColumnHeader>Caravana</Table.ColumnHeader>
@@ -211,20 +318,28 @@ export function CargarEvaluacionesPage() {
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {grupos.flatMap((grupo) =>
-            grupo.animales.map((animal) => (
-              <Table.Row
-                key={animal.id}
-                className="animales-table__row"
-                onClick={() => setAnimalSeleccionado(animal)}>
-                <Table.Cell>{animal.caravana ?? "—"}</Table.Cell>
-                <Table.Cell>{animal.raza}</Table.Cell>
-                <Table.Cell>{grupo.lote?.nombre ?? "Sin lote"}</Table.Cell>
-                <Table.Cell>
-                  {evaluacionesPersistidas.get(animal.id)?.valor_cc ?? "—"}
-                </Table.Cell>
-              </Table.Row>
-            )),
+          {grupos.length === 0 ? (
+            <Table.Row>
+              <Table.Cell colSpan={4}>
+                No se encontraron animales con los filtros aplicados.
+              </Table.Cell>
+            </Table.Row>
+          ) : (
+            grupos.flatMap((grupo) =>
+              grupo.animales.map((animal) => (
+                <Table.Row
+                  key={animal.id}
+                  className="animales-table__row"
+                  onClick={() => setAnimalSeleccionado(animal)}>
+                  <Table.Cell>{animal.caravana ?? "—"}</Table.Cell>
+                  <Table.Cell>{animal.raza}</Table.Cell>
+                  <Table.Cell>{grupo.lote?.nombre ?? "Sin lote"}</Table.Cell>
+                  <Table.Cell>
+                    {evaluacionesPersistidas.get(animal.id)?.valor_cc ?? "—"}
+                  </Table.Cell>
+                </Table.Row>
+              )),
+            )
           )}
         </Table.Body>
       </Table.Root>
@@ -232,18 +347,12 @@ export function CargarEvaluacionesPage() {
       <RegistrarEvaluacionCCDialog
         animal={animalSeleccionado}
         open={!!animalSeleccionado}
-        valorInicial={
-          animalSeleccionado && evaluacionesPersistidas.has(animalSeleccionado.id)
-            ? {
-                valorCc: evaluacionesPersistidas.get(animalSeleccionado.id)!.valor_cc,
-                escalaMin: evaluacionesPersistidas.get(animalSeleccionado.id)!.escala_min,
-                escalaMax: evaluacionesPersistidas.get(animalSeleccionado.id)!.escala_max,
-                observaciones: evaluacionesPersistidas.get(animalSeleccionado.id)!.observaciones,
-                fecha: evaluacionesPersistidas.get(animalSeleccionado.id)!.fecha,
-                files: [],
-              }
-            : undefined
+        evaluacionExistente={
+          animalSeleccionado
+            ? (evaluacionesPersistidas.get(animalSeleccionado.id) ?? null)
+            : null
         }
+        fechaBase={fechaEvaluacionBase}
         onClose={() => setAnimalSeleccionado(null)}
         onGuardar={handleGuardarEvaluacion}
       />
