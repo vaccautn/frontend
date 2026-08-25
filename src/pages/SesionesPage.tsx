@@ -72,11 +72,16 @@ export function SesionesPage() {
     }
   };
 
+  // CANCELADA cubre, entre otros casos, sesiones que se quedaron sin
+  // evaluaciones (p. ej. se anuló la última): deben poder verse y borrarse
+  // desde el detalle, igual que una sesión cerrada vacía.
   const esFilaNavegable = (sesion: SesionCapturaConResumen) =>
-    sesion.estado === "ABIERTA" || sesion.estado === "CERRADA";
+    sesion.estado === "ABIERTA" ||
+    sesion.estado === "CERRADA" ||
+    sesion.estado === "CANCELADA";
 
   const abrirDetalle = (sesion: SesionCapturaConResumen) => {
-    if (sesion.estado === "CERRADA") {
+    if (sesion.estado === "CERRADA" || sesion.estado === "CANCELADA") {
       navigate(`/sesiones/${sesion.id}`);
     } else if (sesion.estado === "ABIERTA") {
       navigate(`/sesiones/${sesion.id}/cargar`);
@@ -207,9 +212,9 @@ export function SesionesPage() {
                       role={navegable ? "link" : undefined}
                       aria-label={
                         navegable
-                          ? sesion.estado === "CERRADA"
-                            ? `Ver evaluaciones de la sesión ${sesion.id}`
-                            : `Continuar cargando la sesión ${sesion.id}`
+                          ? sesion.estado === "ABIERTA"
+                            ? `Continuar cargando la sesión ${sesion.id}`
+                            : `Ver detalle de la sesión ${sesion.id}`
                           : undefined
                       }
                       onClick={() => abrirDetalle(sesion)}
