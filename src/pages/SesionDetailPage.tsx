@@ -21,7 +21,6 @@ import { ApiError } from "@/services/httpClient";
 import { formatEventDate, formatEventDateTime } from "@/utils/localDateTime";
 import { ConfirmarEliminacionDialog } from "../features/sesiones/components/ConfirmarEliminacionDialog";
 import { EditarEvaluacionDialog } from "../features/sesiones/components/EditarEvaluacionDialog";
-import { SesionEvaluacionRow } from "../features/sesiones/components/SesionEvaluacionRow";
 import { SesionEvaluacionesTable } from "../features/sesiones/components/SesionesEvaluacionesTable";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
@@ -72,13 +71,22 @@ export function SesionDetailPage() {
         const sesionResponse = await getSesion(sesionId);
         if (!isCurrentRequest()) return;
 
-        if (sesionResponse.estado !== "CERRADA") {
+        // ABIERTA se edita en /cargar, no acá. CERRADA y CANCELADA sí se
+        // pueden ver (y eliminar) desde esta pantalla, incluso sin
+        // evaluaciones — una sesión cancelada o vaciada no debe quedar
+        // atrapada sin forma de borrarla.
+        if (sesionResponse.estado === "ABIERTA") {
           setSesion(sesionResponse);
           setStatus("ineligible");
           return;
         }
 
-        const evaluacionesResponse = await getEvaluacionesCc({ sesionId });
+        let evaluacionesResponse: EvaluacionCC[] = [];
+        try {
+          evaluacionesResponse = await getEvaluacionesCc({ sesionId });
+        } catch {
+          evaluacionesResponse = [];
+        }
         if (!isCurrentRequest()) return;
 
         setSesion(sesionResponse);
@@ -217,9 +225,14 @@ export function SesionDetailPage() {
       await eliminarSesion(sesionId);
       toast.success("Sesión eliminada correctamente.");
       navigate("/sesiones");
-    } catch {
-      toast.error("No se pudo eliminar la sesión.");
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? normalizeBackendDetail(error.detail)
+          : "No se pudo eliminar la sesión.",
+      );
       setIsDeletingSesion(false);
+      setConfirmDeleteSesion(false);
     }
   };
 
@@ -250,8 +263,11 @@ export function SesionDetailPage() {
 
       {status === "ineligible" && (
         <div className="sesion-detail__state" role="alert">
-          <h1 id="sesion-detail-title">Esta sesión no admite revisión</h1>
-          <p>Solo las sesiones cerradas permiten consultar sus evaluaciones.</p>
+          <h1 id="sesion-detail-title">Esta sesión sigue abierta</h1>
+          <p>
+            Todavía se está cargando: continuá la carga desde el listado de
+            sesiones.
+          </p>
         </div>
       )}
 
@@ -271,7 +287,9 @@ export function SesionDetailPage() {
         <>
           <header className="sesion-detail__hero">
             <div>
-              <span className="sesion-detail__eyebrow">Sesión cerrada</span>
+              <span className="sesion-detail__eyebrow">
+                {sesion.estado === "CANCELADA" ? "Sesión cancelada" : "Sesión cerrada"}
+              </span>
               <h1 id="sesion-detail-title">
                 Evaluaciones de la sesión del {formatEventDate(sesion.fecha_inicio)}
               </h1>
@@ -293,31 +311,16 @@ export function SesionDetailPage() {
           {evaluaciones.length === 0 ? (
             <div className="sesion-detail__empty" role="status">
               <h2>No hay evaluaciones activas</h2>
-              <p>Esta sesión cerrada no tiene evaluaciones para revisar.</p>
+              <p>
+                Esta sesión no tiene evaluaciones para revisar. Podés
+                eliminarla desde el botón de abajo.
+              </p>
             </div>
           ) : (
-            <>
-              <div className="sesion-detail__table-view">
-                <SesionEvaluacionesTable
-                  evaluaciones={evaluaciones}
-                  onRowClick={setEditingEvaluacion}
-                />
-              </div>
-
-              <ul
-                className="sesion-detail__list sesion-detail__list-view"
-                aria-label="Evaluaciones de la sesión">
-                {evaluaciones.map((evaluacion) => (
-                  <li key={evaluacion.id}>
-                    <SesionEvaluacionRow
-                      evaluacion={evaluacion}
-                      onEdit={() => setEditingEvaluacion(evaluacion)}
-                      onDelete={() => setDeletingEvaluacion(evaluacion)}
-                    />
-                  </li>
-                ))}
-              </ul>
-            </>
+            <SesionEvaluacionesTable
+              evaluaciones={evaluaciones}
+              onEdit={setEditingEvaluacion}
+            />
           )}
 
           <button
