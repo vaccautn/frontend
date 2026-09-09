@@ -1,37 +1,33 @@
+/* Mismo patrón que .animal-evaluaciones-table__cc: pill sin borde, colores
+ * semánticos del theme (--success/--warning/--orange/--danger). */
 .servicio-badge {
   display: inline-flex;
   align-items: center;
-  padding: 0.25rem 0.65rem;
+  padding: 0.4rem 1rem;
   border-radius: 999px;
-  border: 1px solid var(--border);
-  font-size: 0.78rem;
   font-weight: 700;
-  letter-spacing: 0.02em;
+  font-size: 0.85rem;
   white-space: nowrap;
 }
 
 .servicio-badge--PLANIFICADO {
   background: var(--verde-pastel);
-  color: var(--text-h);
-  border-color: var(--border);
+  color: var(--accent-strong);
 }
 
 .servicio-badge--EN_CURSO {
-  background: #fff3cd;
-  color: #7a5b00;
-  border-color: #f0d78c;
+  background: var(--warning-bg);
+  color: var(--warning);
 }
 
 .servicio-badge--FINALIZADO {
-  background: var(--accent);
-  color: #fff;
-  border-color: var(--accent);
+  background: var(--success-bg);
+  color: var(--success);
 }
 
 .servicio-badge--CANCELADO {
-  background: #fbe1e1;
-  color: #8a2c2c;
-  border-color: #f0b8b8;
+  background: var(--danger-bg);
+  color: var(--danger);
 }
 
 .servicio-detail__lotes {
@@ -42,15 +38,27 @@
 }
 
 .servicio-detail__lotes-grupo {
-  padding: 1rem;
+  padding: 1.5rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
 }
 
+.servicio-detail__lotes-grupo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
 .servicio-detail__lotes-grupo h2 {
-  margin: 0 0 0.75rem;
-  font-size: 0.95rem;
+  margin: 0;
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .servicio-detail__lotes-lista {
@@ -78,9 +86,16 @@
   font-size: 0.8rem;
 }
 
+.servicio-detail__lotes-vacio {
+  margin: 0;
+  color: var(--text);
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
 .servicio-detail__observaciones {
   margin-top: 1.5rem;
-  padding: 1rem;
+  padding: 1.5rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
@@ -88,7 +103,11 @@
 
 .servicio-detail__observaciones h2 {
   margin: 0 0 0.5rem;
-  font-size: 0.95rem;
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .servicio-detail__observaciones p {

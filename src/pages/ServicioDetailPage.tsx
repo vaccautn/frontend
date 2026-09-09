@@ -339,11 +339,12 @@ type LotesGrupoProps = {
 function LotesGrupo({ titulo, lotes }: LotesGrupoProps) {
   return (
     <div className="servicio-detail__lotes-grupo">
-      <h2>
-        {titulo} ({lotes.length})
-      </h2>
+      <div className="servicio-detail__lotes-grupo-header">
+        <h2>{titulo}</h2>
+        <span className="sesion-detail__count">{lotes.length}</span>
+      </div>
       {lotes.length === 0 ? (
-        <p className="servicio-detail__lote-categoria">
+        <p className="servicio-detail__lotes-vacio">
           No hay lotes de {titulo.toLowerCase()} asociados a este servicio.
         </p>
       ) : (
