@@ -1,7 +1,12 @@
 import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Dialog } from "@chakra-ui/react";
-import { IconList, IconChartBar, IconSettings } from "@tabler/icons-react";
+import {
+  IconList,
+  IconChartBar,
+  IconCalendarHeart,
+  IconSettings,
+} from "@tabler/icons-react";
 
 const navItems = [
   {
@@ -13,6 +18,11 @@ const navItems = [
     label: "Sesiones",
     to: "/sesiones",
     icon: <IconChartBar size={22} stroke={1.5} />,
+  },
+  {
+    label: "Servicios",
+    to: "/servicios",
+    icon: <IconCalendarHeart size={22} stroke={1.5} />,
   },
 ];
 

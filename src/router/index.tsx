@@ -13,6 +13,8 @@ import { SesionesPage } from "@/pages/SesionesPage";
 import AnimalesNuevoPage from "@/pages/AnimalesNuevoPage";
 import { CargarEvaluacionesPage } from "@/pages/CargarEvaluacionPage";
 import { SesionDetailPage } from "@/pages/SesionDetailPage";
+import { ServiciosPage } from "@/pages/ServiciosPage";
+import { ServicioDetailPage } from "@/pages/ServicioDetailPage";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard
@@ -45,6 +47,9 @@ export const router = createBrowserRouter([
 
           { path: "/sesiones/:id", element: <SesionDetailPage /> },
           { path: "/sesiones/:id/cargar", element: <CargarEvaluacionesPage /> },
+
+          { path: "/servicios", element: <ServiciosPage /> },
+          { path: "/servicios/:id", element: <ServicioDetailPage /> },
         ],
       },
     ],

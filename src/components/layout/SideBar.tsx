@@ -5,6 +5,7 @@ import {
   // IconHome2,
   IconList,
   IconChartBar,
+  IconCalendarHeart,
   IconMenu2,
   IconSettings,
 } from "@tabler/icons-react";
@@ -24,6 +25,11 @@ const navItems = [
     label: "Sesiones",
     to: "/sesiones",
     icon: <IconChartBar size={20} stroke={1} />,
+  },
+  {
+    label: "Servicios",
+    to: "/servicios",
+    icon: <IconCalendarHeart size={20} stroke={1} />,
   },
 ];
 
