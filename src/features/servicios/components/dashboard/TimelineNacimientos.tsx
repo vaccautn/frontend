@@ -99,7 +99,7 @@ export function TimelineNacimientos({ resultados, servicios, loading }: Props) {
         </Text>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
-          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: 0 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
             <XAxis
               dataKey="periodo"
@@ -113,7 +113,7 @@ export function TimelineNacimientos({ resultados, servicios, loading }: Props) {
               tick={{ fontSize: 11, fill: TICK_COLOR }}
               axisLine={false}
               tickLine={false}
-              width={28}
+              width={32}
             />
             <Tooltip
               labelFormatter={(v: string) => formatPeriodo(v)}
