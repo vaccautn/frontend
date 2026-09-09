@@ -86,6 +86,14 @@ export type ResultadoServicioListParams = {
   estado?: EstadoResultadoServicio;
 };
 
+export type ResultadoServicioCreatePayload = {
+  servicio_id: number;
+  animal_id: number;
+  estado: EstadoResultadoServicio;
+  fecha_diagnostico?: string;
+  observaciones?: string;
+};
+
 /** Un lote asociado a un servicio actualmente EN_CURSO, con el servicio al
  * que pertenece — usado para el listado "lotes en servicio" del dashboard. */
 export type LoteEnServicio = {

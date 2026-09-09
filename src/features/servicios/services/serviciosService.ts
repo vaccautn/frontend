@@ -1,6 +1,7 @@
 import { getAccessToken } from "@/features/auth";
 import { deleteRequest, getJson, patchJson, postJson } from "@/services/httpClient";
 import type {
+  ResultadoServicioCreatePayload,
   ResultadoServicioListParams,
   ResultadoServicioRead,
   ServicioCreatePayload,
@@ -29,6 +30,17 @@ export function actualizarServicio(
   const token = getAccessToken();
   return patchJson<ServicioRead, ServicioUpdatePayload>(
     `/servicios/${id}`,
+    payload,
+    token,
+  );
+}
+
+export function crearResultadoServicio(
+  payload: ResultadoServicioCreatePayload,
+): Promise<ResultadoServicioRead> {
+  const token = getAccessToken();
+  return postJson<ResultadoServicioRead, ResultadoServicioCreatePayload>(
+    "/resultados-servicio/",
     payload,
     token,
   );

@@ -17,16 +17,24 @@ import {
 import {
   actualizarServicio,
   asociarLoteServicio,
+  crearResultadoServicio,
   desasociarLoteServicio,
   getLotesServicio,
+  getResultadosServicio,
   getServicio,
 } from "@/features/servicios/services/serviciosService";
 import type {
   EstadoServicio,
+  ResultadoServicioRead,
+  ServicioLoteRead,
   ServicioLotesAgrupados,
   ServicioRead,
 } from "@/features/servicios/types";
-import { ESTADO_SERVICIO_LABELS, ESTADOS_SERVICIO } from "@/features/servicios/constants";
+import {
+  ESTADO_RESULTADO_SERVICIO_LABELS,
+  ESTADO_SERVICIO_LABELS,
+  ESTADOS_SERVICIO,
+} from "@/features/servicios/constants";
 import {
   validateServicioEditarForm,
   type ServicioEditarFieldErrors,
@@ -38,6 +46,9 @@ import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import type { LoteOption } from "@/features/lotes/types";
+import { getAnimales } from "@/features/animales/services/animalesService";
+import type { Animal } from "@/features/animales/types";
+import { localNaiveNow } from "@/utils/localDateTime";
 import { toast } from "react-toastify";
 import "@/features/animales/components/animales.css";
 import "@/features/servicios/components/servicios.css";
@@ -85,6 +96,15 @@ export function ServicioDetailPage() {
   const [isAgregandoLote, setIsAgregandoLote] = useState(false);
   const [loteIdQuitando, setLoteIdQuitando] = useState<number | null>(null);
 
+  const [resultados, setResultados] = useState<ResultadoServicioRead[]>([]);
+  const [animalesPorLoteId, setAnimalesPorLoteId] = useState<
+    Map<number, Animal[]>
+  >(new Map());
+  const [loadingVacas, setLoadingVacas] = useState(false);
+  const [animalIdRegistrando, setAnimalIdRegistrando] = useState<
+    number | null
+  >(null);
+
   useEffect(() => {
     getLotes()
       .then(setTodosLosLotes)
@@ -93,6 +113,29 @@ export function ServicioDetailPage() {
          * falla, el "Agregar lote" simplemente queda sin opciones */
       });
   }, []);
+
+  const fetchVacas = async (vientres: ServicioLoteRead[]) => {
+    if (vientres.length === 0) {
+      setAnimalesPorLoteId(new Map());
+      return;
+    }
+    setLoadingVacas(true);
+    try {
+      const entradas = await Promise.all(
+        vientres.map((lote) =>
+          getAnimales({ lote_id: lote.id }).then(
+            (animales) => [lote.id, animales] as const,
+          ),
+        ),
+      );
+      setAnimalesPorLoteId(new Map(entradas));
+    } catch {
+      // si falla, esa sección simplemente no lista vacas: no bloquea el
+      // resto del detalle del servicio
+    } finally {
+      setLoadingVacas(false);
+    }
+  };
 
   useEffect(() => {
     let cancelled = false;
@@ -106,14 +149,17 @@ export function ServicioDetailPage() {
       setStatus("loading");
 
       try {
-        const [servicioData, lotesData] = await Promise.all([
+        const [servicioData, lotesData, resultadosData] = await Promise.all([
           getServicio(servicioId),
           getLotesServicio(servicioId),
+          getResultadosServicio({ servicioId }),
         ]);
         if (cancelled) return;
         setServicio(servicioData);
         setLotes(lotesData);
+        setResultados(resultadosData);
         setStatus("ready");
+        void fetchVacas(lotesData.vientres);
       } catch (error) {
         if (cancelled) return;
         if (error instanceof ApiError && error.status === 404) {
@@ -213,8 +259,37 @@ export function ServicioDetailPage() {
 
   const refetchLotes = async () => {
     if (!servicio) return;
-    setLotes(await getLotesServicio(servicio.id));
+    const nuevo = await getLotesServicio(servicio.id);
+    setLotes(nuevo);
+    void fetchVacas(nuevo.vientres);
   };
+
+  const handleAgregarResultado = async (animalId: number) => {
+    if (!servicio) return;
+    setAnimalIdRegistrando(animalId);
+    try {
+      const nuevoResultado = await crearResultadoServicio({
+        servicio_id: servicio.id,
+        animal_id: animalId,
+        estado: "PARIDA",
+        fecha_diagnostico: localNaiveNow().slice(0, 10),
+      });
+      setResultados((current) => [...current, nuevoResultado]);
+      toast.success("Se registró que tuvo un ternero.");
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? normalizeBackendDetail(error.detail)
+          : "No se pudo registrar el resultado.",
+      );
+    } finally {
+      setAnimalIdRegistrando(null);
+    }
+  };
+
+  const resultadosPorAnimalId = new Map(
+    resultados.map((r) => [r.animal_id, r]),
+  );
 
   const handleAgregarLote = async () => {
     if (!servicio || !loteIdParaAgregar) return;
@@ -449,6 +524,9 @@ export function ServicioDetailPage() {
                 </span>
                 <h2>Vientres y toros</h2>
               </div>
+              <Badge colorPalette="brand">
+                {resultados.length} resultado{resultados.length === 1 ? "" : "s"}
+              </Badge>
             </div>
 
             {isEditing && (
@@ -485,12 +563,16 @@ export function ServicioDetailPage() {
             )}
 
             <div className="servicio-detail__lotes">
-              <LotesGrupo
-                titulo="Vientres"
+              <VientresGrupo
                 lotes={lotes?.vientres ?? []}
                 isEditing={isEditing}
                 loteIdQuitando={loteIdQuitando}
                 onQuitar={handleQuitarLote}
+                animalesPorLoteId={animalesPorLoteId}
+                loadingVacas={loadingVacas}
+                resultadosPorAnimalId={resultadosPorAnimalId}
+                animalIdRegistrando={animalIdRegistrando}
+                onAgregarResultado={handleAgregarResultado}
               />
               <LotesGrupo
                 titulo="Toros"
@@ -552,6 +634,107 @@ function LotesGrupo({
               )}
             </li>
           ))}
+        </ul>
+      )}
+    </div>
+  );
+}
+
+type VientresGrupoProps = {
+  lotes: ServicioLotesAgrupados["vientres"];
+  isEditing: boolean;
+  loteIdQuitando: number | null;
+  onQuitar: (loteId: number) => void;
+  animalesPorLoteId: Map<number, Animal[]>;
+  loadingVacas: boolean;
+  resultadosPorAnimalId: Map<number, ResultadoServicioRead>;
+  animalIdRegistrando: number | null;
+  onAgregarResultado: (animalId: number) => void;
+};
+
+function VientresGrupo({
+  lotes,
+  isEditing,
+  loteIdQuitando,
+  onQuitar,
+  animalesPorLoteId,
+  loadingVacas,
+  resultadosPorAnimalId,
+  animalIdRegistrando,
+  onAgregarResultado,
+}: VientresGrupoProps) {
+  return (
+    <div className="servicio-detail__lotes-grupo">
+      <div className="servicio-detail__lotes-grupo-header">
+        <h2>Vientres</h2>
+        <Badge colorPalette="brand">{lotes.length}</Badge>
+      </div>
+      {lotes.length === 0 ? (
+        <p className="servicio-detail__lotes-vacio">
+          No hay lotes de vientres asociados a este servicio.
+        </p>
+      ) : (
+        <ul className="servicio-detail__lotes-lista">
+          {lotes.map((lote) => {
+            const vacas = animalesPorLoteId.get(lote.id) ?? [];
+            return (
+              <li key={lote.id} className="servicio-detail__vientre-lote">
+                <div className="servicio-detail__lote-item">
+                  <span>{lote.nombre}</span>
+                  <span className="servicio-detail__lote-categoria">
+                    {CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? lote.categoria}
+                  </span>
+                  {isEditing && (
+                    <button
+                      type="button"
+                      className="servicio-detail__lote-quitar"
+                      aria-label={`Quitar ${lote.nombre} del servicio`}
+                      disabled={loteIdQuitando === lote.id}
+                      onClick={() => onQuitar(lote.id)}>
+                      <IconX size={14} stroke={2} />
+                    </button>
+                  )}
+                </div>
+
+                {loadingVacas ? (
+                  <p className="servicio-detail__vacas-vacio">
+                    Cargando vacas...
+                  </p>
+                ) : vacas.length === 0 ? (
+                  <p className="servicio-detail__vacas-vacio">
+                    Este lote no tiene animales.
+                  </p>
+                ) : (
+                  <ul className="servicio-detail__vacas-lista">
+                    {vacas.map((vaca) => {
+                      const resultado = resultadosPorAnimalId.get(vaca.id);
+                      return (
+                        <li key={vaca.id} className="servicio-detail__vaca-item">
+                          <span>{vaca.caravana ?? `#${vaca.id}`}</span>
+                          {resultado ? (
+                            <span
+                              className={`resultado-badge resultado-badge--${resultado.estado}`}>
+                              {ESTADO_RESULTADO_SERVICIO_LABELS[
+                                resultado.estado
+                              ] ?? resultado.estado}
+                            </span>
+                          ) : (
+                            <button
+                              type="button"
+                              className="servicio-detail__agregar-resultado-btn"
+                              disabled={animalIdRegistrando === vaca.id}
+                              onClick={() => onAgregarResultado(vaca.id)}>
+                              Agregar resultado
+                            </button>
+                          )}
+                        </li>
+                      );
+                    })}
+                  </ul>
+                )}
+              </li>
+            );
+          })}
         </ul>
       )}
     </div>
