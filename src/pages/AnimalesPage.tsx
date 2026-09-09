@@ -7,10 +7,11 @@ import {
 } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button, Table } from "@chakra-ui/react";
-import { IconPlus } from "@tabler/icons-react";
+import { IconPlus, IconStack2 } from "@tabler/icons-react";
 import "@/features/animales/components/animales.css";
 import { getAnimales } from "@/features/animales/services/animalesService";
 import { getLotes } from "@/features/lotes/services/lotesService";
+import { LotesDrawer } from "@/features/lotes/components/LotesDrawer";
 import type { Animal } from "@/features/animales/types";
 import type { LoteOption } from "@/features/lotes/types";
 import { useAnimalesFiltros } from "@/features/animales/hooks/useAnimalesFiltros";
@@ -39,6 +40,7 @@ export function AnimalesPage() {
   const [initialLoading, setInitialLoading] = useState(true);
   const [refetching, setRefetching] = useState(false);
   const [error, setError] = useState("");
+  const [isLotesDrawerOpen, setIsLotesDrawerOpen] = useState(false);
 
   const {
     caravanaInput,
@@ -56,11 +58,16 @@ export function AnimalesPage() {
     params,
   } = useAnimalesFiltros();
 
-  useEffect(() => {
+  const fetchLotes = useCallback(() => {
+    setLoadingLotes(true);
     getLotes()
       .then(setLotes)
       .finally(() => setLoadingLotes(false));
   }, []);
+
+  useEffect(() => {
+    fetchLotes();
+  }, [fetchLotes]);
 
   const lotePorId = useMemo(() => {
     const map = new Map<number, LoteOption>();
@@ -122,11 +129,28 @@ export function AnimalesPage() {
         <div className="title-and-description">
           <h1>Gestión de animales</h1>
         </div>
-        <Button colorPalette="brand" onClick={() => navigate("/animales/nuevo")}>
-          <IconPlus size={18} stroke={1.5} />
-          Agregar animal
-        </Button>
+        <div className="section-header__actions">
+          <Button
+            colorPalette="brand"
+            variant="outline"
+            bg="var(--panel)"
+            onClick={() => setIsLotesDrawerOpen(true)}>
+            <IconStack2 size={18} stroke={1.5} />
+            Lotes
+          </Button>
+          <Button colorPalette="brand" onClick={() => navigate("/animales/nuevo")}>
+            <IconPlus size={18} stroke={1.5} />
+            Agregar animal
+          </Button>
+        </div>
       </div>
+
+      <LotesDrawer
+        open={isLotesDrawerOpen}
+        onClose={() => setIsLotesDrawerOpen(false)}
+        lotes={lotes}
+        onChanged={fetchLotes}
+      />
 
       <AnimalesDashboard />
 
