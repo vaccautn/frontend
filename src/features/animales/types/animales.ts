@@ -12,6 +12,17 @@ export type BajaAnimalMotivo = Extract<
 
 export type SexoAnimal = "MACHO" | "HEMBRA" | "NO_INFORMADO";
 
+export type CategoriaAnimal =
+  | "TERNERA"
+  | "VAQUILLA"
+  | "VACA_SECA"
+  | "VACA_LACTANDO"
+  | "TERNERO"
+  | "NOVILLITO"
+  | "NOVILLO"
+  | "TORITO"
+  | "TORO";
+
 export type EstadoFiltro = Extract<
   EstadoAnimal,
   "ACTIVO" | "VENDIDO" | "MUERTO"
@@ -35,6 +46,7 @@ export type AnimalLoteGroup = {
     id: number;
     nombre: string;
     descripcion: string;
+    categoria: CategoriaAnimal;
     usuario_administrador_id: number;
     activo: boolean;
     creado_en: string;
@@ -47,6 +59,7 @@ export type RegisterAnimalPayload = {
   caravana: string;
   raza: string;
   sexo: string;
+  categoria: string;
   fecha_nacimiento: string;
   lote_id: number | null;
 };

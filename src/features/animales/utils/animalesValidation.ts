@@ -2,6 +2,7 @@ export type RodeoNuevoValues = {
   caravana: string;
   raza: string;
   sexo: string;
+  categoria: string;
   fecha_nacimiento: string;
   lote_id: string;
 };
@@ -10,6 +11,7 @@ export const initialRodeoNuevoValues: RodeoNuevoValues = {
   caravana: "",
   raza: "",
   sexo: "",
+  categoria: "",
   fecha_nacimiento: "",
   lote_id: "",
 };
@@ -33,6 +35,10 @@ export function validateRodeoNuevoForm(
 
   if (!values.sexo) {
     errors.sexo = "El sexo es obligatorio.";
+  }
+
+  if (!values.categoria) {
+    errors.categoria = "La categoría es obligatoria.";
   }
 
   if (!values.fecha_nacimiento) {

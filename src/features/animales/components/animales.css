@@ -15,6 +15,13 @@
   max-width: 800px;
 }
 
+.section-header__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  flex-wrap: wrap;
+}
+
 .animales-table__wrapper {
   width: 100%;
 
@@ -1309,23 +1316,19 @@
   font-size: 0.85rem;
 }
 
-.animal-evaluaciones-table__cc--3 {
+/* El color depende del mes de la evaluación, no solo del valor: ver
+ * features/animales/utils/ccColor.ts (nivelCC). */
+.animal-evaluaciones-table__cc--normal {
   background: var(--success-bg);
   color: var(--success);
 }
 
-.animal-evaluaciones-table__cc--4 {
+.animal-evaluaciones-table__cc--atencion {
   background: var(--warning-bg);
   color: var(--warning);
 }
 
-.animal-evaluaciones-table__cc--2 {
-  background: var(--orange-bg);
-  color: var(--orange);
-}
-
-.animal-evaluaciones-table__cc--1,
-.animal-evaluaciones-table__cc--5 {
+.animal-evaluaciones-table__cc--critico {
   background: var(--danger-bg);
   color: var(--danger);
 }
