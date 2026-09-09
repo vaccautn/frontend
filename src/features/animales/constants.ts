@@ -31,6 +31,14 @@ export const CATEGORIAS_ANIMAL = [
 export const CATEGORIA_ANIMAL_LABELS: Record<string, string> =
   Object.fromEntries(CATEGORIAS_ANIMAL.map(({ value, label }) => [value, label]));
 
+// Debe reflejar CATEGORIAS_HEMBRA / CATEGORIAS_MACHO del backend
+// (app/models/animal.py): la categoría de un animal tiene que ser
+// consistente con su sexo o el registro/actualización devuelve 422.
+export const CATEGORIAS_POR_SEXO: Record<"MACHO" | "HEMBRA", readonly string[]> = {
+  HEMBRA: ["TERNERA", "VAQUILLA", "VACA_SECA", "VACA_LACTANDO"],
+  MACHO: ["TERNERO", "NOVILLITO", "NOVILLO", "TORITO", "TORO"],
+};
+
 export const ESTADOS_FILTRO = [
   { value: "ACTIVO", label: "Activo" },
   { value: "VENDIDO", label: "Vendido" },
