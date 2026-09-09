@@ -32,7 +32,9 @@ export function AnimalesDashboard() {
           color="var(--accent-strong)">
           Dashboard del rodeo
         </Text>
-        <DashboardLoteFiltro loteId={loteId} onChange={setLoteId} />
+        <Box display="flex" gap="2">
+          <DashboardLoteFiltro loteId={loteId} onChange={setLoteId} />
+        </Box>
       </Box>
 
       {error && (

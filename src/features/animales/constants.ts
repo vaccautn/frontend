@@ -16,6 +16,21 @@ export const SEXOS = [
   { value: "HEMBRA", label: "Hembra", symbol: "♀" },
 ] as const;
 
+export const CATEGORIAS_ANIMAL = [
+  { value: "TERNERA", label: "Ternera" },
+  { value: "VAQUILLA", label: "Vaquilla" },
+  { value: "VACA_SECA", label: "Vaca seca" },
+  { value: "VACA_LACTANDO", label: "Vaca en lactancia" },
+  { value: "TERNERO", label: "Ternero" },
+  { value: "NOVILLITO", label: "Novillito" },
+  { value: "NOVILLO", label: "Novillo" },
+  { value: "TORITO", label: "Torito" },
+  { value: "TORO", label: "Toro" },
+] as const;
+
+export const CATEGORIA_ANIMAL_LABELS: Record<string, string> =
+  Object.fromEntries(CATEGORIAS_ANIMAL.map(({ value, label }) => [value, label]));
+
 export const ESTADOS_FILTRO = [
   { value: "ACTIVO", label: "Activo" },
   { value: "VENDIDO", label: "Vendido" },

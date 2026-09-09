@@ -10,6 +10,7 @@ export function getLotes(): Promise<LoteOption[]> {
 export type LotePayload = {
   nombre: string;
   descripcion: string;
+  categoria: string;
   usuario_administrador_id: number;
   activo: boolean;
 };

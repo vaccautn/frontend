@@ -17,6 +17,7 @@ import { useAnimalesFiltros } from "@/features/animales/hooks/useAnimalesFiltros
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { AnimalesDashboard } from "@/features/animales/components/dashboard/AnimalesDashboard";
 import { AnimalesFiltros } from "../features/animales/components/AnimalesFiltros";
+import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 
 const COLUMNAS = [
   "Caravana",
@@ -24,6 +25,7 @@ const COLUMNAS = [
   "Sexo",
   "Fecha de nacimiento",
   "Lote",
+  "Categoría del lote",
   "Estado",
 ];
 
@@ -44,11 +46,13 @@ export function AnimalesPage() {
     raza,
     estado,
     loteId,
+    categoriaLote,
     setCaravanaInput,
     setSexo,
     setRaza,
     setEstado,
     setLoteId,
+    setCategoriaLote,
     params,
   } = useAnimalesFiltros();
 
@@ -58,11 +62,22 @@ export function AnimalesPage() {
       .finally(() => setLoadingLotes(false));
   }, []);
 
-  const loteNombrePorId = useMemo(() => {
-    const map = new Map<number, string>();
-    lotes.forEach((lote) => map.set(lote.id, lote.nombre));
+  const lotePorId = useMemo(() => {
+    const map = new Map<number, LoteOption>();
+    lotes.forEach((lote) => map.set(lote.id, lote));
     return map;
   }, [lotes]);
+
+  // El backend no filtra animales por categoría de lote, así que se aplica
+  // acá cruzando cada animal con su lote ya cargado en memoria.
+  const animalesFiltrados = useMemo(() => {
+    if (!categoriaLote) return animales;
+    return animales.filter(
+      (animal) =>
+        animal.lote_id !== null &&
+        lotePorId.get(animal.lote_id)?.categoria === categoriaLote,
+    );
+  }, [animales, categoriaLote, lotePorId]);
 
   const fetchAnimales = useCallback(() => {
     setRefetching(true);
@@ -97,9 +112,9 @@ export function AnimalesPage() {
   };
 
   const lotesRepresentados = useMemo(() => {
-    const ids = new Set(animales.map((a) => a.lote_id ?? "sin-lote"));
+    const ids = new Set(animalesFiltrados.map((a) => a.lote_id ?? "sin-lote"));
     return ids.size;
-  }, [animales]);
+  }, [animalesFiltrados]);
 
   return (
     <section>
@@ -121,6 +136,7 @@ export function AnimalesPage() {
         raza={raza}
         estado={estado}
         loteId={loteId}
+        categoriaLote={categoriaLote}
         lotes={lotes}
         loadingLotes={loadingLotes}
         onCaravanaChange={setCaravanaInput}
@@ -128,6 +144,7 @@ export function AnimalesPage() {
         onRazaChange={setRaza}
         onEstadoChange={setEstado}
         onLoteChange={setLoteId}
+        onCategoriaLoteChange={setCategoriaLote}
       />
 
       {initialLoading && <p>Cargando...</p>}
@@ -151,7 +168,7 @@ export function AnimalesPage() {
               <span className="animales-table__summary-label">
                 Animales listados
               </span>
-              <strong>{animales.length}</strong>
+              <strong>{animalesFiltrados.length}</strong>
             </div>
           </div>
 
@@ -164,14 +181,14 @@ export function AnimalesPage() {
               </Table.Row>
             </Table.Header>
             <Table.Body>
-              {animales.length === 0 ? (
+              {animalesFiltrados.length === 0 ? (
                 <Table.Row>
                   <Table.Cell colSpan={COLUMNAS.length}>
                     No se encontraron animales con los filtros aplicados.
                   </Table.Cell>
                 </Table.Row>
               ) : (
-                animales.map((animal) => (
+                animalesFiltrados.map((animal) => (
                   <Table.Row
                     key={animal.id}
                     className="animales-table__row"
@@ -190,8 +207,15 @@ export function AnimalesPage() {
                     </Table.Cell>
                     <Table.Cell>
                       {animal.lote_id !== null
-                        ? (loteNombrePorId.get(animal.lote_id) ?? "—")
+                        ? (lotePorId.get(animal.lote_id)?.nombre ?? "—")
                         : "Sin lote"}
+                    </Table.Cell>
+                    <Table.Cell>
+                      {animal.lote_id !== null
+                        ? (CATEGORIA_ANIMAL_LABELS[
+                            lotePorId.get(animal.lote_id)?.categoria ?? ""
+                          ] ?? "—")
+                        : "—"}
                     </Table.Cell>
                     <Table.Cell>{animal.estado}</Table.Cell>
                   </Table.Row>
