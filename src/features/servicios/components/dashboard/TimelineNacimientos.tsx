@@ -1,8 +1,8 @@
 import { useMemo } from "react";
 import { Box, Text } from "@chakra-ui/react";
 import {
-  BarChart,
-  Bar,
+  LineChart,
+  Line,
   XAxis,
   YAxis,
   Tooltip,
@@ -99,7 +99,7 @@ export function TimelineNacimientos({ crias, servicios, loading }: Props) {
         </Text>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
-          <BarChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
+          <LineChart data={data} margin={{ top: 8, right: 8, bottom: 0, left: -16 }}>
             <CartesianGrid strokeDasharray="3 3" stroke={GRID_COLOR} vertical={false} />
             <XAxis
               dataKey="periodo"
@@ -126,16 +126,18 @@ export function TimelineNacimientos({ crias, servicios, loading }: Props) {
             />
             <Legend wrapperStyle={{ fontSize: 12 }} />
             {series.map(({ key, nombre, color }) => (
-              <Bar
+              <Line
                 key={key}
+                type="monotone"
                 dataKey={key}
                 name={nombre}
-                stackId="nacimientos"
-                fill={color}
-                radius={[2, 2, 0, 0]}
+                stroke={color}
+                strokeWidth={2.5}
+                dot={{ r: 3, fill: color, strokeWidth: 0 }}
+                activeDot={{ r: 5 }}
               />
             ))}
-          </BarChart>
+          </LineChart>
         </ResponsiveContainer>
       )}
     </Box>
