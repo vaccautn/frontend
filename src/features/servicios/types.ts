@@ -24,6 +24,13 @@ export type ServicioListParams = {
   fecha_inicio_hasta?: string;
 };
 
+export type ServicioCreatePayload = {
+  nombre: string;
+  fecha_inicio: string;
+  fecha_fin?: string;
+  observaciones: string;
+};
+
 export type ServicioLoteRead = {
   id: number;
   nombre: string;

@@ -1,10 +1,22 @@
 import { getAccessToken } from "@/features/auth";
-import { getJson } from "@/services/httpClient";
+import { getJson, postJson } from "@/services/httpClient";
 import type {
+  ServicioCreatePayload,
   ServicioListParams,
   ServicioLotesAgrupados,
   ServicioRead,
 } from "../types";
+
+export function crearServicio(
+  payload: ServicioCreatePayload,
+): Promise<ServicioRead> {
+  const token = getAccessToken();
+  return postJson<ServicioRead, ServicioCreatePayload>(
+    "/servicios/",
+    payload,
+    token,
+  );
+}
 
 export function getServicios(
   params: ServicioListParams = {},

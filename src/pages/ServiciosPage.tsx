@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState, type KeyboardEvent } from "react";
-import { useNavigate } from "react-router-dom";
-import { Table } from "@chakra-ui/react";
+import { Outlet, useLocation, useNavigate } from "react-router-dom";
+import { Button, Table } from "@chakra-ui/react";
+import { IconPlus } from "@tabler/icons-react";
 import { getServicios } from "@/features/servicios/services/serviciosService";
 import type { ServicioRead } from "@/features/servicios/types";
 import { useServiciosFiltros } from "@/features/servicios/hooks/useServiciosFiltros";
@@ -13,6 +14,7 @@ import "@/features/servicios/components/servicios.css";
 
 export function ServiciosPage() {
   const navigate = useNavigate();
+  const location = useLocation();
   const [servicios, setServicios] = useState<ServicioRead[]>([]);
   const [initialLoading, setInitialLoading] = useState(true);
   const [refetching, setRefetching] = useState(false);
@@ -45,6 +47,12 @@ export function ServiciosPage() {
     fetchServicios();
   }, [fetchServicios]);
 
+  useEffect(() => {
+    if (location.state?.refresh) {
+      fetchServicios();
+    }
+  }, [location.state, fetchServicios]);
+
   const handleRowKeyDown = (
     event: KeyboardEvent<HTMLTableRowElement>,
     servicio: ServicioRead,
@@ -61,6 +69,10 @@ export function ServiciosPage() {
         <div className="title-and-description">
           <h1>Servicios</h1>
         </div>
+        <Button colorPalette="brand" onClick={() => navigate("/servicios/nuevo")}>
+          <IconPlus size={18} stroke={1.5} />
+          Agregar servicio
+        </Button>
       </div>
 
       <ServiciosFiltros
@@ -127,6 +139,8 @@ export function ServiciosPage() {
           </Table.Root>
         </div>
       )}
+
+      <Outlet />
     </section>
   );
 }
