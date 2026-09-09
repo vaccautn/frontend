@@ -1,0 +1,377 @@
+/* Mismo patrón que .animal-evaluaciones-table__cc: pill sin borde, colores
+ * semánticos del theme (--success/--warning/--orange/--danger). */
+.servicio-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.servicio-badge--PLANIFICADO {
+  background: var(--verde-pastel);
+  color: var(--accent-strong);
+}
+
+.servicio-badge--EN_CURSO {
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.servicio-badge--FINALIZADO {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.servicio-badge--CANCELADO {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.resultado-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.resultado-badge--PENDIENTE {
+  background: var(--verde-pastel);
+  color: var(--accent-strong);
+}
+
+.resultado-badge--PRENADA,
+.resultado-badge--PARIDA {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.resultado-badge--VACIA {
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
+.resultado-badge--ABORTO {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.servicio-detail__lotes {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 1rem;
+}
+
+.servicio-detail__lotes-grupo {
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.servicio-detail__lotes-grupo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.servicio-detail__lotes-grupo h2 {
+  margin: 0;
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.servicio-detail__lotes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.servicio-detail__lote-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.servicio-detail__lote-categoria {
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.servicio-detail__lote-quitar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.servicio-detail__lote-quitar:hover:not(:disabled) {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.servicio-detail__lote-quitar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.servicio-detail__vientre-lote {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.servicio-detail__vacas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0 0 0 1rem;
+  padding: 0;
+}
+
+.servicio-detail__vaca-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  font-size: 0.85rem;
+}
+
+.servicio-detail__vacas-vacio {
+  margin: 0 0 0 1rem;
+  color: var(--text);
+  opacity: 0.7;
+  font-size: 0.8rem;
+}
+
+.servicio-detail__agregar-resultado-btn {
+  padding: 0.3rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text-h);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.78rem;
+  white-space: nowrap;
+  transition:
+    background 0.15s,
+    border-color 0.15s,
+    color 0.15s;
+}
+
+.servicio-detail__agregar-resultado-btn:hover:not(:disabled) {
+  border-color: var(--accent);
+  background: var(--verde-pastel);
+  color: var(--accent-strong);
+}
+
+.servicio-detail__agregar-resultado-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.servicio-detail__agregar-lote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: -0.5rem 0 1rem;
+}
+
+.servicio-detail__lotes-vacio {
+  margin: 0;
+  color: var(--text);
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.servicio-form__lotes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.servicio-form__lote-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.4rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.servicio-form__lote-item:hover {
+  background: var(--verde-pastel);
+}
+
+.servicio-form__lote-item span:first-of-type {
+  flex: 1;
+}
+
+.servicio-form__lote-categoria {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.servicio-form__lotes-vacio {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+/* ── Calendario navegable del dashboard de servicios ── */
+/* Tamaño estándar de date-picker (un poco más grande que uno nativo), no
+ * a lo ancho del panel: el mes queda en una columna fija y el detalle del
+ * día seleccionado ocupa el resto del espacio. */
+
+.servicios-calendario__mes {
+  flex: 0 0 auto;
+  width: min(300px, 100%);
+}
+
+.servicios-calendario__seleccion {
+  flex: 1 1 220px;
+  min-width: 220px;
+  padding-top: 0;
+}
+
+.servicios-calendario__hoy {
+  height: 26px;
+  padding: 0 0.6rem;
+  font-size: 0.74rem;
+}
+
+.servicios-calendario__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.2rem;
+}
+
+.servicios-calendario__weekday {
+  padding: 0.2rem 0;
+  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.servicios-calendario__dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  aspect-ratio: 1;
+  padding: 0.15rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text-h);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.servicios-calendario__dia:hover {
+  background: var(--verde-pastel);
+  border-color: var(--accent);
+}
+
+.servicios-calendario__dia--fuera-de-mes {
+  color: var(--text);
+  opacity: 0.4;
+}
+
+.servicios-calendario__dia--hoy {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.servicios-calendario__dia--seleccionado {
+  border-color: var(--accent-strong);
+  background: var(--verde-pastel);
+}
+
+.servicios-calendario__dots {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.servicios-calendario__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.servicios-calendario__dot--PLANIFICADO {
+  background: var(--accent-strong);
+}
+
+.servicios-calendario__dot--EN_CURSO {
+  background: var(--warning);
+}
+
+.servicios-calendario__dot--FINALIZADO {
+  background: var(--success);
+}
+
+.servicios-calendario__dot--CANCELADO {
+  background: var(--danger);
+}
+
+.servicios-calendario__servicio-item {
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.servicios-calendario__servicio-item:hover {
+  border-color: var(--accent);
+  background: var(--panel);
+}

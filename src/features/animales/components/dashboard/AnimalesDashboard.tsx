@@ -1,8 +1,10 @@
 import { useState } from "react";
 import { Box, SimpleGrid, Text } from "@chakra-ui/react";
 import { useAnimalesDashboard } from "@/features/animales/hooks/useAnimalesDashboard";
+import { useTernerosPendientes } from "@/features/animales/hooks/useTernerosPendientes";
 import { KpiCriticos } from "./KpiCriticos";
 import { KpiEvaluados } from "./KpiEvaluados";
+import { KpiTernerosPendientes } from "./KpiTernerosPendientes";
 import { DashboardHistograma } from "./DashboardHistograma";
 import { DashboardEvolucion } from "./DashboardEvolucion";
 import { DashboardLoteFiltro } from "./DashboardLoteFiltro";
@@ -10,6 +12,7 @@ import { DashboardLoteFiltro } from "./DashboardLoteFiltro";
 export function AnimalesDashboard() {
   const [loteId, setLoteId] = useState<number | null>(null);
   const { data, loading, error } = useAnimalesDashboard(loteId);
+  const ternerosPendientes = useTernerosPendientes();
 
   return (
     <Box
@@ -44,12 +47,16 @@ export function AnimalesDashboard() {
       )}
 
       {/* KPI cards */}
-      <SimpleGrid columns={{ base: 1, md: 2 }} gap="4">
+      <SimpleGrid columns={{ base: 1, md: 3 }} gap="4">
         <KpiCriticos count={data?.alertas.length ?? 0} loading={loading} />
         <KpiEvaluados
           total={data?.total_animales_activos ?? 0}
           evaluados={data?.total_animales_evaluados ?? 0}
           loading={loading}
+        />
+        <KpiTernerosPendientes
+          count={ternerosPendientes.count}
+          loading={ternerosPendientes.loading}
         />
       </SimpleGrid>
 
