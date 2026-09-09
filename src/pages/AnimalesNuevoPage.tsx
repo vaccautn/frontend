@@ -20,7 +20,13 @@ import {
   type RodeoNuevoValues,
 } from "@/features/animales/utils/animalesValidation";
 import { normalizeBackendDetail, useAuth } from "@/features/auth";
-import { CATEGORIAS_ANIMAL, RAZAS, SEXOS } from "@/features/animales/constants";
+import {
+  CATEGORIA_ANIMAL_LABELS,
+  CATEGORIAS_ANIMAL,
+  CATEGORIAS_POR_SEXO,
+  RAZAS,
+  SEXOS,
+} from "@/features/animales/constants";
 import type { LoteOption } from "@/features/lotes/types";
 import { toast } from "react-toastify";
 
@@ -72,6 +78,20 @@ function AnimalesNuevoPage() {
       setFormError("");
     };
 
+  // Cambiar el sexo invalida la categoría elegida (HEMBRA y MACHO tienen
+  // categorías disjuntas en el backend), así que se limpia junto con el sexo.
+  const updateSexo = (event: ChangeEvent<HTMLSelectElement>) => {
+    const sexo = event.target.value;
+    setValues((current) => ({ ...current, sexo, categoria: "" }));
+    setErrors((current) => ({ ...current, sexo: undefined, categoria: undefined }));
+    setFormError("");
+  };
+
+  const categoriasDisponibles =
+    values.sexo === "MACHO" || values.sexo === "HEMBRA"
+      ? CATEGORIAS_POR_SEXO[values.sexo]
+      : [];
+
   const toggleCreatingLote = () => {
     setIsCreatingLote((current) => !current);
     setNuevoLoteError("");
@@ -103,6 +123,7 @@ function AnimalesNuevoPage() {
     setIsSubmitting(true);
     try {
       let loteId: number;
+      let creoLote = false;
 
       if (isCreatingLote) {
         const nuevoLote = await createLote({
@@ -113,6 +134,15 @@ function AnimalesNuevoPage() {
           activo: true,
         });
         loteId = nuevoLote.id;
+        creoLote = true;
+
+        // El lote ya quedó creado en el backend: si el registro del animal
+        // falla más abajo (p. ej. caravana duplicada) y el usuario reintenta
+        // desde el mismo drawer, hay que reusar este lote en vez de crear
+        // uno nuevo en cada intento.
+        setLotes((current) => [...current, nuevoLote]);
+        setValues((current) => ({ ...current, lote_id: String(nuevoLote.id) }));
+        setIsCreatingLote(false);
       } else {
         loteId = Number(values.lote_id);
       }
@@ -121,12 +151,13 @@ function AnimalesNuevoPage() {
         caravana: values.caravana.trim(),
         raza: values.raza,
         sexo: values.sexo,
+        categoria: values.categoria,
         fecha_nacimiento: values.fecha_nacimiento,
         lote_id: loteId,
       });
 
       toast.success(
-        isCreatingLote
+        creoLote
           ? "Lote y animal registrados correctamente."
           : "Animal registrado correctamente.",
       );
@@ -211,9 +242,7 @@ function AnimalesNuevoPage() {
                 <Field.Root invalid={!!errors.sexo}>
                   <Field.Label>Sexo</Field.Label>
                   <NativeSelect.Root>
-                    <NativeSelect.Field
-                      value={values.sexo}
-                      onChange={updateField("sexo")}>
+                    <NativeSelect.Field value={values.sexo} onChange={updateSexo}>
                       <option value="">Seleccioná el sexo</option>
                       {SEXOS.map(({ value, label }) => (
                         <option key={value} value={value}>
@@ -224,6 +253,28 @@ function AnimalesNuevoPage() {
                     <NativeSelect.Indicator />
                   </NativeSelect.Root>
                   <Field.ErrorText>{errors.sexo}</Field.ErrorText>
+                </Field.Root>
+
+                <Field.Root invalid={!!errors.categoria}>
+                  <Field.Label>Categoría</Field.Label>
+                  <NativeSelect.Root disabled={!values.sexo}>
+                    <NativeSelect.Field
+                      value={values.categoria}
+                      onChange={updateField("categoria")}>
+                      <option value="">
+                        {values.sexo
+                          ? "Seleccioná una categoría"
+                          : "Elegí el sexo primero"}
+                      </option>
+                      {categoriasDisponibles.map((value) => (
+                        <option key={value} value={value}>
+                          {CATEGORIA_ANIMAL_LABELS[value] ?? value}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.ErrorText>{errors.categoria}</Field.ErrorText>
                 </Field.Root>
 
                 <Field.Root invalid={!!errors.fecha_nacimiento}>

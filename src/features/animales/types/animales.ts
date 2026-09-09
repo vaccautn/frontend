@@ -64,6 +64,7 @@ export type RegisterAnimalPayload = {
   caravana: string;
   raza: string;
   sexo: string;
+  categoria: string;
   fecha_nacimiento: string;
   lote_id: number | null;
 };
