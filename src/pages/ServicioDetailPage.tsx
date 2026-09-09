@@ -8,9 +8,16 @@ import {
   NativeSelect,
   Textarea,
 } from "@chakra-ui/react";
-import { IconArrowLeft, IconChevronDown, IconEdit } from "@tabler/icons-react";
+import {
+  IconArrowLeft,
+  IconChevronDown,
+  IconEdit,
+  IconX,
+} from "@tabler/icons-react";
 import {
   actualizarServicio,
+  asociarLoteServicio,
+  desasociarLoteServicio,
   getLotesServicio,
   getServicio,
 } from "@/features/servicios/services/serviciosService";
@@ -29,6 +36,8 @@ import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
+import { getLotes } from "@/features/lotes/services/lotesService";
+import type { LoteOption } from "@/features/lotes/types";
 import { toast } from "react-toastify";
 import "@/features/animales/components/animales.css";
 import "@/features/servicios/components/servicios.css";
@@ -70,6 +79,20 @@ export function ServicioDetailPage() {
   const [editErrors, setEditErrors] = useState<ServicioEditarFieldErrors>({});
   const [editFormError, setEditFormError] = useState("");
   const [isSaving, setIsSaving] = useState(false);
+
+  const [todosLosLotes, setTodosLosLotes] = useState<LoteOption[]>([]);
+  const [loteIdParaAgregar, setLoteIdParaAgregar] = useState("");
+  const [isAgregandoLote, setIsAgregandoLote] = useState(false);
+  const [loteIdQuitando, setLoteIdQuitando] = useState<number | null>(null);
+
+  useEffect(() => {
+    getLotes()
+      .then(setTodosLosLotes)
+      .catch(() => {
+        /* la lista de lotes disponibles es un extra del modo edición; si
+         * falla, el "Agregar lote" simplemente queda sin opciones */
+      });
+  }, []);
 
   useEffect(() => {
     let cancelled = false;
@@ -178,6 +201,55 @@ export function ServicioDetailPage() {
       }
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const lotesAsociadosIds = new Set(
+    [...(lotes?.vientres ?? []), ...(lotes?.toros ?? [])].map((l) => l.id),
+  );
+  const lotesDisponibles = todosLosLotes.filter(
+    (l) => !lotesAsociadosIds.has(l.id),
+  );
+
+  const refetchLotes = async () => {
+    if (!servicio) return;
+    setLotes(await getLotesServicio(servicio.id));
+  };
+
+  const handleAgregarLote = async () => {
+    if (!servicio || !loteIdParaAgregar) return;
+    setIsAgregandoLote(true);
+    try {
+      await asociarLoteServicio(servicio.id, Number(loteIdParaAgregar));
+      await refetchLotes();
+      setLoteIdParaAgregar("");
+      toast.success("Lote asociado al servicio.");
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? normalizeBackendDetail(error.detail)
+          : "No se pudo asociar el lote.",
+      );
+    } finally {
+      setIsAgregandoLote(false);
+    }
+  };
+
+  const handleQuitarLote = async (loteId: number) => {
+    if (!servicio) return;
+    setLoteIdQuitando(loteId);
+    try {
+      await desasociarLoteServicio(servicio.id, loteId);
+      await refetchLotes();
+      toast.success("Lote desasociado del servicio.");
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? normalizeBackendDetail(error.detail)
+          : "No se pudo desasociar el lote.",
+      );
+    } finally {
+      setLoteIdQuitando(null);
     }
   };
 
@@ -379,9 +451,54 @@ export function ServicioDetailPage() {
               </div>
             </div>
 
+            {isEditing && (
+              <div className="servicio-detail__agregar-lote">
+                <NativeSelect.Root size="sm" flex="1" minW="220px">
+                  <NativeSelect.Field
+                    value={loteIdParaAgregar}
+                    onChange={(event) =>
+                      setLoteIdParaAgregar(event.target.value)
+                    }>
+                    <option value="">
+                      {lotesDisponibles.length === 0
+                        ? "No hay lotes disponibles para asociar"
+                        : "Seleccioná un lote para agregar"}
+                    </option>
+                    {lotesDisponibles.map((lote) => (
+                      <option key={lote.id} value={lote.id}>
+                        {lote.nombre} ·{" "}
+                        {CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? lote.categoria}
+                      </option>
+                    ))}
+                  </NativeSelect.Field>
+                  <NativeSelect.Indicator />
+                </NativeSelect.Root>
+                <Button
+                  colorPalette="brand"
+                  size="sm"
+                  disabled={!loteIdParaAgregar}
+                  loading={isAgregandoLote}
+                  onClick={handleAgregarLote}>
+                  Agregar
+                </Button>
+              </div>
+            )}
+
             <div className="servicio-detail__lotes">
-              <LotesGrupo titulo="Vientres" lotes={lotes?.vientres ?? []} />
-              <LotesGrupo titulo="Toros" lotes={lotes?.toros ?? []} />
+              <LotesGrupo
+                titulo="Vientres"
+                lotes={lotes?.vientres ?? []}
+                isEditing={isEditing}
+                loteIdQuitando={loteIdQuitando}
+                onQuitar={handleQuitarLote}
+              />
+              <LotesGrupo
+                titulo="Toros"
+                lotes={lotes?.toros ?? []}
+                isEditing={isEditing}
+                loteIdQuitando={loteIdQuitando}
+                onQuitar={handleQuitarLote}
+              />
             </div>
           </section>
         </>
@@ -393,9 +510,18 @@ export function ServicioDetailPage() {
 type LotesGrupoProps = {
   titulo: string;
   lotes: ServicioLotesAgrupados["vientres"];
+  isEditing: boolean;
+  loteIdQuitando: number | null;
+  onQuitar: (loteId: number) => void;
 };
 
-function LotesGrupo({ titulo, lotes }: LotesGrupoProps) {
+function LotesGrupo({
+  titulo,
+  lotes,
+  isEditing,
+  loteIdQuitando,
+  onQuitar,
+}: LotesGrupoProps) {
   return (
     <div className="servicio-detail__lotes-grupo">
       <div className="servicio-detail__lotes-grupo-header">
@@ -414,6 +540,16 @@ function LotesGrupo({ titulo, lotes }: LotesGrupoProps) {
               <span className="servicio-detail__lote-categoria">
                 {CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? lote.categoria}
               </span>
+              {isEditing && (
+                <button
+                  type="button"
+                  className="servicio-detail__lote-quitar"
+                  aria-label={`Quitar ${lote.nombre} del servicio`}
+                  disabled={loteIdQuitando === lote.id}
+                  onClick={() => onQuitar(lote.id)}>
+                  <IconX size={14} stroke={2} />
+                </button>
+              )}
             </li>
           ))}
         </ul>

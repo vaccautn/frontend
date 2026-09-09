@@ -1,5 +1,5 @@
 import { getAccessToken } from "@/features/auth";
-import { getJson, patchJson, postJson } from "@/services/httpClient";
+import { deleteRequest, getJson, patchJson, postJson } from "@/services/httpClient";
 import type {
   ResultadoServicioListParams,
   ResultadoServicioRead,
@@ -64,6 +64,14 @@ export function asociarLoteServicio(
     { lote_id: loteId },
     token,
   );
+}
+
+export function desasociarLoteServicio(
+  servicioId: number,
+  loteId: number,
+): Promise<void> {
+  const token = getAccessToken();
+  return deleteRequest(`/servicios/${servicioId}/lotes/${loteId}`, token);
 }
 
 export function getServicios(

@@ -30,7 +30,7 @@ export function LotesEnServicio({ lotesEnServicio, loading }: Props) {
         </VStack>
       ) : lotesEnServicio.length === 0 ? (
         <Text fontSize="0.88rem" color="var(--text)" textAlign="center" py="6">
-          Ningún lote está en un servicio EN_CURSO ahora mismo.
+          Ningún lote está en un servicio activo ahora mismo.
         </Text>
       ) : (
         <VStack gap="1" align="stretch">

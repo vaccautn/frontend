@@ -116,6 +116,40 @@
   font-size: 0.8rem;
 }
 
+.servicio-detail__lote-quitar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.servicio-detail__lote-quitar:hover:not(:disabled) {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.servicio-detail__lote-quitar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.servicio-detail__agregar-lote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: -0.5rem 0 1rem;
+}
+
 .servicio-detail__lotes-vacio {
   margin: 0;
   color: var(--text);

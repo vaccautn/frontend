@@ -28,15 +28,20 @@ export type EstadoFiltro = Extract<
   "ACTIVO" | "VENDIDO" | "MUERTO"
 >;
 
+export type OrigenAnimal = "COMPRA" | "SERVICIO";
+
 export type Animal = {
   id: number;
   caravana: string | null;
   sexo: string;
+  categoria: CategoriaAnimal;
   raza: string;
   fecha_nacimiento: string | null;
   estado: EstadoAnimal;
   observacion: string;
   lote_id: number | null;
+  origen: OrigenAnimal;
+  servicio_id: number | null;
   creado_en: string;
   actualizado_en: string;
 };
