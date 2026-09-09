@@ -4,6 +4,7 @@ import { IconChevronDown, IconPencil, IconX } from "@tabler/icons-react";
 import { getImagenesEvaluacion } from "@/features/animales/services/animalesService";
 import type { EvaluacionCC, EvidenciaImagenRead } from "@/features/animales/types";
 import { formatFechaDeTimestamp } from "@/features/animales/utils/formatDate";
+import { nivelCC } from "@/features/animales/utils/ccColor";
 
 type AnimalEvaluacionesTableProps = {
   evaluaciones: EvaluacionCC[];
@@ -58,7 +59,7 @@ export function AnimalEvaluacionesTable({
                   }}>
                   <Table.Cell>
                     <span
-                      className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${evaluacion.valor_cc}`}>
+                      className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${nivelCC(evaluacion.valor_cc, evaluacion.fecha)}`}>
                       {evaluacion.valor_cc}
                     </span>
                   </Table.Cell>
