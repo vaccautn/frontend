@@ -83,79 +83,81 @@ export function ServiciosCalendario({ servicios, loading }: Props) {
   };
 
   return (
-    <Box display="flex" flexDirection="column" gap="4">
-      <Box display="flex" alignItems="center" justifyContent="space-between">
-        <Text
-          fontSize="0.95rem"
-          fontWeight="700"
-          color="var(--text-h)"
-          textTransform="capitalize">
-          {MES_FORMATTER.format(mesActual)}
-        </Text>
-        <Box display="flex" alignItems="center" gap="2">
-          <button
-            type="button"
-            className="sesiones-filtros__clear servicios-calendario__hoy"
-            onClick={irHoy}>
-            Hoy
-          </button>
-          <IconButton
-            aria-label="Mes anterior"
-            variant="outline"
-            colorPalette="brand"
-            size="sm"
-            onClick={irMesAnterior}>
-            <IconChevronLeft size={16} stroke={1.75} />
-          </IconButton>
-          <IconButton
-            aria-label="Mes siguiente"
-            variant="outline"
-            colorPalette="brand"
-            size="sm"
-            onClick={irMesSiguiente}>
-            <IconChevronRight size={16} stroke={1.75} />
-          </IconButton>
-        </Box>
-      </Box>
-
-      <div className="servicios-calendario__grid">
-        {DIAS_SEMANA.map((dia, i) => (
-          <div key={`${dia}-${i}`} className="servicios-calendario__weekday">
-            {dia}
-          </div>
-        ))}
-
-        {celdas.map((celda) => {
-          const key = toDateKey(celda);
-          const activos = serviciosPorDia.get(key) ?? [];
-          const esDelMes = celda.getMonth() === mesActual.getMonth();
-          const esHoy = toDateKey(celda) === toDateKey(hoy);
-          const esSeleccionado = toDateKey(celda) === toDateKey(diaSeleccionado);
-
-          return (
+    <Box display="flex" flexWrap="wrap" gap="6" alignItems="flex-start">
+      <div className="servicios-calendario__mes">
+        <Box display="flex" alignItems="center" justifyContent="space-between" mb="3">
+          <Text
+            fontSize="0.85rem"
+            fontWeight="700"
+            color="var(--text-h)"
+            textTransform="capitalize">
+            {MES_FORMATTER.format(mesActual)}
+          </Text>
+          <Box display="flex" alignItems="center" gap="1">
             <button
-              key={key}
               type="button"
-              className={`servicios-calendario__dia${
-                esDelMes ? "" : " servicios-calendario__dia--fuera-de-mes"
-              }${esHoy ? " servicios-calendario__dia--hoy" : ""}${
-                esSeleccionado ? " servicios-calendario__dia--seleccionado" : ""
-              }`}
-              onClick={() => setDiaSeleccionado(celda)}>
-              <span>{celda.getDate()}</span>
-              {activos.length > 0 && (
-                <span className="servicios-calendario__dots">
-                  {activos.slice(0, 3).map((s) => (
-                    <span
-                      key={s.id}
-                      className={`servicios-calendario__dot servicios-calendario__dot--${s.estado}`}
-                    />
-                  ))}
-                </span>
-              )}
+              className="sesiones-filtros__clear servicios-calendario__hoy"
+              onClick={irHoy}>
+              Hoy
             </button>
-          );
-        })}
+            <IconButton
+              aria-label="Mes anterior"
+              variant="outline"
+              colorPalette="brand"
+              size="xs"
+              onClick={irMesAnterior}>
+              <IconChevronLeft size={14} stroke={1.75} />
+            </IconButton>
+            <IconButton
+              aria-label="Mes siguiente"
+              variant="outline"
+              colorPalette="brand"
+              size="xs"
+              onClick={irMesSiguiente}>
+              <IconChevronRight size={14} stroke={1.75} />
+            </IconButton>
+          </Box>
+        </Box>
+
+        <div className="servicios-calendario__grid">
+          {DIAS_SEMANA.map((dia, i) => (
+            <div key={`${dia}-${i}`} className="servicios-calendario__weekday">
+              {dia}
+            </div>
+          ))}
+
+          {celdas.map((celda) => {
+            const key = toDateKey(celda);
+            const activos = serviciosPorDia.get(key) ?? [];
+            const esDelMes = celda.getMonth() === mesActual.getMonth();
+            const esHoy = toDateKey(celda) === toDateKey(hoy);
+            const esSeleccionado = toDateKey(celda) === toDateKey(diaSeleccionado);
+
+            return (
+              <button
+                key={key}
+                type="button"
+                className={`servicios-calendario__dia${
+                  esDelMes ? "" : " servicios-calendario__dia--fuera-de-mes"
+                }${esHoy ? " servicios-calendario__dia--hoy" : ""}${
+                  esSeleccionado ? " servicios-calendario__dia--seleccionado" : ""
+                }`}
+                onClick={() => setDiaSeleccionado(celda)}>
+                <span>{celda.getDate()}</span>
+                {activos.length > 0 && (
+                  <span className="servicios-calendario__dots">
+                    {activos.slice(0, 3).map((s) => (
+                      <span
+                        key={s.id}
+                        className={`servicios-calendario__dot servicios-calendario__dot--${s.estado}`}
+                      />
+                    ))}
+                  </span>
+                )}
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       <div className="servicios-calendario__seleccion">

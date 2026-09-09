@@ -166,23 +166,37 @@
 }
 
 /* ── Calendario navegable del dashboard de servicios ── */
+/* Tamaño estándar de date-picker (un poco más grande que uno nativo), no
+ * a lo ancho del panel: el mes queda en una columna fija y el detalle del
+ * día seleccionado ocupa el resto del espacio. */
+
+.servicios-calendario__mes {
+  flex: 0 0 auto;
+  width: min(300px, 100%);
+}
+
+.servicios-calendario__seleccion {
+  flex: 1 1 220px;
+  min-width: 220px;
+  padding-top: 0;
+}
 
 .servicios-calendario__hoy {
-  height: 32px;
-  padding: 0 0.75rem;
-  font-size: 0.82rem;
+  height: 26px;
+  padding: 0 0.6rem;
+  font-size: 0.74rem;
 }
 
 .servicios-calendario__grid {
   display: grid;
   grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.3rem;
+  gap: 0.2rem;
 }
 
 .servicios-calendario__weekday {
-  padding: 0.3rem 0;
+  padding: 0.2rem 0;
   color: var(--text);
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   font-weight: 700;
   text-align: center;
   text-transform: uppercase;
@@ -193,16 +207,17 @@
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 0.2rem;
+  justify-content: center;
+  gap: 0.15rem;
   aspect-ratio: 1;
-  padding: 0.3rem 0.2rem;
+  padding: 0.15rem;
   border: 1px solid var(--border);
   border-radius: 6px;
   background: var(--panel);
   color: var(--text-h);
   cursor: pointer;
   font: inherit;
-  font-size: 0.82rem;
+  font-size: 0.76rem;
   transition:
     background 0.15s,
     border-color 0.15s;
@@ -235,8 +250,8 @@
 }
 
 .servicios-calendario__dot {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
   border-radius: 50%;
 }
 
@@ -254,11 +269,6 @@
 
 .servicios-calendario__dot--CANCELADO {
   background: var(--danger);
-}
-
-.servicios-calendario__seleccion {
-  padding-top: 1rem;
-  border-top: 1px solid var(--border);
 }
 
 .servicios-calendario__servicio-item {
