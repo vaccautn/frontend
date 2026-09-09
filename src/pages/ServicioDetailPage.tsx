@@ -40,6 +40,7 @@ import {
   type ServicioEditarFieldErrors,
   type ServicioEditarValues,
 } from "@/features/servicios/utils/serviciosValidation";
+import { sincronizarEstadoServicio } from "@/features/servicios/utils/servicioEstado";
 import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { normalizeBackendDetail } from "@/features/auth";
@@ -149,11 +150,13 @@ export function ServicioDetailPage() {
       setStatus("loading");
 
       try {
-        const [servicioData, lotesData, resultadosData] = await Promise.all([
+        const [servicioDataRaw, lotesData, resultadosData] = await Promise.all([
           getServicio(servicioId),
           getLotesServicio(servicioId),
           getResultadosServicio({ servicioId }),
         ]);
+        if (cancelled) return;
+        const servicioData = await sincronizarEstadoServicio(servicioDataRaw);
         if (cancelled) return;
         setServicio(servicioData);
         setLotes(lotesData);

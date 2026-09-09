@@ -1,3 +1,4 @@
+import { actualizarServicio } from "@/features/servicios/services/serviciosService";
 import type { ServicioRead } from "@/features/servicios/types";
 
 function parseFechaSolo(fecha: string): Date {
@@ -35,4 +36,35 @@ export function estaActivoHoy(servicio: ServicioRead): boolean {
   }
 
   return true;
+}
+
+/**
+ * Si el servicio está PLANIFICADO y su fecha de inicio ya llegó (es igual
+ * o anterior a hoy), lo pasa a EN_CURSO de verdad contra el backend — el
+ * backend no hace esta transición solo — y devuelve la versión
+ * actualizada. Si no corresponde, o si falla el PATCH, devuelve el mismo
+ * servicio sin tocar nada (no es un error bloqueante: el estado se vuelve
+ * a intentar sincronizar la próxima vez que se cargue).
+ */
+export async function sincronizarEstadoServicio(
+  servicio: ServicioRead,
+): Promise<ServicioRead> {
+  if (servicio.estado !== "PLANIFICADO") return servicio;
+
+  const hoy = hoySinHora();
+  const inicio = parseFechaSolo(servicio.fecha_inicio);
+  if (hoy < inicio) return servicio;
+
+  try {
+    return await actualizarServicio(servicio.id, { estado: "EN_CURSO" });
+  } catch {
+    return servicio;
+  }
+}
+
+/** Aplica sincronizarEstadoServicio a una lista completa en paralelo. */
+export async function sincronizarEstadosServicios(
+  servicios: ServicioRead[],
+): Promise<ServicioRead[]> {
+  return Promise.all(servicios.map(sincronizarEstadoServicio));
 }

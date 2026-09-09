@@ -3,6 +3,7 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button, Table } from "@chakra-ui/react";
 import { IconPlus } from "@tabler/icons-react";
 import { getServicios } from "@/features/servicios/services/serviciosService";
+import { sincronizarEstadosServicios } from "@/features/servicios/utils/servicioEstado";
 import type { ServicioRead } from "@/features/servicios/types";
 import { useServiciosFiltros } from "@/features/servicios/hooks/useServiciosFiltros";
 import { ServiciosFiltros } from "@/features/servicios/components/ServiciosFiltros";
@@ -36,7 +37,20 @@ export function ServiciosPage() {
     setRefetching(true);
     setError("");
     getServicios(params)
-      .then(setServicios)
+      .then(async (data) => {
+        const sincronizados = await sincronizarEstadosServicios(data);
+        const huboTransiciones = sincronizados.some(
+          (s, i) => s.estado !== data[i].estado,
+        );
+        // Si algún PLANIFICADO pasó a EN_CURSO y hay un filtro de estado
+        // activo, esa fila puede haber dejado de cumplir el filtro: se
+        // vuelve a pedir la lista filtrada en vez de mostrarla desalineada.
+        if (huboTransiciones && params.estado) {
+          setServicios(await getServicios(params));
+        } else {
+          setServicios(sincronizados);
+        }
+      })
       .catch(() => setError("No se pudieron cargar los servicios."))
       .finally(() => {
         setRefetching(false);
