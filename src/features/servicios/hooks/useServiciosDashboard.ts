@@ -6,7 +6,6 @@ import {
 } from "@/features/servicios/services/serviciosService";
 import { getAnimales } from "@/features/animales/services/animalesService";
 import { estaActivoHoy } from "@/features/servicios/utils/servicioEstado";
-import type { Animal } from "@/features/animales/types";
 import type {
   LoteEnServicio,
   ResultadoServicioRead,
@@ -17,7 +16,6 @@ export type UseServiciosDashboardResult = {
   servicios: ServicioRead[];
   resultados: ResultadoServicioRead[];
   lotesEnServicio: LoteEnServicio[];
-  crias: Animal[];
   animalCaravanaPorId: Map<number, string>;
   loading: boolean;
   error: string;
@@ -28,7 +26,6 @@ export function useServiciosDashboard(): UseServiciosDashboardResult {
   const [servicios, setServicios] = useState<ServicioRead[]>([]);
   const [resultados, setResultados] = useState<ResultadoServicioRead[]>([]);
   const [lotesEnServicio, setLotesEnServicio] = useState<LoteEnServicio[]>([]);
-  const [crias, setCrias] = useState<Animal[]>([]);
   const [animalCaravanaPorId, setAnimalCaravanaPorId] = useState<
     Map<number, string>
   >(new Map());
@@ -48,11 +45,6 @@ export function useServiciosDashboard(): UseServiciosDashboardResult {
             animalesData
               .filter((a) => a.caravana)
               .map((a) => [a.id, a.caravana as string]),
-          ),
-        );
-        setCrias(
-          animalesData.filter(
-            (a) => a.origen === "SERVICIO" && a.servicio_id !== null,
           ),
         );
 
@@ -101,7 +93,6 @@ export function useServiciosDashboard(): UseServiciosDashboardResult {
     servicios,
     resultados,
     lotesEnServicio,
-    crias,
     animalCaravanaPorId,
     loading,
     error,

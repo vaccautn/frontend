@@ -10,7 +10,6 @@ export function ServiciosDashboard() {
     servicios,
     resultados,
     lotesEnServicio,
-    crias,
     animalCaravanaPorId,
     loading,
     error,
@@ -57,7 +56,11 @@ export function ServiciosDashboard() {
         borderColor="var(--border)"
         borderRadius="8px"
         bg="var(--bg)">
-        <TimelineNacimientos crias={crias} servicios={servicios} loading={loading} />
+        <TimelineNacimientos
+          resultados={resultados}
+          servicios={servicios}
+          loading={loading}
+        />
       </Box>
 
       <SimpleGrid columns={{ base: 1, lg: 2 }} gap="4">

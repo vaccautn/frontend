@@ -10,11 +10,10 @@ import {
   CartesianGrid,
   ResponsiveContainer,
 } from "recharts";
-import type { Animal } from "@/features/animales/types";
-import type { ServicioRead } from "@/features/servicios/types";
+import type { ResultadoServicioRead, ServicioRead } from "@/features/servicios/types";
 
 type Props = {
-  crias: Animal[];
+  resultados: ResultadoServicioRead[];
   servicios: ServicioRead[];
   loading: boolean;
 };
@@ -40,42 +39,43 @@ function formatPeriodo(periodo: string): string {
   });
 }
 
-export function TimelineNacimientos({ crias, servicios, loading }: Props) {
+export function TimelineNacimientos({ resultados, servicios, loading }: Props) {
   const { data, series } = useMemo(() => {
-    const criasValidas = crias.filter(
-      (c) => c.servicio_id !== null && c.fecha_nacimiento,
-    );
+    // La fuente es el resultado de la vaca (ResultadoServicio en PARIDA), no
+    // el animal cría: la mayoría de los partos se marcan desde "Agregar
+    // resultado" sin dar de alta todavía a la cría con su propia caravana
+    // (eso es justamente lo que cuenta "Terneros pendientes de registro"),
+    // así que basarse en animales con origen=SERVICIO deja la mayoría afuera.
+    const paridas = resultados.filter((r) => r.estado === "PARIDA");
 
     const servicioNombrePorId = new Map(
       servicios.map((s) => [s.id, s.nombre || `Servicio #${s.id}`]),
     );
 
-    const servicioIds = [
-      ...new Set(criasValidas.map((c) => c.servicio_id as number)),
-    ];
+    const servicioIds = [...new Set(paridas.map((r) => r.servicio_id))];
     const series = servicioIds.map((id, i) => ({
       key: `s${id}`,
       nombre: servicioNombrePorId.get(id) ?? `Servicio #${id}`,
       color: COLORES[i % COLORES.length],
     }));
 
-    const periodos = [
-      ...new Set(criasValidas.map((c) => c.fecha_nacimiento!.slice(0, 7))),
-    ].sort();
+    const periodoDe = (r: ResultadoServicioRead) =>
+      (r.fecha_diagnostico ?? r.creado_en).slice(0, 7);
+
+    const periodos = [...new Set(paridas.map(periodoDe))].sort();
 
     const data = periodos.map((periodo) => {
       const fila: Record<string, string | number> = { periodo };
       for (const id of servicioIds) {
-        fila[`s${id}`] = criasValidas.filter(
-          (c) =>
-            c.servicio_id === id && c.fecha_nacimiento!.slice(0, 7) === periodo,
+        fila[`s${id}`] = paridas.filter(
+          (r) => r.servicio_id === id && periodoDe(r) === periodo,
         ).length;
       }
       return fila;
     });
 
     return { data, series };
-  }, [crias, servicios]);
+  }, [resultados, servicios]);
 
   return (
     <Box>
@@ -95,7 +95,7 @@ export function TimelineNacimientos({ crias, servicios, loading }: Props) {
         </Text>
       ) : data.length === 0 ? (
         <Text fontSize="0.88rem" color="var(--text)" textAlign="center" py="6">
-          Todavía no hay crías registradas a partir de un servicio.
+          Todavía no hay resultados PARIDA registrados en ningún servicio.
         </Text>
       ) : (
         <ResponsiveContainer width="100%" height={220}>
