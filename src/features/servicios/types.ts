@@ -60,3 +60,36 @@ export type ServicioLoteAsociacion = {
   lote_id: number;
   creado_en: string;
 };
+
+export type EstadoResultadoServicio =
+  | "PENDIENTE"
+  | "PRENADA"
+  | "VACIA"
+  | "ABORTO"
+  | "PARIDA";
+
+export type ResultadoServicioRead = {
+  id: number;
+  servicio_id: number;
+  animal_id: number;
+  estado: EstadoResultadoServicio;
+  fecha_diagnostico: string | null;
+  cria_id: number | null;
+  observaciones: string;
+  creado_en: string;
+  actualizado_en: string;
+};
+
+export type ResultadoServicioListParams = {
+  servicioId?: number;
+  animalId?: number;
+  estado?: EstadoResultadoServicio;
+};
+
+/** Un lote asociado a un servicio actualmente EN_CURSO, con el servicio al
+ * que pertenece — usado para el listado "lotes en servicio" del dashboard. */
+export type LoteEnServicio = {
+  lote: ServicioLoteRead;
+  servicio: ServicioRead;
+  rol: "vientre" | "toro";
+};

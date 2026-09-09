@@ -1,6 +1,8 @@
 import { getAccessToken } from "@/features/auth";
 import { getJson, patchJson, postJson } from "@/services/httpClient";
 import type {
+  ResultadoServicioListParams,
+  ResultadoServicioRead,
   ServicioCreatePayload,
   ServicioListParams,
   ServicioLoteAsociacion,
@@ -28,6 +30,26 @@ export function actualizarServicio(
   return patchJson<ServicioRead, ServicioUpdatePayload>(
     `/servicios/${id}`,
     payload,
+    token,
+  );
+}
+
+export function getResultadosServicio(
+  params: ResultadoServicioListParams = {},
+): Promise<ResultadoServicioRead[]> {
+  const token = getAccessToken();
+  const searchParams = new URLSearchParams();
+  if (params.servicioId !== undefined) {
+    searchParams.set("servicio_id", params.servicioId.toString());
+  }
+  if (params.animalId !== undefined) {
+    searchParams.set("animal_id", params.animalId.toString());
+  }
+  if (params.estado) searchParams.set("estado", params.estado);
+
+  const qs = searchParams.toString();
+  return getJson<ResultadoServicioRead[]>(
+    `/resultados-servicio/${qs ? `?${qs}` : ""}`,
     token,
   );
 }

@@ -30,6 +30,37 @@
   color: var(--danger);
 }
 
+.resultado-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.resultado-badge--PENDIENTE {
+  background: var(--verde-pastel);
+  color: var(--accent-strong);
+}
+
+.resultado-badge--PRENADA,
+.resultado-badge--PARIDA {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.resultado-badge--VACIA {
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
+.resultado-badge--ABORTO {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
 .servicio-detail__lotes {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
@@ -132,4 +163,110 @@
   margin: 0;
   color: var(--text);
   font-size: 0.85rem;
+}
+
+/* ── Calendario navegable del dashboard de servicios ── */
+
+.servicios-calendario__hoy {
+  height: 32px;
+  padding: 0 0.75rem;
+  font-size: 0.82rem;
+}
+
+.servicios-calendario__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.3rem;
+}
+
+.servicios-calendario__weekday {
+  padding: 0.3rem 0;
+  color: var(--text);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.servicios-calendario__dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.2rem;
+  aspect-ratio: 1;
+  padding: 0.3rem 0.2rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text-h);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.82rem;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.servicios-calendario__dia:hover {
+  background: var(--verde-pastel);
+  border-color: var(--accent);
+}
+
+.servicios-calendario__dia--fuera-de-mes {
+  color: var(--text);
+  opacity: 0.4;
+}
+
+.servicios-calendario__dia--hoy {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.servicios-calendario__dia--seleccionado {
+  border-color: var(--accent-strong);
+  background: var(--verde-pastel);
+}
+
+.servicios-calendario__dots {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.servicios-calendario__dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+}
+
+.servicios-calendario__dot--PLANIFICADO {
+  background: var(--accent-strong);
+}
+
+.servicios-calendario__dot--EN_CURSO {
+  background: var(--warning);
+}
+
+.servicios-calendario__dot--FINALIZADO {
+  background: var(--success);
+}
+
+.servicios-calendario__dot--CANCELADO {
+  background: var(--danger);
+}
+
+.servicios-calendario__seleccion {
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+}
+
+.servicios-calendario__servicio-item {
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.servicios-calendario__servicio-item:hover {
+  border-color: var(--accent);
+  background: var(--panel);
 }

@@ -7,6 +7,7 @@ import type { ServicioRead } from "@/features/servicios/types";
 import { useServiciosFiltros } from "@/features/servicios/hooks/useServiciosFiltros";
 import { ServiciosFiltros } from "@/features/servicios/components/ServiciosFiltros";
 import { ESTADO_SERVICIO_LABELS } from "@/features/servicios/constants";
+import { ServiciosDashboard } from "@/features/servicios/components/dashboard/ServiciosDashboard";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
@@ -74,6 +75,8 @@ export function ServiciosPage() {
           Agregar servicio
         </Button>
       </div>
+
+      <ServiciosDashboard />
 
       <ServiciosFiltros
         estado={estado}
