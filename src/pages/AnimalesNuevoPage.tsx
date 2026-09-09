@@ -20,7 +20,7 @@ import {
   type RodeoNuevoValues,
 } from "@/features/animales/utils/animalesValidation";
 import { normalizeBackendDetail, useAuth } from "@/features/auth";
-import { RAZAS, SEXOS } from "@/features/animales/constants";
+import { CATEGORIAS_ANIMAL, RAZAS, SEXOS } from "@/features/animales/constants";
 import type { LoteOption } from "@/features/lotes/types";
 import { toast } from "react-toastify";
 
@@ -41,6 +41,7 @@ function AnimalesNuevoPage() {
   const [isCreatingLote, setIsCreatingLote] = useState(false);
   const [nuevoLoteNombre, setNuevoLoteNombre] = useState("");
   const [nuevoLoteDescripcion, setNuevoLoteDescripcion] = useState("");
+  const [nuevoLoteCategoria, setNuevoLoteCategoria] = useState("");
   const [nuevoLoteError, setNuevoLoteError] = useState("");
 
   useEffect(() => {
@@ -93,6 +94,10 @@ function AnimalesNuevoPage() {
       setNuevoLoteError("El nombre del lote es obligatorio.");
       return;
     }
+    if (isCreatingLote && !nuevoLoteCategoria) {
+      setNuevoLoteError("La categoría del lote es obligatoria.");
+      return;
+    }
     if (Object.keys(nextErrors).length > 0) return;
 
     setIsSubmitting(true);
@@ -103,6 +108,7 @@ function AnimalesNuevoPage() {
         const nuevoLote = await createLote({
           nombre: nuevoLoteNombre.trim(),
           descripcion: nuevoLoteDescripcion.trim(),
+          categoria: nuevoLoteCategoria,
           usuario_administrador_id: user?.id ?? 0,
           activo: true,
         });
@@ -295,6 +301,26 @@ function AnimalesNuevoPage() {
                         }}
                       />
                       <Field.ErrorText>{nuevoLoteError}</Field.ErrorText>
+                    </Field.Root>
+
+                    <Field.Root>
+                      <Field.Label>Categoría del lote</Field.Label>
+                      <NativeSelect.Root>
+                        <NativeSelect.Field
+                          value={nuevoLoteCategoria}
+                          onChange={(event) => {
+                            setNuevoLoteCategoria(event.target.value);
+                            setNuevoLoteError("");
+                          }}>
+                          <option value="">Seleccioná una categoría</option>
+                          {CATEGORIAS_ANIMAL.map(({ value, label }) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </NativeSelect.Field>
+                        <NativeSelect.Indicator />
+                      </NativeSelect.Root>
                     </Field.Root>
 
                     <Field.Root>

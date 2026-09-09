@@ -24,6 +24,7 @@ import type { LoteOption } from "@/features/lotes/types";
 import { formatEventDate, localNaiveNow } from "@/utils/localDateTime";
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
+import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
 
@@ -55,11 +56,13 @@ export function CargarEvaluacionesPage() {
     raza,
     estado,
     loteId,
+    categoriaLote,
     setCaravanaInput,
     setSexo,
     setRaza,
     setEstado,
     setLoteId,
+    setCategoriaLote,
     params: filtrosParams,
   } = useAnimalesFiltros();
 
@@ -90,6 +93,13 @@ export function CargarEvaluacionesPage() {
       .catch(() => toast.error("No se pudieron cargar los animales."))
       .finally(() => setRefetchingGrupos(false));
   }, [filtrosParams]);
+
+  // El backend no filtra por categoría de lote, así que se aplica acá sobre
+  // los grupos ya cargados (cada grupo trae su lote completo, con categoría).
+  const gruposFiltrados = useMemo(() => {
+    if (!categoriaLote) return grupos;
+    return grupos.filter((grupo) => grupo.lote?.categoria === categoriaLote);
+  }, [grupos, categoriaLote]);
 
   const hoyStr = useMemo(() => localNaiveNow().slice(0, 10), []);
 
@@ -293,6 +303,7 @@ export function CargarEvaluacionesPage() {
         raza={raza}
         estado={estado}
         loteId={loteId}
+        categoriaLote={categoriaLote}
         lotes={lotes}
         loadingLotes={loadingLotes}
         onCaravanaChange={setCaravanaInput}
@@ -300,6 +311,7 @@ export function CargarEvaluacionesPage() {
         onRazaChange={setRaza}
         onEstadoChange={setEstado}
         onLoteChange={setLoteId}
+        onCategoriaLoteChange={setCategoriaLote}
       />
 
       <Table.Root
@@ -314,18 +326,19 @@ export function CargarEvaluacionesPage() {
             <Table.ColumnHeader>Caravana</Table.ColumnHeader>
             <Table.ColumnHeader>Raza</Table.ColumnHeader>
             <Table.ColumnHeader>Lote</Table.ColumnHeader>
+            <Table.ColumnHeader>Categoría del lote</Table.ColumnHeader>
             <Table.ColumnHeader>Valor CC</Table.ColumnHeader>
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {grupos.length === 0 ? (
+          {gruposFiltrados.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={4}>
+              <Table.Cell colSpan={5}>
                 No se encontraron animales con los filtros aplicados.
               </Table.Cell>
             </Table.Row>
           ) : (
-            grupos.flatMap((grupo) =>
+            gruposFiltrados.flatMap((grupo) =>
               grupo.animales.map((animal) => (
                 <Table.Row
                   key={animal.id}
@@ -334,6 +347,11 @@ export function CargarEvaluacionesPage() {
                   <Table.Cell>{animal.caravana ?? "—"}</Table.Cell>
                   <Table.Cell>{animal.raza}</Table.Cell>
                   <Table.Cell>{grupo.lote?.nombre ?? "Sin lote"}</Table.Cell>
+                  <Table.Cell>
+                    {grupo.lote
+                      ? (CATEGORIA_ANIMAL_LABELS[grupo.lote.categoria] ?? "—")
+                      : "—"}
+                  </Table.Cell>
                   <Table.Cell>
                     {evaluacionesPersistidas.get(animal.id)?.valor_cc ?? "—"}
                   </Table.Cell>

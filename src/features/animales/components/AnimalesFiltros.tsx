@@ -1,12 +1,17 @@
 import { Input, Menu, Portal } from "@chakra-ui/react";
 import { IconChevronDown } from "@tabler/icons-react";
-import { RAZAS, ESTADOS_FILTRO } from "@/features/animales/constants";
-import type { EstadoFiltro } from "@/features/animales/types";
+import {
+  RAZAS,
+  ESTADOS_FILTRO,
+  CATEGORIAS_ANIMAL,
+} from "@/features/animales/constants";
+import type { CategoriaAnimal, EstadoFiltro } from "@/features/animales/types";
 import type { LoteOption } from "@/features/lotes/types";
 
 const TODAS_RAZAS_VALUE = "__TODAS__";
 const TODOS_ESTADOS_VALUE = "__TODOS__";
 const TODOS_LOTES_VALUE = "__TODOS__";
+const TODAS_CATEGORIAS_VALUE = "__TODAS__";
 
 interface AnimalesFiltrosProps {
   caravanaInput: string;
@@ -14,6 +19,7 @@ interface AnimalesFiltrosProps {
   raza: string | null;
   estado: EstadoFiltro | null;
   loteId: number | null;
+  categoriaLote: CategoriaAnimal | null;
   lotes: LoteOption[];
   loadingLotes: boolean;
   onCaravanaChange: (value: string) => void;
@@ -21,6 +27,7 @@ interface AnimalesFiltrosProps {
   onRazaChange: (value: string | null) => void;
   onEstadoChange: (value: EstadoFiltro | null) => void;
   onLoteChange: (value: number | null) => void;
+  onCategoriaLoteChange: (value: CategoriaAnimal | null) => void;
 }
 
 export function AnimalesFiltros({
@@ -29,6 +36,7 @@ export function AnimalesFiltros({
   raza,
   estado,
   loteId,
+  categoriaLote,
   lotes,
   loadingLotes,
   onCaravanaChange,
@@ -36,9 +44,16 @@ export function AnimalesFiltros({
   onRazaChange,
   onEstadoChange,
   onLoteChange,
+  onCategoriaLoteChange,
 }: AnimalesFiltrosProps) {
   const estadoLabel = ESTADOS_FILTRO.find((e) => e.value === estado)?.label;
-  const loteLabel = lotes.find((l) => l.id === loteId)?.nombre;
+  const categoriaLoteLabel = CATEGORIAS_ANIMAL.find(
+    (c) => c.value === categoriaLote,
+  )?.label;
+  const lotesFiltrados = categoriaLote
+    ? lotes.filter((lote) => lote.categoria === categoriaLote)
+    : lotes;
+  const loteLabel = lotesFiltrados.find((l) => l.id === loteId)?.nombre;
 
   return (
     <div
@@ -93,6 +108,48 @@ export function AnimalesFiltros({
           <button
             type="button"
             className="animales-filtros__dropdown"
+            aria-label="Filtrar por categoría de lote">
+            <span>{categoriaLoteLabel ?? "Todas las categorías"}</span>
+            <IconChevronDown
+              className="animales-filtros__dropdown-caret"
+              size={16}
+              stroke={1.5}
+            />
+          </button>
+        </Menu.Trigger>
+        <Portal>
+          <Menu.Positioner>
+            <Menu.Content className="animales-filtros__dropdown-menu">
+              <Menu.RadioItemGroup
+                value={categoriaLote ?? TODAS_CATEGORIAS_VALUE}
+                onValueChange={(details) => {
+                  const value = details.value;
+                  onCategoriaLoteChange(
+                    value === TODAS_CATEGORIAS_VALUE
+                      ? null
+                      : (value as CategoriaAnimal),
+                  );
+                }}>
+                <Menu.RadioItem value={TODAS_CATEGORIAS_VALUE}>
+                  Todas las categorías
+                </Menu.RadioItem>
+                <Menu.Separator />
+                {CATEGORIAS_ANIMAL.map(({ value, label }) => (
+                  <Menu.RadioItem key={value} value={value}>
+                    {label}
+                  </Menu.RadioItem>
+                ))}
+              </Menu.RadioItemGroup>
+            </Menu.Content>
+          </Menu.Positioner>
+        </Portal>
+      </Menu.Root>
+
+      <Menu.Root>
+        <Menu.Trigger asChild>
+          <button
+            type="button"
+            className="animales-filtros__dropdown"
             aria-label="Filtrar por lote"
             disabled={loadingLotes}>
             <span>{loteLabel ?? "Todos los lotes"}</span>
@@ -118,7 +175,7 @@ export function AnimalesFiltros({
                   Todos los lotes
                 </Menu.RadioItem>
                 <Menu.Separator />
-                {lotes.map((lote) => (
+                {lotesFiltrados.map((lote) => (
                   <Menu.RadioItem key={lote.id} value={String(lote.id)}>
                     {lote.nombre}
                   </Menu.RadioItem>
