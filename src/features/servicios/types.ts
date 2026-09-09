@@ -31,6 +31,14 @@ export type ServicioCreatePayload = {
   observaciones: string;
 };
 
+export type ServicioUpdatePayload = {
+  nombre?: string;
+  fecha_inicio?: string;
+  fecha_fin?: string | null;
+  estado?: EstadoServicio;
+  observaciones?: string;
+};
+
 export type ServicioLoteRead = {
   id: number;
   nombre: string;
@@ -44,4 +52,11 @@ export type ServicioLoteRead = {
 export type ServicioLotesAgrupados = {
   vientres: ServicioLoteRead[];
   toros: ServicioLoteRead[];
+};
+
+export type ServicioLoteAsociacion = {
+  id: number;
+  servicio_id: number;
+  lote_id: number;
+  creado_en: string;
 };

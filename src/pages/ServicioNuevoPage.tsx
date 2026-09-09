@@ -1,4 +1,4 @@
-import { useState, type ChangeEvent, type FormEvent } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
   Button,
@@ -8,7 +8,13 @@ import {
   Portal,
   Textarea,
 } from "@chakra-ui/react";
-import { crearServicio } from "@/features/servicios/services/serviciosService";
+import {
+  asociarLoteServicio,
+  crearServicio,
+} from "@/features/servicios/services/serviciosService";
+import { getLotes } from "@/features/lotes/services/lotesService";
+import type { LoteOption } from "@/features/lotes/types";
+import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 import { ApiError } from "@/services/httpClient";
 import {
   initialServicioNuevoValues,
@@ -18,6 +24,7 @@ import {
 } from "@/features/servicios/utils/serviciosValidation";
 import { normalizeBackendDetail } from "@/features/auth";
 import { toast } from "react-toastify";
+import "@/features/servicios/components/servicios.css";
 
 function ServicioNuevoPage() {
   const navigate = useNavigate();
@@ -29,9 +36,30 @@ function ServicioNuevoPage() {
   const [formError, setFormError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const close = (refresh = false) => {
+  const [lotes, setLotes] = useState<LoteOption[]>([]);
+  const [loadingLotes, setLoadingLotes] = useState(true);
+  const [loteIdsSeleccionados, setLoteIdsSeleccionados] = useState<number[]>(
+    [],
+  );
+
+  useEffect(() => {
+    getLotes()
+      .then(setLotes)
+      .finally(() => setLoadingLotes(false));
+  }, []);
+
+  const toggleLote = (loteId: number) => {
+    setLoteIdsSeleccionados((current) =>
+      current.includes(loteId)
+        ? current.filter((id) => id !== loteId)
+        : [...current, loteId],
+    );
+  };
+
+  const close = (refresh = false, servicioId?: number) => {
     setOpen(false);
-    setTimeout(() => navigate("/servicios", { state: { refresh } }), 250);
+    const path = servicioId ? `/servicios/${servicioId}` : "/servicios";
+    setTimeout(() => navigate(path, { state: { refresh } }), 250);
   };
 
   const updateField =
@@ -52,15 +80,29 @@ function ServicioNuevoPage() {
 
     setIsSubmitting(true);
     try {
-      await crearServicio({
+      const nuevoServicio = await crearServicio({
         nombre: values.nombre.trim(),
         fecha_inicio: values.fecha_inicio,
         ...(values.fecha_fin ? { fecha_fin: values.fecha_fin } : {}),
         observaciones: values.observaciones.trim(),
       });
 
+      if (loteIdsSeleccionados.length > 0) {
+        const resultados = await Promise.allSettled(
+          loteIdsSeleccionados.map((loteId) =>
+            asociarLoteServicio(nuevoServicio.id, loteId),
+          ),
+        );
+        const fallidos = resultados.filter((r) => r.status === "rejected").length;
+        if (fallidos > 0) {
+          toast.error(
+            `Servicio creado, pero no se pudieron asociar ${fallidos} lote(s). Podés asociarlos desde el detalle.`,
+          );
+        }
+      }
+
       toast.success("Servicio creado correctamente.");
-      close(true);
+      close(true, nuevoServicio.id);
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(
@@ -148,6 +190,40 @@ function ServicioNuevoPage() {
                     onChange={updateField("observaciones")}
                     rows={3}
                   />
+                </Field.Root>
+
+                <Field.Root>
+                  <Field.Label>
+                    Lotes asociados (opcional)
+                    {loteIdsSeleccionados.length > 0 &&
+                      ` — ${loteIdsSeleccionados.length} seleccionado(s)`}
+                  </Field.Label>
+                  {loadingLotes ? (
+                    <p className="servicio-form__lotes-vacio">Cargando lotes...</p>
+                  ) : lotes.length === 0 ? (
+                    <p className="servicio-form__lotes-vacio">
+                      No hay lotes disponibles para asociar.
+                    </p>
+                  ) : (
+                    <ul className="servicio-form__lotes-lista">
+                      {lotes.map((lote) => (
+                        <li key={lote.id}>
+                          <label className="servicio-form__lote-item">
+                            <input
+                              type="checkbox"
+                              checked={loteIdsSeleccionados.includes(lote.id)}
+                              onChange={() => toggleLote(lote.id)}
+                            />
+                            <span>{lote.nombre}</span>
+                            <span className="servicio-form__lote-categoria">
+                              {CATEGORIA_ANIMAL_LABELS[lote.categoria] ??
+                                lote.categoria}
+                            </span>
+                          </label>
+                        </li>
+                      ))}
+                    </ul>
+                  )}
                 </Field.Root>
               </form>
             </Drawer.Body>

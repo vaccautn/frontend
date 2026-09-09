@@ -1,10 +1,12 @@
 import { getAccessToken } from "@/features/auth";
-import { getJson, postJson } from "@/services/httpClient";
+import { getJson, patchJson, postJson } from "@/services/httpClient";
 import type {
   ServicioCreatePayload,
   ServicioListParams,
+  ServicioLoteAsociacion,
   ServicioLotesAgrupados,
   ServicioRead,
+  ServicioUpdatePayload,
 } from "../types";
 
 export function crearServicio(
@@ -14,6 +16,30 @@ export function crearServicio(
   return postJson<ServicioRead, ServicioCreatePayload>(
     "/servicios/",
     payload,
+    token,
+  );
+}
+
+export function actualizarServicio(
+  id: number,
+  payload: ServicioUpdatePayload,
+): Promise<ServicioRead> {
+  const token = getAccessToken();
+  return patchJson<ServicioRead, ServicioUpdatePayload>(
+    `/servicios/${id}`,
+    payload,
+    token,
+  );
+}
+
+export function asociarLoteServicio(
+  servicioId: number,
+  loteId: number,
+): Promise<ServicioLoteAsociacion> {
+  const token = getAccessToken();
+  return postJson<ServicioLoteAsociacion, { lote_id: number }>(
+    `/servicios/${servicioId}/lotes`,
+    { lote_id: loteId },
     token,
   );
 }

@@ -1,16 +1,35 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Spinner } from "@chakra-ui/react";
-import { IconArrowLeft } from "@tabler/icons-react";
 import {
+  Button,
+  Field,
+  Input,
+  NativeSelect,
+  Spinner,
+  Textarea,
+} from "@chakra-ui/react";
+import { IconArrowLeft, IconEdit } from "@tabler/icons-react";
+import {
+  actualizarServicio,
   getLotesServicio,
   getServicio,
 } from "@/features/servicios/services/serviciosService";
-import type { ServicioLotesAgrupados, ServicioRead } from "@/features/servicios/types";
-import { ESTADO_SERVICIO_LABELS } from "@/features/servicios/constants";
+import type {
+  EstadoServicio,
+  ServicioLotesAgrupados,
+  ServicioRead,
+} from "@/features/servicios/types";
+import { ESTADO_SERVICIO_LABELS, ESTADOS_SERVICIO } from "@/features/servicios/constants";
+import {
+  validateServicioEditarForm,
+  type ServicioEditarFieldErrors,
+  type ServicioEditarValues,
+} from "@/features/servicios/utils/serviciosValidation";
 import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 import { formatFecha } from "@/features/animales/utils/formatDate";
+import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
+import { toast } from "react-toastify";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
 import "@/features/servicios/components/servicios.css";
@@ -26,6 +45,14 @@ export function ServicioDetailPage() {
   const [servicio, setServicio] = useState<ServicioRead | null>(null);
   const [lotes, setLotes] = useState<ServicioLotesAgrupados | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [isEditing, setIsEditing] = useState(false);
+  const [editValues, setEditValues] = useState<ServicioEditarValues | null>(
+    null,
+  );
+  const [editErrors, setEditErrors] = useState<ServicioEditarFieldErrors>({});
+  const [editFormError, setEditFormError] = useState("");
+  const [isSaving, setIsSaving] = useState(false);
 
   useEffect(() => {
     let cancelled = false;
@@ -67,6 +94,76 @@ export function ServicioDetailPage() {
     };
   }, [servicioId]);
 
+  const startEditing = () => {
+    if (!servicio) return;
+    setEditValues({
+      nombre: servicio.nombre,
+      fecha_inicio: servicio.fecha_inicio,
+      fecha_fin: servicio.fecha_fin ?? "",
+      estado: servicio.estado,
+      observaciones: servicio.observaciones,
+    });
+    setEditErrors({});
+    setEditFormError("");
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setIsEditing(false);
+    setEditValues(null);
+    setEditErrors({});
+    setEditFormError("");
+  };
+
+  const updateEditField =
+    (field: keyof ServicioEditarValues) =>
+    (
+      event: ChangeEvent<
+        HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+      >,
+    ) => {
+      setEditValues((current) =>
+        current ? { ...current, [field]: event.target.value } : current,
+      );
+      setEditErrors((current) => ({ ...current, [field]: undefined }));
+      setEditFormError("");
+    };
+
+  const handleSave = async (event: FormEvent<HTMLFormElement>) => {
+    event.preventDefault();
+    if (isSaving || !editValues || !servicio) return;
+
+    const nextErrors = validateServicioEditarForm(editValues);
+    setEditErrors(nextErrors);
+    if (Object.keys(nextErrors).length > 0) return;
+
+    setIsSaving(true);
+    try {
+      const actualizado = await actualizarServicio(servicio.id, {
+        nombre: editValues.nombre.trim(),
+        fecha_inicio: editValues.fecha_inicio,
+        fecha_fin: editValues.fecha_fin ? editValues.fecha_fin : null,
+        estado: editValues.estado as EstadoServicio,
+        observaciones: editValues.observaciones.trim(),
+      });
+      setServicio(actualizado);
+      toast.success("Servicio actualizado correctamente.");
+      setIsEditing(false);
+      setEditValues(null);
+    } catch (error) {
+      if (error instanceof ApiError) {
+        setEditFormError(
+          normalizeBackendDetail(error.detail) ??
+            "Error al actualizar el servicio.",
+        );
+      } else {
+        setEditFormError("No se pudo actualizar el servicio. Probá nuevamente.");
+      }
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   return (
     <section className="sesion-detail" aria-label="Detalle de servicio">
       <Button
@@ -101,30 +198,127 @@ export function ServicioDetailPage() {
 
       {status === "ready" && servicio && (
         <>
-          <header className="sesion-detail__hero">
-            <div>
-              <span className="sesion-detail__eyebrow">Servicio</span>
-              <h1>{servicio.nombre || `Servicio #${servicio.id}`}</h1>
-              <p>
-                Inicio: {formatFecha(servicio.fecha_inicio)}
-                {servicio.fecha_fin
-                  ? ` · Fin: ${formatFecha(servicio.fecha_fin)}`
-                  : ""}
-              </p>
-            </div>
-            <div className="sesion-detail__hero-actions">
-              <span
-                className={`servicio-badge servicio-badge--${servicio.estado}`}>
-                {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
-              </span>
-            </div>
-          </header>
+          {isEditing && editValues ? (
+            <form
+              onSubmit={handleSave}
+              noValidate
+              className="animal-edit-page__form">
+              {editFormError && (
+                <p
+                  className="status-message error animal-edit-page__field--full"
+                  role="alert">
+                  {editFormError}
+                </p>
+              )}
 
-          {servicio.observaciones && (
-            <div className="servicio-detail__observaciones">
-              <h2>Observaciones</h2>
-              <p>{servicio.observaciones}</p>
-            </div>
+              <Field.Root invalid={!!editErrors.nombre}>
+                <Field.Label>Nombre</Field.Label>
+                <Input
+                  value={editValues.nombre}
+                  onChange={updateEditField("nombre")}
+                />
+                <Field.ErrorText>{editErrors.nombre}</Field.ErrorText>
+              </Field.Root>
+
+              <Field.Root invalid={!!editErrors.estado}>
+                <Field.Label>Estado</Field.Label>
+                <NativeSelect.Root>
+                  <NativeSelect.Field
+                    value={editValues.estado}
+                    onChange={updateEditField("estado")}>
+                    {ESTADOS_SERVICIO.map(({ value, label }) => (
+                      <option key={value} value={value}>
+                        {label}
+                      </option>
+                    ))}
+                  </NativeSelect.Field>
+                  <NativeSelect.Indicator />
+                </NativeSelect.Root>
+                <Field.ErrorText>{editErrors.estado}</Field.ErrorText>
+              </Field.Root>
+
+              <Field.Root invalid={!!editErrors.fecha_inicio}>
+                <Field.Label>Fecha de inicio</Field.Label>
+                <Input
+                  type="date"
+                  value={editValues.fecha_inicio}
+                  onChange={updateEditField("fecha_inicio")}
+                />
+                <Field.ErrorText>{editErrors.fecha_inicio}</Field.ErrorText>
+              </Field.Root>
+
+              <Field.Root invalid={!!editErrors.fecha_fin}>
+                <Field.Label>Fecha de fin</Field.Label>
+                <Input
+                  type="date"
+                  value={editValues.fecha_fin}
+                  onChange={updateEditField("fecha_fin")}
+                />
+                <Field.ErrorText>{editErrors.fecha_fin}</Field.ErrorText>
+              </Field.Root>
+
+              <Field.Root className="animal-edit-page__field--full">
+                <Field.Label>Observaciones</Field.Label>
+                <Textarea
+                  value={editValues.observaciones}
+                  onChange={updateEditField("observaciones")}
+                  rows={3}
+                />
+              </Field.Root>
+
+              <div className="animal-edit-page__actions">
+                <Button
+                  type="button"
+                  variant="outline"
+                  className="animal-form__cancel"
+                  onClick={cancelEditing}
+                  disabled={isSaving}>
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  colorPalette="brand"
+                  loading={isSaving}
+                  loadingText="Guardando...">
+                  Guardar cambios
+                </Button>
+              </div>
+            </form>
+          ) : (
+            <>
+              <header className="sesion-detail__hero">
+                <div>
+                  <span className="sesion-detail__eyebrow">Servicio</span>
+                  <h1>{servicio.nombre || `Servicio #${servicio.id}`}</h1>
+                  <p>
+                    Inicio: {formatFecha(servicio.fecha_inicio)}
+                    {servicio.fecha_fin
+                      ? ` · Fin: ${formatFecha(servicio.fecha_fin)}`
+                      : ""}
+                  </p>
+                </div>
+                <div className="sesion-detail__hero-actions">
+                  <span
+                    className={`servicio-badge servicio-badge--${servicio.estado}`}>
+                    {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
+                  </span>
+                  <button
+                    type="button"
+                    className="animal-detail__action"
+                    onClick={startEditing}>
+                    <IconEdit size={16} stroke={1.5} />
+                    Editar
+                  </button>
+                </div>
+              </header>
+
+              {servicio.observaciones && (
+                <div className="servicio-detail__observaciones">
+                  <h2>Observaciones</h2>
+                  <p>{servicio.observaciones}</p>
+                </div>
+              )}
+            </>
           )}
 
           <div className="servicio-detail__lotes">
