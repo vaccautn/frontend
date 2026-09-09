@@ -1,14 +1,14 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import {
+  Badge,
   Button,
   Field,
   Input,
   NativeSelect,
-  Spinner,
   Textarea,
 } from "@chakra-ui/react";
-import { IconArrowLeft, IconEdit } from "@tabler/icons-react";
+import { IconArrowLeft, IconChevronDown, IconEdit } from "@tabler/icons-react";
 import {
   actualizarServicio,
   getLotesServicio,
@@ -31,8 +31,23 @@ import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
 import { toast } from "react-toastify";
 import "@/features/animales/components/animales.css";
-import "@/features/sesiones/components/sesiones.css";
 import "@/features/servicios/components/servicios.css";
+
+const CAMPOS: { label: string; render: (servicio: ServicioRead) => string }[] = [
+  {
+    label: "Fecha de inicio",
+    render: (s) => formatFecha(s.fecha_inicio),
+  },
+  {
+    label: "Fecha de fin",
+    render: (s) => (s.fecha_fin ? formatFecha(s.fecha_fin) : "—"),
+  },
+];
+
+const CAMPO_OBSERVACIONES = {
+  label: "Observaciones",
+  render: (servicio: ServicioRead) => servicio.observaciones || "—",
+};
 
 type DetailStatus = "loading" | "ready" | "error" | "not-found";
 
@@ -45,6 +60,8 @@ export function ServicioDetailPage() {
   const [servicio, setServicio] = useState<ServicioRead | null>(null);
   const [lotes, setLotes] = useState<ServicioLotesAgrupados | null>(null);
   const [errorMessage, setErrorMessage] = useState("");
+
+  const [isDetailsOpen, setIsDetailsOpen] = useState(false);
 
   const [isEditing, setIsEditing] = useState(false);
   const [editValues, setEditValues] = useState<ServicioEditarValues | null>(
@@ -165,166 +182,208 @@ export function ServicioDetailPage() {
   };
 
   return (
-    <section className="sesion-detail" aria-label="Detalle de servicio">
-      <Button
-        colorPalette="brand"
-        variant="ghost"
-        className="sesion-detail__back"
-        onClick={() => navigate("/servicios")}>
-        <IconArrowLeft size={16} stroke={1.5} />
-        Volver a servicios
-      </Button>
+    <section className="animal-page">
+      <div className="animal-page__topbar">
+        <Button
+          colorPalette="brand"
+          variant="ghost"
+          paddingInlineStart="0.75rem"
+          paddingInlineEnd="0.75rem"
+          marginInlineStart="-0.75rem"
+          className="animal-page__back-link"
+          onClick={() => navigate("/servicios")}>
+          <IconArrowLeft size={16} stroke={1.5} />
+          Volver
+        </Button>
+      </div>
 
-      {status === "loading" && (
-        <div className="sesion-detail__state" role="status" aria-live="polite">
-          <Spinner size="md" />
-          <p>Cargando detalle del servicio...</p>
-        </div>
-      )}
+      {status === "loading" && <p>Cargando...</p>}
 
       {status === "not-found" && (
-        <div className="sesion-detail__state" role="alert">
-          <h1>El servicio ya no está disponible</h1>
-          <p>Volvé al listado para consultar los servicios disponibles.</p>
-        </div>
+        <p className="status-message error" role="alert">
+          El servicio ya no está disponible. Volvé al listado para consultar
+          los servicios disponibles.
+        </p>
       )}
 
       {status === "error" && (
-        <div className="sesion-detail__state" role="alert">
-          <h1>No pudimos cargar el servicio</h1>
-          <p>{errorMessage}</p>
-        </div>
+        <p className="status-message error" role="alert">
+          {errorMessage}
+        </p>
       )}
 
       {status === "ready" && servicio && (
         <>
-          {isEditing && editValues ? (
-            <form
-              onSubmit={handleSave}
-              noValidate
-              className="animal-edit-page__form">
-              {editFormError && (
-                <p
-                  className="status-message error animal-edit-page__field--full"
-                  role="alert">
-                  {editFormError}
-                </p>
-              )}
-
-              <Field.Root invalid={!!editErrors.nombre}>
-                <Field.Label>Nombre</Field.Label>
-                <Input
-                  value={editValues.nombre}
-                  onChange={updateEditField("nombre")}
-                />
-                <Field.ErrorText>{editErrors.nombre}</Field.ErrorText>
-              </Field.Root>
-
-              <Field.Root invalid={!!editErrors.estado}>
-                <Field.Label>Estado</Field.Label>
-                <NativeSelect.Root>
-                  <NativeSelect.Field
-                    value={editValues.estado}
-                    onChange={updateEditField("estado")}>
-                    {ESTADOS_SERVICIO.map(({ value, label }) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </NativeSelect.Field>
-                  <NativeSelect.Indicator />
-                </NativeSelect.Root>
-                <Field.ErrorText>{editErrors.estado}</Field.ErrorText>
-              </Field.Root>
-
-              <Field.Root invalid={!!editErrors.fecha_inicio}>
-                <Field.Label>Fecha de inicio</Field.Label>
-                <Input
-                  type="date"
-                  value={editValues.fecha_inicio}
-                  onChange={updateEditField("fecha_inicio")}
-                />
-                <Field.ErrorText>{editErrors.fecha_inicio}</Field.ErrorText>
-              </Field.Root>
-
-              <Field.Root invalid={!!editErrors.fecha_fin}>
-                <Field.Label>Fecha de fin</Field.Label>
-                <Input
-                  type="date"
-                  value={editValues.fecha_fin}
-                  onChange={updateEditField("fecha_fin")}
-                />
-                <Field.ErrorText>{editErrors.fecha_fin}</Field.ErrorText>
-              </Field.Root>
-
-              <Field.Root className="animal-edit-page__field--full">
-                <Field.Label>Observaciones</Field.Label>
-                <Textarea
-                  value={editValues.observaciones}
-                  onChange={updateEditField("observaciones")}
-                  rows={3}
-                />
-              </Field.Root>
-
-              <div className="animal-edit-page__actions">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="animal-form__cancel"
-                  onClick={cancelEditing}
-                  disabled={isSaving}>
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  colorPalette="brand"
-                  loading={isSaving}
-                  loadingText="Guardando...">
-                  Guardar cambios
-                </Button>
-              </div>
-            </form>
-          ) : (
-            <>
-              <header className="sesion-detail__hero">
-                <div>
-                  <span className="sesion-detail__eyebrow">Servicio</span>
-                  <h1>{servicio.nombre || `Servicio #${servicio.id}`}</h1>
-                  <p>
-                    Inicio: {formatFecha(servicio.fecha_inicio)}
-                    {servicio.fecha_fin
-                      ? ` · Fin: ${formatFecha(servicio.fecha_fin)}`
-                      : ""}
-                  </p>
-                </div>
-                <div className="sesion-detail__hero-actions">
-                  <span
-                    className={`servicio-badge servicio-badge--${servicio.estado}`}>
-                    {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
-                  </span>
-                  <button
-                    type="button"
-                    className="animal-detail__action"
-                    onClick={startEditing}>
-                    <IconEdit size={16} stroke={1.5} />
-                    Editar
-                  </button>
-                </div>
-              </header>
-
-              {servicio.observaciones && (
-                <div className="servicio-detail__observaciones">
-                  <h2>Observaciones</h2>
-                  <p>{servicio.observaciones}</p>
-                </div>
-              )}
-            </>
-          )}
-
-          <div className="servicio-detail__lotes">
-            <LotesGrupo titulo="Vientres" lotes={lotes?.vientres ?? []} />
-            <LotesGrupo titulo="Toros" lotes={lotes?.toros ?? []} />
+          <div className="animal-page__hero">
+            <div>
+              <span className="animal-page__eyebrow">Servicio</span>
+              <h1>{servicio.nombre || `#${servicio.id}`}</h1>
+            </div>
+            <span
+              className={`servicio-badge servicio-badge--${servicio.estado}`}>
+              {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
+            </span>
           </div>
+
+          <Button
+            colorPalette="brand"
+            variant={"outline"}
+            bg="var(--panel)"
+            className="animal-page__details-toggle"
+            aria-expanded={isDetailsOpen}
+            disabled={isEditing}
+            onClick={() => setIsDetailsOpen((current) => !current)}>
+            <IconChevronDown
+              size={16}
+              stroke={1.75}
+              className={`animal-page__details-toggle-icon${
+                isDetailsOpen ? " animal-page__details-toggle-icon--open" : ""
+              }`}
+            />
+            {isDetailsOpen ? "Ocultar detalles" : "Mostrar detalles"}
+          </Button>
+
+          <div
+            className={`animal-page__grid-collapse${
+              isDetailsOpen ? " animal-page__grid-collapse--open" : ""
+            }`}>
+            <div className="animal-page__grid-collapse-inner">
+              <div className="animal-page__grid-wrapper">
+                {isEditing && editValues ? (
+                  <form
+                    onSubmit={handleSave}
+                    noValidate
+                    className="animal-edit-page__form">
+                    {editFormError && (
+                      <p
+                        className="status-message error animal-edit-page__field--full"
+                        role="alert">
+                        {editFormError}
+                      </p>
+                    )}
+
+                    <Field.Root invalid={!!editErrors.nombre}>
+                      <Field.Label>Nombre</Field.Label>
+                      <Input
+                        value={editValues.nombre}
+                        onChange={updateEditField("nombre")}
+                      />
+                      <Field.ErrorText>{editErrors.nombre}</Field.ErrorText>
+                    </Field.Root>
+
+                    <Field.Root invalid={!!editErrors.estado}>
+                      <Field.Label>Estado</Field.Label>
+                      <NativeSelect.Root>
+                        <NativeSelect.Field
+                          value={editValues.estado}
+                          onChange={updateEditField("estado")}>
+                          {ESTADOS_SERVICIO.map(({ value, label }) => (
+                            <option key={value} value={value}>
+                              {label}
+                            </option>
+                          ))}
+                        </NativeSelect.Field>
+                        <NativeSelect.Indicator />
+                      </NativeSelect.Root>
+                      <Field.ErrorText>{editErrors.estado}</Field.ErrorText>
+                    </Field.Root>
+
+                    <Field.Root invalid={!!editErrors.fecha_inicio}>
+                      <Field.Label>Fecha de inicio</Field.Label>
+                      <Input
+                        type="date"
+                        value={editValues.fecha_inicio}
+                        onChange={updateEditField("fecha_inicio")}
+                      />
+                      <Field.ErrorText>
+                        {editErrors.fecha_inicio}
+                      </Field.ErrorText>
+                    </Field.Root>
+
+                    <Field.Root invalid={!!editErrors.fecha_fin}>
+                      <Field.Label>Fecha de fin</Field.Label>
+                      <Input
+                        type="date"
+                        value={editValues.fecha_fin}
+                        onChange={updateEditField("fecha_fin")}
+                      />
+                      <Field.ErrorText>{editErrors.fecha_fin}</Field.ErrorText>
+                    </Field.Root>
+
+                    <Field.Root className="animal-edit-page__field--full">
+                      <Field.Label>Observaciones</Field.Label>
+                      <Textarea
+                        value={editValues.observaciones}
+                        onChange={updateEditField("observaciones")}
+                        rows={3}
+                      />
+                    </Field.Root>
+
+                    <div className="animal-edit-page__actions">
+                      <Button
+                        type="button"
+                        variant="outline"
+                        className="animal-form__cancel"
+                        onClick={cancelEditing}
+                        disabled={isSaving}>
+                        Cancelar
+                      </Button>
+                      <Button
+                        type="submit"
+                        colorPalette="brand"
+                        loading={isSaving}
+                        loadingText="Guardando...">
+                        Guardar cambios
+                      </Button>
+                    </div>
+                  </form>
+                ) : (
+                  <>
+                    <dl className="animal-page__grid">
+                      {CAMPOS.map(({ label, render }) => (
+                        <div key={label}>
+                          <dt>{label}</dt>
+                          <dd>{render(servicio)}</dd>
+                        </div>
+                      ))}
+                      <div className="animal-page__grid-field--full">
+                        <dt>{CAMPO_OBSERVACIONES.label}</dt>
+                        <dd>{CAMPO_OBSERVACIONES.render(servicio)}</dd>
+                      </div>
+                    </dl>
+
+                    <div className="animal-page__grid-actions">
+                      <button
+                        type="button"
+                        className="animal-detail__action"
+                        onClick={startEditing}>
+                        <IconEdit size={16} stroke={1.5} />
+                        Editar
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </div>
+          </div>
+
+          <div className="animal-page__details-divider" />
+
+          <section className="animal-detail__section">
+            <div className="animal-detail__section-header">
+              <div>
+                <span className="animal-detail__section-eyebrow">
+                  Lotes asociados
+                </span>
+                <h2>Vientres y toros</h2>
+              </div>
+            </div>
+
+            <div className="servicio-detail__lotes">
+              <LotesGrupo titulo="Vientres" lotes={lotes?.vientres ?? []} />
+              <LotesGrupo titulo="Toros" lotes={lotes?.toros ?? []} />
+            </div>
+          </section>
         </>
       )}
     </section>
@@ -341,7 +400,7 @@ function LotesGrupo({ titulo, lotes }: LotesGrupoProps) {
     <div className="servicio-detail__lotes-grupo">
       <div className="servicio-detail__lotes-grupo-header">
         <h2>{titulo}</h2>
-        <span className="sesion-detail__count">{lotes.length}</span>
+        <Badge colorPalette="brand">{lotes.length}</Badge>
       </div>
       {lotes.length === 0 ? (
         <p className="servicio-detail__lotes-vacio">
