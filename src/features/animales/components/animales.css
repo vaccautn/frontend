@@ -693,6 +693,12 @@
   flex-shrink: 0;
 }
 
+.animal-evaluacion__valor-hint {
+  color: var(--text);
+  font-weight: 400;
+  font-size: 0.85rem;
+}
+
 .animal-evaluacion__valor-menu {
   min-width: 200px;
   background: var(--panel);

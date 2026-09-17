@@ -23,6 +23,7 @@ import { toast } from "react-toastify";
 import { DEFAULT_CC_SCALE } from "@/features/animales/constants";
 import {
   eliminarImagenEvaluacion,
+  getEvaluacionCc,
   getImagenesEvaluacion,
   subirImagenesEvaluacion,
 } from "@/features/animales/services/animalesService";
@@ -52,6 +53,11 @@ type RegistrarEvaluacionCCDialogProps = {
   fechaBase?: string;
   onClose: () => void;
   onGuardar: (data: EvaluacionCCPendiente) => Promise<boolean>;
+  /** Se dispara con la evaluación ya actualizada cada vez que una imagen
+   * termina de procesarse (la IA puede haber recalculado valor_cc), para que
+   * el llamador pueda refrescar cualquier vista que dependa de ese valor
+   * (p. ej. la tabla de la sesión de captura). */
+  onEvaluacionActualizada?: (evaluacion: EvaluacionCC) => void;
 };
 
 type FormValues = {
@@ -75,6 +81,7 @@ export function RegistrarEvaluacionCCDialog({
   fechaBase,
   onClose,
   onGuardar,
+  onEvaluacionActualizada,
 }: RegistrarEvaluacionCCDialogProps) {
   const [values, setValues] = useState<FormValues>(INITIAL_VALUES);
   const [errors, setErrors] = useState<FormErrors>({});
@@ -170,19 +177,40 @@ export function RegistrarEvaluacionCCDialog({
     if (nuevosArchivos.length === 0 || !evaluacionExistente) return;
 
     setIsUploadingImage(true);
+    let subidaOk = false;
     try {
       const nuevas = await subirImagenesEvaluacion(
         evaluacionExistente.id,
         nuevosArchivos,
       );
       setImagenes((current) => [...current, ...nuevas]);
-      toast.success(
-        nuevas.length > 1
-          ? "Imágenes subidas correctamente."
-          : "Imagen subida correctamente.",
-      );
+      subidaOk = true;
     } catch (error) {
       toast.error(getImagenUploadErrorMessage(error, nuevosArchivos.length));
+    }
+
+    // La IA puede haber recalculado valor_cc aunque la subida termine en
+    // error (una imagen del lote puede fallar después de que otra ya haya
+    // sido inferida y committeada), así que siempre se refresca desde el
+    // servidor en vez de confiar en el estado local.
+    try {
+      const evaluacionActualizada = await getEvaluacionCc(
+        evaluacionExistente.id,
+      );
+      onEvaluacionActualizada?.(evaluacionActualizada);
+      if (subidaOk) {
+        toast.success(
+          `${nuevosArchivos.length > 1 ? "Imágenes subidas" : "Imagen subida"} correctamente. Condición corporal detectada por IA: ${evaluacionActualizada.valor_cc}.`,
+        );
+      }
+    } catch {
+      if (subidaOk) {
+        toast.success(
+          nuevosArchivos.length > 1
+            ? "Imágenes subidas correctamente."
+            : "Imagen subida correctamente.",
+        );
+      }
     } finally {
       setIsUploadingImage(false);
     }
@@ -232,10 +260,17 @@ export function RegistrarEvaluacionCCDialog({
 
     const nextErrors: FormErrors = {};
     const normalizedScore = values.valorCc.trim();
+    // Una evaluación nueva con fotos adjuntas no necesita un valor manual: la
+    // IA lo calcula al procesar la imagen apenas se crea la evaluación. Sin
+    // fotos no hay otra forma de obtener el valor, así que ahí sigue siendo
+    // obligatorio.
+    const puedeInferirPorFoto = !evaluacionExistente && files.length > 0;
 
     if (!normalizedScore) {
-      nextErrors.valorCc =
-        "Debés ingresar un valor de condición corporal para registrar la evaluación.";
+      if (!puedeInferirPorFoto) {
+        nextErrors.valorCc =
+          "Debés ingresar un valor de condición corporal, o adjuntar una foto para obtener una inferencia automática.";
+      }
     } else {
       const parsedScore = Number(normalizedScore);
       if (
@@ -251,10 +286,18 @@ export function RegistrarEvaluacionCCDialog({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
+    // Placeholder neutro (mitad de la escala) para la creación cuando no se
+    // eligió un valor a mano: la IA lo va a sobreescribir apenas procese la
+    // foto adjunta. Si la foto termina rechazada, este valor queda como
+    // aproximación hasta que alguien la reevalúe a mano.
+    const valorCcFinal = normalizedScore
+      ? Number(normalizedScore)
+      : Math.round((DEFAULT_CC_SCALE.min + DEFAULT_CC_SCALE.max) / 2);
+
     setFormError("");
     setIsSaving(true);
     const guardado = await onGuardar({
-      valorCc: Number(normalizedScore),
+      valorCc: valorCcFinal,
       escalaMin: DEFAULT_CC_SCALE.min,
       escalaMax: DEFAULT_CC_SCALE.max,
       observaciones: values.observaciones.trim(),
@@ -277,237 +320,250 @@ export function RegistrarEvaluacionCCDialog({
         <Portal>
           <Dialog.Backdrop className="animal-evaluacion__backdrop" />
           <Dialog.Positioner>
-          <Dialog.Content className="animal-evaluacion__dialog">
-            <Dialog.Header className="animal-evaluacion__header">
-              <div>
-                {animal && (
-                  <Dialog.Title>
-                    Registrar evaluación de CC de {animal.caravana}
-                  </Dialog.Title>
-                )}
-                <p>Escala 1 a 5</p>
-              </div>
-              <Dialog.CloseTrigger asChild>
-                <button
-                  type="button"
-                  className="animal-form__close"
-                  aria-label="Cerrar"
-                  disabled={isSaving}>
-                  ✕
-                </button>
-              </Dialog.CloseTrigger>
-            </Dialog.Header>
-
-            <Dialog.Body className="animal-evaluacion__body">
-              {formError && (
-                <p className="status-message error" role="alert">
-                  {formError}
-                </p>
-              )}
-
-              <form
-                id="animal-evaluacion-form"
-                onSubmit={handleGuardar}
-                noValidate
-                className="animal-form__fields">
-                <Field.Root invalid={!!errors.valorCc} required>
-                  <Field.Label>Condición corporal</Field.Label>
-                  <Menu.Root>
-                    <Menu.Trigger asChild>
-                      <button
-                        type="button"
-                        className="animal-evaluacion__valor-trigger"
-                        aria-label="Seleccionar valor de CC">
-                        <span>{values.valorCc || "Seleccioná un valor"}</span>
-                        <IconChevronDown
-                          className="animal-evaluacion__valor-caret"
-                          size={16}
-                          stroke={1.5}
-                        />
-                      </button>
-                    </Menu.Trigger>
-                    <Portal>
-                      <Menu.Positioner>
-                        <Menu.Content className="animal-evaluacion__valor-menu">
-                          {ccOptions.map((option) => (
-                            <Menu.Item
-                              key={option}
-                              value={String(option)}
-                              onSelect={() => handleCcChange(option)}>
-                              {option}
-                            </Menu.Item>
-                          ))}
-                        </Menu.Content>
-                      </Menu.Positioner>
-                    </Portal>
-                  </Menu.Root>
-                  <Field.ErrorText>{errors.valorCc}</Field.ErrorText>
-                </Field.Root>
-
-                <Field.Root>
-                  <Field.Label>Observación</Field.Label>
-                  <Textarea
-                    value={values.observaciones}
-                    onChange={updateField("observaciones")}
-                    rows={2}
-                    placeholder="Agregá una observación si hace falta."
-                  />
-                </Field.Root>
-                <Field.Root>
-                  <Field.Label>Imágenes</Field.Label>
-                  {evaluacionExistente ? (
-                    <>
-                      {imagenesLoading ? (
-                        <div className="animal-imagenes__loading">
-                          <Spinner size="xs" />
-                          <span>Cargando imágenes...</span>
-                        </div>
-                      ) : (
-                        <div className="animal-imagenes__grid">
-                          {imagenes.map((imagen) => (
-                            <div
-                              key={imagen.id}
-                              className="animal-imagenes__thumb-wrap">
-                              <button
-                                type="button"
-                                className="animal-imagenes__thumb"
-                                aria-label="Ver imagen en pantalla completa"
-                                onClick={() => setFullscreenImage(imagen)}>
-                                <img
-                                  src={imagen.url}
-                                  alt="Evidencia visual de la evaluación"
-                                />
-                              </button>
-                              <button
-                                type="button"
-                                className="animal-imagenes__thumb-delete"
-                                aria-label="Eliminar imagen"
-                                onClick={() => setConfirmDeleteImage(imagen)}>
-                                <IconX size={12} stroke={2} />
-                              </button>
-                            </div>
-                          ))}
-                          <button
-                            type="button"
-                            className="animal-imagenes__add-thumb"
-                            aria-label="Agregar imagen"
-                            onClick={handleAddImageClick}
-                            disabled={isUploadingImage}>
-                            {isUploadingImage ? (
-                              <Spinner size="xs" />
-                            ) : (
-                              <IconPlus size={20} stroke={1.75} />
-                            )}
-                          </button>
-                        </div>
-                      )}
-                      <input
-                        ref={imageInputRef}
-                        type="file"
-                        accept="image/*"
-                        multiple
-                        hidden
-                        onChange={handleImageInputChange}
-                      />
-                    </>
-                  ) : (
-                    <FileUpload.Root
-                      alignItems="stretch"
-                      maxFiles={10}
-                      onFileChange={(details) =>
-                        setFiles(details.acceptedFiles)
-                      }>
-                      <FileUpload.HiddenInput />
-                      <FileUpload.Dropzone className="dropzone">
-                        <Icon size="md" color="fg.muted">
-                          <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            height="24px"
-                            viewBox="0 -960 960 960"
-                            width="24px"
-                            fill="#888">
-                            <path d="M440-320v-326L336-542l-56-58 200-200 200 200-56 58-104-104v326h-80ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z" />
-                          </svg>
-                        </Icon>
-                        <FileUpload.DropzoneContent>
-                          <Box>Arrastrá y soltá archivos aquí</Box>
-                          <Box color="fg.muted">.png, .jpg up to 5MB</Box>
-                        </FileUpload.DropzoneContent>
-                      </FileUpload.Dropzone>
-                      <FileUpload.ItemGroup>
-                        <FileUpload.Context>
-                          {({ acceptedFiles }) =>
-                            acceptedFiles.map((file) => (
-                              <FileUpload.Item key={file.name} file={file}>
-                                <div>
-                                  <FileUpload.ItemPreview>
-                                    <FileUpload.ItemPreviewImage
-                                      boxSize="48px"
-                                      objectFit="cover"
-                                      borderRadius="md"
-                                    />
-                                  </FileUpload.ItemPreview>
-                                  <div className="align-baseline">
-                                    <FileUpload.ItemName />
-                                    <FileUpload.ItemSizeText />
-                                  </div>
-                                </div>
-
-                                <FileUpload.ItemDeleteTrigger
-                                  asChild
-                                  className="delete-file">
-                                  <svg
-                                    className="upload-icon"
-                                    xmlns="http://www.w3.org/2000/svg"
-                                    height="24px"
-                                    viewBox="0 -960 960 960"
-                                    width="24px"
-                                    fill="#888">
-                                    <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
-                                  </svg>
-                                </FileUpload.ItemDeleteTrigger>
-                              </FileUpload.Item>
-                            ))
-                          }
-                        </FileUpload.Context>
-                      </FileUpload.ItemGroup>
-                    </FileUpload.Root>
+            <Dialog.Content className="animal-evaluacion__dialog">
+              <Dialog.Header className="animal-evaluacion__header">
+                <div>
+                  {animal && (
+                    <Dialog.Title>
+                      Registrar evaluación de CC de {animal.caravana}
+                    </Dialog.Title>
                   )}
-                </Field.Root>
-              </form>
-            </Dialog.Body>
-            <div className="info-de-fecha">
-              <svg
-                xmlns="http://www.w3.org/2000/svg"
-                height="24px"
-                viewBox="0 -960 960 960"
-                width="24px"
-                fill="#e3e3e3">
-                <path d="M440-280h80v-240h-80v240Zm68.5-331.5Q520-623 520-640t-11.5-28.5Q497-680 480-680t-28.5 11.5Q440-657 440-640t11.5 28.5Q463-600 480-600t28.5-11.5ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
-              </svg>
-              <p>La fecha y hora se registran automáticamente al guardar</p>
-            </div>
-            <Dialog.Footer className="animal-evaluacion__footer">
-              <Button
-                type="button"
-                variant="outline"
-                onClick={onClose}
-                disabled={isSaving}>
-                Cancelar
-              </Button>
-              <Button
-                type="submit"
-                form="animal-evaluacion-form"
-                colorPalette="brand"
-                loading={isSaving}
-                loadingText="Guardando..."
-                disabled={!animal || animal.estado !== "ACTIVO"}>
-                Guardar valor
-              </Button>
-            </Dialog.Footer>
-          </Dialog.Content>
-        </Dialog.Positioner>
-      </Portal>
+                  <p>Escala 1 a 5</p>
+                </div>
+                <Dialog.CloseTrigger asChild>
+                  <button
+                    type="button"
+                    className="animal-form__close"
+                    aria-label="Cerrar"
+                    disabled={isSaving}>
+                    ✕
+                  </button>
+                </Dialog.CloseTrigger>
+              </Dialog.Header>
+
+              <Dialog.Body className="animal-evaluacion__body">
+                {formError && (
+                  <p className="status-message error" role="alert">
+                    {formError}
+                  </p>
+                )}
+
+                <form
+                  id="animal-evaluacion-form"
+                  onSubmit={handleGuardar}
+                  noValidate
+                  className="animal-form__fields">
+                  <Field.Root>
+                    <Field.Label>Imágenes</Field.Label>
+                    {evaluacionExistente ? (
+                      <>
+                        {imagenesLoading ? (
+                          <div className="animal-imagenes__loading">
+                            <Spinner size="xs" />
+                            <span>Cargando imágenes...</span>
+                          </div>
+                        ) : (
+                          <div className="animal-imagenes__grid">
+                            {imagenes.map((imagen) => (
+                              <div
+                                key={imagen.id}
+                                className="animal-imagenes__thumb-wrap">
+                                <button
+                                  type="button"
+                                  className="animal-imagenes__thumb"
+                                  aria-label="Ver imagen en pantalla completa"
+                                  onClick={() => setFullscreenImage(imagen)}>
+                                  <img
+                                    src={imagen.url}
+                                    alt="Evidencia visual de la evaluación"
+                                  />
+                                </button>
+                                <button
+                                  type="button"
+                                  className="animal-imagenes__thumb-delete"
+                                  aria-label="Eliminar imagen"
+                                  onClick={() => setConfirmDeleteImage(imagen)}>
+                                  <IconX size={12} stroke={2} />
+                                </button>
+                              </div>
+                            ))}
+                            <button
+                              type="button"
+                              className="animal-imagenes__add-thumb"
+                              aria-label="Agregar imagen"
+                              onClick={handleAddImageClick}
+                              disabled={isUploadingImage}>
+                              {isUploadingImage ? (
+                                <Spinner size="xs" />
+                              ) : (
+                                <IconPlus size={20} stroke={1.75} />
+                              )}
+                            </button>
+                          </div>
+                        )}
+                        <input
+                          ref={imageInputRef}
+                          type="file"
+                          accept="image/*"
+                          multiple
+                          hidden
+                          onChange={handleImageInputChange}
+                        />
+                      </>
+                    ) : (
+                      <FileUpload.Root
+                        alignItems="stretch"
+                        maxFiles={10}
+                        onFileChange={(details) =>
+                          setFiles(details.acceptedFiles)
+                        }>
+                        <FileUpload.HiddenInput />
+                        <FileUpload.Dropzone className="dropzone">
+                          <Icon size="md" color="fg.muted">
+                            <svg
+                              xmlns="http://www.w3.org/2000/svg"
+                              height="24px"
+                              viewBox="0 -960 960 960"
+                              width="24px"
+                              fill="#888">
+                              <path d="M440-320v-326L336-542l-56-58 200-200 200 200-56 58-104-104v326h-80ZM240-160q-33 0-56.5-23.5T160-240v-120h80v120h480v-120h80v120q0 33-23.5 56.5T720-160H240Z" />
+                            </svg>
+                          </Icon>
+                          <FileUpload.DropzoneContent>
+                            <Box>Arrastrá y soltá archivos aquí</Box>
+                            <Box color="fg.muted">.png, .jpg up to 5MB</Box>
+                          </FileUpload.DropzoneContent>
+                        </FileUpload.Dropzone>
+                        <FileUpload.ItemGroup>
+                          <FileUpload.Context>
+                            {({ acceptedFiles }) =>
+                              acceptedFiles.map((file) => (
+                                <FileUpload.Item key={file.name} file={file}>
+                                  <div>
+                                    <FileUpload.ItemPreview>
+                                      <FileUpload.ItemPreviewImage
+                                        boxSize="48px"
+                                        objectFit="cover"
+                                        borderRadius="md"
+                                      />
+                                    </FileUpload.ItemPreview>
+                                    <div className="align-baseline">
+                                      <FileUpload.ItemName />
+                                      <FileUpload.ItemSizeText />
+                                    </div>
+                                  </div>
+
+                                  <FileUpload.ItemDeleteTrigger
+                                    asChild
+                                    className="delete-file">
+                                    <svg
+                                      className="upload-icon"
+                                      xmlns="http://www.w3.org/2000/svg"
+                                      height="24px"
+                                      viewBox="0 -960 960 960"
+                                      width="24px"
+                                      fill="#888">
+                                      <path d="m256-200-56-56 224-224-224-224 56-56 224 224 224-224 56 56-224 224 224 224-56 56-224-224-224 224Z" />
+                                    </svg>
+                                  </FileUpload.ItemDeleteTrigger>
+                                </FileUpload.Item>
+                              ))
+                            }
+                          </FileUpload.Context>
+                        </FileUpload.ItemGroup>
+                      </FileUpload.Root>
+                    )}
+                  </Field.Root>
+                  <Field.Root>
+                    <Field.Label>Observación</Field.Label>
+                    <Textarea
+                      value={values.observaciones}
+                      onChange={updateField("observaciones")}
+                      rows={2}
+                      placeholder="Agregá una observación si hace falta."
+                    />
+                  </Field.Root>
+                  <Field.Root
+                    invalid={!!errors.valorCc}
+                    required={!!evaluacionExistente || files.length === 0}>
+                    <Field.Label>
+                      Condición corporal
+                      {!evaluacionExistente && files.length > 0 && (
+                        <span className="animal-evaluacion__valor-hint">
+                          (Al subir una foto se infiere automáticamente)
+                        </span>
+                      )}
+                    </Field.Label>
+                    <Menu.Root>
+                      <Menu.Trigger asChild>
+                        <button
+                          type="button"
+                          className="animal-evaluacion__valor-trigger"
+                          aria-label="Seleccionar valor de CC">
+                          <span>
+                            {values.valorCc ||
+                              (!evaluacionExistente && files.length > 0
+                                ? "Evaluación automática"
+                                : "Seleccioná un valor")}
+                          </span>
+                          <IconChevronDown
+                            className="animal-evaluacion__valor-caret"
+                            size={16}
+                            stroke={1.5}
+                          />
+                        </button>
+                      </Menu.Trigger>
+                      <Portal>
+                        <Menu.Positioner>
+                          <Menu.Content className="animal-evaluacion__valor-menu">
+                            {ccOptions.map((option) => (
+                              <Menu.Item
+                                key={option}
+                                value={String(option)}
+                                onSelect={() => handleCcChange(option)}>
+                                {option}
+                              </Menu.Item>
+                            ))}
+                          </Menu.Content>
+                        </Menu.Positioner>
+                      </Portal>
+                    </Menu.Root>
+                    <Field.ErrorText>{errors.valorCc}</Field.ErrorText>
+                  </Field.Root>
+                </form>
+              </Dialog.Body>
+              <div className="info-de-fecha">
+                <svg
+                  xmlns="http://www.w3.org/2000/svg"
+                  height="24px"
+                  viewBox="0 -960 960 960"
+                  width="24px"
+                  fill="#e3e3e3">
+                  <path d="M440-280h80v-240h-80v240Zm68.5-331.5Q520-623 520-640t-11.5-28.5Q497-680 480-680t-28.5 11.5Q440-657 440-640t11.5 28.5Q463-600 480-600t28.5-11.5ZM480-80q-83 0-156-31.5T197-197q-54-54-85.5-127T80-480q0-83 31.5-156T197-763q54-54 127-85.5T480-880q83 0 156 31.5T763-763q54 54 85.5 127T880-480q0 83-31.5 156T763-197q-54 54-127 85.5T480-80Zm0-80q134 0 227-93t93-227q0-134-93-227t-227-93q-134 0-227 93t-93 227q0 134 93 227t227 93Zm0-320Z" />
+                </svg>
+                <p>La fecha y hora se registran automáticamente al guardar</p>
+              </div>
+              <Dialog.Footer className="animal-evaluacion__footer">
+                <Button
+                  type="button"
+                  variant="outline"
+                  onClick={onClose}
+                  disabled={isSaving}>
+                  Cancelar
+                </Button>
+                <Button
+                  type="submit"
+                  form="animal-evaluacion-form"
+                  colorPalette="brand"
+                  loading={isSaving}
+                  loadingText="Guardando..."
+                  disabled={!animal || animal.estado !== "ACTIVO"}>
+                  Guardar valor
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
       </Dialog.Root>
 
       {fullscreenImage && (

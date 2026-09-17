@@ -11,7 +11,10 @@ import {
   updateEvaluacionCcEnSesion,
 } from "@/features/animales/services/animalesService";
 import { getLotes } from "@/features/lotes/services/lotesService";
-import { actualizarSesion, eliminarSesion } from "@/features/sesiones/services/sesionesService";
+import {
+  actualizarSesion,
+  eliminarSesion,
+} from "@/features/sesiones/services/sesionesService";
 import { AnimalesFiltros } from "@/features/animales/components/AnimalesFiltros";
 import { useAnimalesFiltros } from "@/features/animales/hooks/useAnimalesFiltros";
 import {
@@ -19,7 +22,11 @@ import {
   type EvaluacionCCPendiente,
 } from "@/features/animales/components/RegistrarEvaluacionCCDialog"; // ajustar ruta real
 import type { SesionCapturaRead } from "@/features/sesiones/types";
-import type { Animal, AnimalLoteGroup, EvaluacionCC } from "@/features/animales/types";
+import type {
+  Animal,
+  AnimalLoteGroup,
+  EvaluacionCC,
+} from "@/features/animales/types";
 import type { LoteOption } from "@/features/lotes/types";
 import { formatEventDate, localNaiveNow } from "@/utils/localDateTime";
 import { normalizeBackendDetail } from "@/features/auth";
@@ -48,7 +55,9 @@ export function CargarEvaluacionesPage() {
   const [fechaSesionInput, setFechaSesionInput] = useState("");
   const [isActualizandoFecha, setIsActualizandoFecha] = useState(false);
 
-  const [evaluacionesPersistidas, setEvaluacionesPersistidas] = useState<Map<number, EvaluacionCC>>(new Map());
+  const [evaluacionesPersistidas, setEvaluacionesPersistidas] = useState<
+    Map<number, EvaluacionCC>
+  >(new Map());
 
   const {
     caravanaInput,
@@ -78,7 +87,9 @@ export function CargarEvaluacionesPage() {
       .then(([sesionData, evaluacionesData]) => {
         setSesion(sesionData);
         setFechaSesionInput(sesionData.fecha_inicio.slice(0, 10));
-        setEvaluacionesPersistidas(new Map(evaluacionesData.map((item) => [item.animal_id, item])));
+        setEvaluacionesPersistidas(
+          new Map(evaluacionesData.map((item) => [item.animal_id, item])),
+        );
       })
       .catch(() => toast.error("No se pudo cargar la sesión."))
       .finally(() => setLoading(false));
@@ -148,11 +159,17 @@ export function CargarEvaluacionesPage() {
 
       if (existente) {
         try {
-          const actualizada = await updateEvaluacionCcEnSesion(existente.id, sesionId, {
-            valor_cc: data.valorCc,
-            observaciones: data.observaciones,
-          });
-          setEvaluacionesPersistidas((prev) => new Map(prev).set(animalId, actualizada));
+          const actualizada = await updateEvaluacionCcEnSesion(
+            existente.id,
+            sesionId,
+            {
+              valor_cc: data.valorCc,
+              observaciones: data.observaciones,
+            },
+          );
+          setEvaluacionesPersistidas((prev) =>
+            new Map(prev).set(animalId, actualizada),
+          );
           toast.success("Evaluación actualizada.");
           return true;
         } catch (error) {
@@ -166,24 +183,27 @@ export function CargarEvaluacionesPage() {
       }
 
       try {
-        const { evaluacion, imagenesError } = await registrarEvaluacionCCCompleta({
-          sesionId,
-          animalId,
-          valorCc: data.valorCc,
-          escalaMin: data.escalaMin,
-          escalaMax: data.escalaMax,
-          observaciones: data.observaciones,
-          fecha: data.fecha,
-          files: data.files,
-        });
-        setEvaluacionesPersistidas((prev) => new Map(prev).set(animalId, evaluacion));
+        const { evaluacion, imagenesError } =
+          await registrarEvaluacionCCCompleta({
+            sesionId,
+            animalId,
+            valorCc: data.valorCc,
+            escalaMin: data.escalaMin,
+            escalaMax: data.escalaMax,
+            observaciones: data.observaciones,
+            fecha: data.fecha,
+            files: data.files,
+          });
+        setEvaluacionesPersistidas((prev) =>
+          new Map(prev).set(animalId, evaluacion),
+        );
 
         if (imagenesError) {
           toast.error(imagenesError);
         } else {
           toast.success(
             data.files.length > 0
-              ? "Evaluación registrada e imágenes subidas correctamente."
+              ? `Evaluación registrada e imágenes subidas correctamente. Condición corporal detectada: ${evaluacion.valor_cc}.`
               : "Evaluación registrada.",
           );
         }
@@ -249,8 +269,13 @@ export function CargarEvaluacionesPage() {
     <section>
       <div className="section-header">
         <div className="title-and-description">
-          <h1>Cargando evaluación del {formatEventDate(sesion.fecha_inicio)}</h1>
-          <p>{evaluacionesPersistidas.size} evaluación(es) cargadas en esta sesión.</p>
+          <h1>
+            Cargando evaluación del {formatEventDate(sesion.fecha_inicio)}
+          </h1>
+          <p>
+            {evaluacionesPersistidas.size} evaluación(es) cargadas en esta
+            sesión.
+          </p>
         </div>
         <div className="sesion-detail__hero-actions">
           <button
@@ -272,7 +297,9 @@ export function CargarEvaluacionesPage() {
 
       <div className="cargar-evaluacion__fecha-sesion">
         <div className="sesiones-filtros__campo">
-          <label htmlFor="fecha-sesion" className="cargar-evaluacion__fecha-label">
+          <label
+            htmlFor="fecha-sesion"
+            className="cargar-evaluacion__fecha-label">
             Fecha de la evaluación:
           </label>
           <Input
@@ -373,11 +400,18 @@ export function CargarEvaluacionesPage() {
         fechaBase={fechaEvaluacionBase}
         onClose={() => setAnimalSeleccionado(null)}
         onGuardar={handleGuardarEvaluacion}
+        onEvaluacionActualizada={(evaluacion) =>
+          setEvaluacionesPersistidas((prev) =>
+            new Map(prev).set(evaluacion.animal_id, evaluacion),
+          )
+        }
       />
 
       <Dialog.Root
         open={confirmDeleteSesion}
-        onOpenChange={(details) => !details.open && setConfirmDeleteSesion(false)}>
+        onOpenChange={(details) =>
+          !details.open && setConfirmDeleteSesion(false)
+        }>
         <Portal>
           <Dialog.Backdrop className="animal-evaluacion__backdrop" />
           <Dialog.Positioner>
@@ -386,8 +420,8 @@ export function CargarEvaluacionesPage() {
                 <Dialog.Title>Eliminar sesión</Dialog.Title>
               </Dialog.Header>
               <Dialog.Body>
-                Se eliminará la sesión #{sesionId} y todas las evaluaciones cargadas hasta
-                ahora. Esta acción no se puede deshacer.
+                Se eliminará la sesión #{sesionId} y todas las evaluaciones
+                cargadas hasta ahora. Esta acción no se puede deshacer.
               </Dialog.Body>
               <Dialog.Footer>
                 <Button

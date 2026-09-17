@@ -20,6 +20,7 @@ import { DEFAULT_CC_SCALE } from "@/features/animales/constants";
 import {
   anularEvaluacionCcEnSesion,
   eliminarImagenEvaluacion,
+  getEvaluacionCc,
   getImagenesEvaluacion,
   subirImagenesEvaluacion,
   updateEvaluacionCc,
@@ -136,16 +137,36 @@ export function AnimalEvaluacionCCDialog({
     if (files.length === 0) return;
 
     setIsUploading(true);
+    let subidaOk = false;
     try {
       const nuevas = await subirImagenesEvaluacion(evaluacion.id, files);
       setImagenes((current) => [...current, ...nuevas]);
-      toast.success(
-        nuevas.length > 1
-          ? "Imágenes subidas correctamente."
-          : "Imagen subida correctamente.",
-      );
+      subidaOk = true;
     } catch (error) {
       toast.error(getImagenUploadErrorMessage(error, files.length));
+    }
+
+    // La IA puede haber recalculado valor_cc aunque la subida termine en
+    // error (una imagen del lote puede fallar después de que otra ya haya
+    // sido inferida y committeada), así que siempre se refresca desde el
+    // servidor en vez de confiar en el estado local.
+    try {
+      const evaluacionActualizada = await getEvaluacionCc(evaluacion.id);
+      setValorCc(evaluacionActualizada.valor_cc);
+      await onSaved();
+      if (subidaOk) {
+        toast.success(
+          `${files.length > 1 ? "Imágenes subidas" : "Imagen subida"} correctamente. Condición corporal detectada por IA: ${evaluacionActualizada.valor_cc}.`,
+        );
+      }
+    } catch {
+      if (subidaOk) {
+        toast.success(
+          files.length > 1
+            ? "Imágenes subidas correctamente."
+            : "Imagen subida correctamente.",
+        );
+      }
     } finally {
       setIsUploading(false);
     }

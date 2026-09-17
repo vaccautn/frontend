@@ -92,6 +92,11 @@ type EvaluacionesFiltros = {
   sesionId?: number;
 };
 
+export function getEvaluacionCc(id: number): Promise<EvaluacionCC> {
+  const token = getAccessToken();
+  return getJson<EvaluacionCC>(`/evaluaciones-cc/${id}`, token);
+}
+
 export function getEvaluacionesCc(
   filtros: EvaluacionesFiltros,
 ): Promise<EvaluacionCC[]> {
@@ -241,6 +246,7 @@ export async function registrarEvaluacionCCCompleta(
     fecha,
   });
 
+  let evaluacionFinal = evaluacion;
   let imagenesError: string | undefined;
   if (params.files && params.files.length > 0) {
     try {
@@ -248,7 +254,19 @@ export async function registrarEvaluacionCCCompleta(
     } catch (error) {
       imagenesError = getImagenUploadErrorMessage(error, params.files.length);
     }
+
+    // La IA puede haber recalculado valor_cc aunque la subida termine en
+    // error (una imagen del lote puede fallar después de que otra ya haya
+    // sido inferida y committeada), así que siempre se refresca desde el
+    // servidor en vez de confiar en el valor manual con el que se creó.
+    try {
+      evaluacionFinal = await getEvaluacionCc(evaluacion.id);
+    } catch {
+      // Sin conectividad para refrescar: se mantiene el valor con el que se
+      // creó la evaluación; el usuario lo verá actualizado la próxima vez
+      // que se recargue la lista.
+    }
   }
 
-  return { evaluacion, imagenesError };
+  return { evaluacion: evaluacionFinal, imagenesError };
 }
