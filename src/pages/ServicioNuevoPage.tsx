@@ -83,7 +83,7 @@ function ServicioNuevoPage() {
       const nuevoServicio = await crearServicio({
         nombre: values.nombre.trim(),
         fecha_inicio: values.fecha_inicio,
-        ...(values.fecha_fin ? { fecha_fin: values.fecha_fin } : {}),
+        fecha_fin: values.fecha_fin,
         observaciones: values.observaciones.trim(),
       });
 
@@ -174,7 +174,7 @@ function ServicioNuevoPage() {
                 </Field.Root>
 
                 <Field.Root invalid={!!errors.fecha_fin}>
-                  <Field.Label>Fecha de fin (opcional)</Field.Label>
+                  <Field.Label>Fecha de fin</Field.Label>
                   <Input
                     type="date"
                     value={values.fecha_fin}

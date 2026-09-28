@@ -5,10 +5,7 @@ import {
   getServicios,
 } from "@/features/servicios/services/serviciosService";
 import { getAnimales } from "@/features/animales/services/animalesService";
-import {
-  estaActivoHoy,
-  sincronizarEstadosServicios,
-} from "@/features/servicios/utils/servicioEstado";
+import { estaActivoHoy } from "@/features/servicios/utils/servicioEstado";
 import type {
   LoteEnServicio,
   ResultadoServicioRead,
@@ -40,10 +37,7 @@ export function useServiciosDashboard(): UseServiciosDashboardResult {
     setError("");
 
     Promise.all([getServicios(), getResultadosServicio(), getAnimales()])
-      .then(async ([serviciosDataRaw, resultadosData, animalesData]) => {
-        // El backend no transiciona PLANIFICADO -> EN_CURSO solo al llegar
-        // la fecha de inicio: se sincroniza de verdad contra el backend acá.
-        const serviciosData = await sincronizarEstadosServicios(serviciosDataRaw);
+      .then(async ([serviciosData, resultadosData, animalesData]) => {
         setServicios(serviciosData);
         setResultados(resultadosData);
         setAnimalCaravanaPorId(
@@ -54,9 +48,6 @@ export function useServiciosDashboard(): UseServiciosDashboardResult {
           ),
         );
 
-        // Además del estado ya sincronizado, se filtra por rango de fechas
-        // (cubre fecha_fin / CANCELADO-FINALIZADO) para decidir qué
-        // servicios están efectivamente activos hoy (ver servicioEstado.ts).
         const activosHoy = serviciosData.filter(estaActivoHoy);
         const gruposPorServicio = await Promise.all(
           activosHoy.map((servicio) =>

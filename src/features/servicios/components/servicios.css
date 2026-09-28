@@ -25,6 +25,11 @@
   color: var(--success);
 }
 
+.servicio-badge--CERRADO {
+  background: var(--gris-niebla);
+  color: var(--text-h);
+}
+
 .servicio-badge--CANCELADO {
   background: var(--danger-bg);
   color: var(--danger);
@@ -360,6 +365,10 @@
 
 .servicios-calendario__dot--FINALIZADO {
   background: var(--success);
+}
+
+.servicios-calendario__dot--CERRADO {
+  background: var(--text-h);
 }
 
 .servicios-calendario__dot--CANCELADO {
