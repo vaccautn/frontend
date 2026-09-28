@@ -4,6 +4,7 @@ export type EstadoServicio =
   | "PLANIFICADO"
   | "EN_CURSO"
   | "FINALIZADO"
+  | "CERRADO"
   | "CANCELADO";
 
 export type ServicioRead = {
@@ -27,14 +28,14 @@ export type ServicioListParams = {
 export type ServicioCreatePayload = {
   nombre: string;
   fecha_inicio: string;
-  fecha_fin?: string;
+  fecha_fin: string;
   observaciones: string;
 };
 
 export type ServicioUpdatePayload = {
   nombre?: string;
   fecha_inicio?: string;
-  fecha_fin?: string | null;
+  fecha_fin?: string;
   estado?: EstadoServicio;
   observaciones?: string;
 };

@@ -25,11 +25,9 @@ export function validateServicioNuevoForm(
     errors.fecha_inicio = "La fecha de inicio es obligatoria.";
   }
 
-  if (
-    values.fecha_fin &&
-    values.fecha_inicio &&
-    values.fecha_fin < values.fecha_inicio
-  ) {
+  if (!values.fecha_fin) {
+    errors.fecha_fin = "La fecha de fin es obligatoria.";
+  } else if (values.fecha_inicio && values.fecha_fin < values.fecha_inicio) {
     errors.fecha_fin = "La fecha de fin no puede ser anterior al inicio.";
   }
 
@@ -57,11 +55,9 @@ export function validateServicioEditarForm(
     errors.fecha_inicio = "La fecha de inicio es obligatoria.";
   }
 
-  if (
-    values.fecha_fin &&
-    values.fecha_inicio &&
-    values.fecha_fin < values.fecha_inicio
-  ) {
+  if (!values.fecha_fin) {
+    errors.fecha_fin = "La fecha de fin es obligatoria.";
+  } else if (values.fecha_inicio && values.fecha_fin < values.fecha_inicio) {
     errors.fecha_fin = "La fecha de fin no puede ser anterior al inicio.";
   }
 

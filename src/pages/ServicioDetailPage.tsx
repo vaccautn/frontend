@@ -33,14 +33,13 @@ import type {
 import {
   ESTADO_RESULTADO_SERVICIO_LABELS,
   ESTADO_SERVICIO_LABELS,
-  ESTADOS_SERVICIO,
+  opcionesEstadoServicio,
 } from "@/features/servicios/constants";
 import {
   validateServicioEditarForm,
   type ServicioEditarFieldErrors,
   type ServicioEditarValues,
 } from "@/features/servicios/utils/serviciosValidation";
-import { sincronizarEstadoServicio } from "@/features/servicios/utils/servicioEstado";
 import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { normalizeBackendDetail } from "@/features/auth";
@@ -150,13 +149,11 @@ export function ServicioDetailPage() {
       setStatus("loading");
 
       try {
-        const [servicioDataRaw, lotesData, resultadosData] = await Promise.all([
+        const [servicioData, lotesData, resultadosData] = await Promise.all([
           getServicio(servicioId),
           getLotesServicio(servicioId),
           getResultadosServicio({ servicioId }),
         ]);
-        if (cancelled) return;
-        const servicioData = await sincronizarEstadoServicio(servicioDataRaw);
         if (cancelled) return;
         setServicio(servicioData);
         setLotes(lotesData);
@@ -231,7 +228,7 @@ export function ServicioDetailPage() {
       const actualizado = await actualizarServicio(servicio.id, {
         nombre: editValues.nombre.trim(),
         fecha_inicio: editValues.fecha_inicio,
-        fecha_fin: editValues.fecha_fin ? editValues.fecha_fin : null,
+        fecha_fin: editValues.fecha_fin,
         estado: editValues.estado as EstadoServicio,
         observaciones: editValues.observaciones.trim(),
       });
@@ -427,11 +424,13 @@ export function ServicioDetailPage() {
                         <NativeSelect.Field
                           value={editValues.estado}
                           onChange={updateEditField("estado")}>
-                          {ESTADOS_SERVICIO.map(({ value, label }) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
+                          {opcionesEstadoServicio(servicio.estado).map(
+                            ({ value, label }) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ),
+                          )}
                         </NativeSelect.Field>
                         <NativeSelect.Indicator />
                       </NativeSelect.Root>
