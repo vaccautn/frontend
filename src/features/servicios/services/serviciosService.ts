@@ -1,6 +1,7 @@
 import { getAccessToken } from "@/features/auth";
 import { deleteRequest, getJson, patchJson, postJson } from "@/services/httpClient";
 import type {
+  CargaResultadosPayload,
   ParticipanteServicio,
   ResultadoServicioCreatePayload,
   ResultadoServicioListParams,
@@ -55,6 +56,20 @@ export function actualizarResultadoServicio(
   const token = getAccessToken();
   return patchJson<ResultadoServicioRead, ResultadoServicioUpdatePayload>(
     `/resultados-servicio/${id}`,
+    payload,
+    token,
+  );
+}
+
+/** Guarda el diagnóstico de varias vacas en una sola operación (todo o nada).
+ * Devuelve los participantes actualizados. */
+export function cargarResultadosServicio(
+  id: number,
+  payload: CargaResultadosPayload,
+): Promise<ParticipanteServicio[]> {
+  const token = getAccessToken();
+  return patchJson<ParticipanteServicio[], CargaResultadosPayload>(
+    `/servicios/${id}/resultados`,
     payload,
     token,
   );

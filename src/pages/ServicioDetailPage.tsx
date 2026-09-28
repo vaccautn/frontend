@@ -11,6 +11,7 @@ import {
 import {
   IconArrowLeft,
   IconChevronDown,
+  IconClipboardCheck,
   IconEdit,
   IconX,
 } from "@tabler/icons-react";
@@ -35,6 +36,7 @@ import {
   ESTADO_RESULTADO_SERVICIO_LABELS,
   ESTADO_SERVICIO_LABELS,
   opcionesEstadoServicio,
+  TIPO_PRENEZ_LABELS,
 } from "@/features/servicios/constants";
 import {
   validateServicioEditarForm,
@@ -383,10 +385,23 @@ export function ServicioDetailPage() {
               <span className="animal-page__eyebrow">Servicio</span>
               <h1>{servicio.nombre || `#${servicio.id}`}</h1>
             </div>
-            <span
-              className={`servicio-badge servicio-badge--${servicio.estado}`}>
-              {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
-            </span>
+            <div className="servicio-detail__hero-acciones">
+              {servicio.estado === "FINALIZADO" && (
+                <Button
+                  colorPalette="brand"
+                  size="sm"
+                  onClick={() =>
+                    navigate(`/servicios/${servicio.id}/resultados`)
+                  }>
+                  <IconClipboardCheck size={16} stroke={1.5} />
+                  Cargar resultados
+                </Button>
+              )}
+              <span
+                className={`servicio-badge servicio-badge--${servicio.estado}`}>
+                {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
+              </span>
+            </div>
           </div>
 
           <Button
@@ -883,6 +898,8 @@ function VacaParticipante({
           className={`resultado-badge resultado-badge--${resultado.estado}`}>
           {ESTADO_RESULTADO_SERVICIO_LABELS[resultado.estado] ??
             resultado.estado}
+          {resultado.tipo_prenez &&
+            ` · ${TIPO_PRENEZ_LABELS[resultado.tipo_prenez]}`}
         </span>
         {puedeMarcarParida && (
           <button

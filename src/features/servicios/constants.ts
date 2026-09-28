@@ -1,4 +1,4 @@
-import type { EstadoServicio } from "./types";
+import type { EstadoServicio, TipoPrenez } from "./types";
 
 export const ESTADOS_SERVICIO = [
   { value: "PLANIFICADO", label: "Planificado" },
@@ -41,6 +41,16 @@ export const ESTADOS_RESULTADO_SERVICIO = [
   { value: "ABORTO", label: "Aborto" },
   { value: "PARIDA", label: "Parida" },
 ] as const;
+
+export const TIPOS_PRENEZ: readonly { value: TipoPrenez; label: string }[] = [
+  { value: "CABEZA", label: "1 – Cabeza" },
+  { value: "CUERPO", label: "2 – Cuerpo" },
+  { value: "COLA", label: "3 – Cola" },
+];
+
+export const TIPO_PRENEZ_LABELS: Record<string, string> = Object.fromEntries(
+  TIPOS_PRENEZ.map(({ value, label }) => [value, label]),
+);
 
 export const ESTADO_RESULTADO_SERVICIO_LABELS: Record<string, string> =
   Object.fromEntries(
