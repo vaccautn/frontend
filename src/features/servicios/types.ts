@@ -69,6 +69,10 @@ export type EstadoResultadoServicio =
   | "ABORTO"
   | "PARIDA";
 
+/** Momento del servicio en que quedó preñada: principio (1), mitad (2) o
+ * final (3). Lo informa el veterinario en la ecografía. */
+export type TipoPrenez = "CABEZA" | "CUERPO" | "COLA";
+
 export type ResultadoServicioRead = {
   id: number;
   servicio_id: number;
@@ -76,6 +80,7 @@ export type ResultadoServicioRead = {
   /** Lote con el que la vaca participó del servicio (no cambia si se mueve). */
   lote_id: number | null;
   estado: EstadoResultadoServicio;
+  tipo_prenez: TipoPrenez | null;
   fecha_diagnostico: string | null;
   cria_id: number | null;
   observaciones: string;
@@ -97,6 +102,21 @@ export type ParticipanteServicio = {
   animal: Animal;
   lote_participacion: ServicioLoteRead | null;
   lote_actual: ServicioLoteRead | null;
+};
+
+/** Estados que se cargan desde la pantalla de resultados. */
+export type EstadoResultadoCargable = Extract<
+  EstadoResultadoServicio,
+  "PENDIENTE" | "PRENADA" | "VACIA"
+>;
+
+export type CargaResultadosPayload = {
+  fecha_diagnostico: string;
+  resultados: {
+    resultado_id: number;
+    estado: EstadoResultadoCargable;
+    tipo_prenez?: TipoPrenez;
+  }[];
 };
 
 export type ResultadoServicioListParams = {

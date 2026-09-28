@@ -15,6 +15,7 @@ import { CargarEvaluacionesPage } from "@/pages/CargarEvaluacionPage";
 import { SesionDetailPage } from "@/pages/SesionDetailPage";
 import { ServiciosPage } from "@/pages/ServiciosPage";
 import { ServicioDetailPage } from "@/pages/ServicioDetailPage";
+import { CargarResultadosServicioPage } from "@/pages/CargarResultadosServicioPage";
 import ServicioNuevoPage from "@/pages/ServicioNuevoPage";
 
 export const router = createBrowserRouter([
@@ -55,6 +56,10 @@ export const router = createBrowserRouter([
             children: [{ path: "nuevo", element: <ServicioNuevoPage /> }],
           },
           { path: "/servicios/:id", element: <ServicioDetailPage /> },
+          {
+            path: "/servicios/:id/resultados",
+            element: <CargarResultadosServicioPage />,
+          },
         ],
       },
     ],
