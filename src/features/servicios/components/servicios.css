@@ -107,6 +107,7 @@
 
 .servicio-detail__lote-item {
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: 0.5rem;
@@ -542,4 +543,35 @@
   align-items: center;
   justify-content: flex-end;
   gap: 0.75rem;
+}
+
+/* ── Reservicio ───────────────────────────────────────────────────────── */
+
+.servicio-detail__link {
+  color: var(--accent-strong);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.reservicio__vaca {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.reservicio__vaca input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent-strong);
+}
+
+.servicios-table__reservicio {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--accent-strong);
 }

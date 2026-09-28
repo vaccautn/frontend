@@ -3,6 +3,7 @@ import { deleteRequest, getJson, patchJson, postJson } from "@/services/httpClie
 import type {
   CargaResultadosPayload,
   ParticipanteServicio,
+  ReservicioCreatePayload,
   ResultadoServicioCreatePayload,
   ResultadoServicioListParams,
   ResultadoServicioRead,
@@ -56,6 +57,20 @@ export function actualizarResultadoServicio(
   const token = getAccessToken();
   return patchJson<ResultadoServicioRead, ResultadoServicioUpdatePayload>(
     `/resultados-servicio/${id}`,
+    payload,
+    token,
+  );
+}
+
+/** Crea un reservicio con vacas vacías del servicio `origenId`: servicio
+ * vinculado, lote nuevo con esas vacas y lote asociado, en una sola operación. */
+export function crearReservicio(
+  origenId: number,
+  payload: ReservicioCreatePayload,
+): Promise<ServicioRead> {
+  const token = getAccessToken();
+  return postJson<ServicioRead, ReservicioCreatePayload>(
+    `/servicios/${origenId}/reservicios`,
     payload,
     token,
   );
@@ -136,6 +151,9 @@ export function getServicios(
   }
   if (params.fecha_inicio_hasta) {
     searchParams.set("fecha_inicio_hasta", params.fecha_inicio_hasta);
+  }
+  if (params.servicio_origen_id !== undefined) {
+    searchParams.set("servicio_origen_id", params.servicio_origen_id.toString());
   }
 
   const qs = searchParams.toString();

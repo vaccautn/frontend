@@ -15,6 +15,8 @@ export type ServicioRead = {
   fecha_fin: string | null;
   estado: EstadoServicio;
   observaciones: string;
+  /** Si es un reservicio: el servicio del que salieron sus vacas vacías. */
+  servicio_origen_id: number | null;
   creado_en: string;
   actualizado_en: string;
 };
@@ -23,6 +25,16 @@ export type ServicioListParams = {
   estado?: EstadoServicio;
   fecha_inicio_desde?: string;
   fecha_inicio_hasta?: string;
+  servicio_origen_id?: number;
+};
+
+export type ReservicioCreatePayload = {
+  nombre: string;
+  fecha_inicio: string;
+  fecha_fin: string;
+  observaciones: string;
+  lote: { nombre: string; categoria: CategoriaAnimal };
+  animal_ids: number[];
 };
 
 export type ServicioCreatePayload = {
@@ -102,6 +114,8 @@ export type ParticipanteServicio = {
   animal: Animal;
   lote_participacion: ServicioLoteRead | null;
   lote_actual: ServicioLoteRead | null;
+  /** Reservicio vigente de este servicio en el que está la vaca. */
+  reservicio_id: number | null;
 };
 
 /** Estados que se cargan desde la pantalla de resultados. */

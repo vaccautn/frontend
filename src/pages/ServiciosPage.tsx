@@ -54,6 +54,12 @@ export function ServiciosPage() {
     }
   }, [location.state, fetchServicios]);
 
+  // Para mostrar "Reservicio de <original>". Si un filtro deja afuera al
+  // servicio original, la etiqueta queda solo como "Reservicio".
+  const nombreServicioPorId = new Map(
+    servicios.map((s) => [s.id, s.nombre || `Servicio #${s.id}`]),
+  );
+
   const handleRowKeyDown = (
     event: KeyboardEvent<HTMLTableRowElement>,
     servicio: ServicioRead,
@@ -124,7 +130,16 @@ export function ServiciosPage() {
                     aria-label={`Ver detalle del servicio ${servicio.nombre || `#${servicio.id}`}`}
                     onClick={() => navigate(`/servicios/${servicio.id}`)}
                     onKeyDown={(event) => handleRowKeyDown(event, servicio)}>
-                    <Table.Cell>{servicio.nombre || `Servicio #${servicio.id}`}</Table.Cell>
+                    <Table.Cell>
+                      {servicio.nombre || `Servicio #${servicio.id}`}
+                      {servicio.servicio_origen_id !== null && (
+                        <span className="servicios-table__reservicio">
+                          {nombreServicioPorId.has(servicio.servicio_origen_id)
+                            ? `Reservicio de ${nombreServicioPorId.get(servicio.servicio_origen_id)}`
+                            : "Reservicio"}
+                        </span>
+                      )}
+                    </Table.Cell>
                     <Table.Cell>{formatFecha(servicio.fecha_inicio)}</Table.Cell>
                     <Table.Cell>
                       {servicio.fecha_fin ? formatFecha(servicio.fecha_fin) : "—"}
