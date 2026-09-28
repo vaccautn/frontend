@@ -16,6 +16,7 @@ import type {
 import { eliminarSesion, getSesion } from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaRead } from "@/features/sesiones/types";
 import { SesionDashboard } from "@/features/sesiones/components/dashboard/SesionDashboard";
+import { RecomendacionesSesion } from "@/features/recomendaciones/components/RecomendacionesSesion";
 import { useSesionDashboard } from "@/features/sesiones/hooks/useSesionDashboard";
 import { ApiError } from "@/services/httpClient";
 import { formatEventDate, formatEventDateTime } from "@/utils/localDateTime";
@@ -307,6 +308,10 @@ export function SesionDetailPage() {
             loading={dashboard.loading}
             error={dashboard.error}
           />
+
+          {sesion.estado === "CERRADA" && (
+            <RecomendacionesSesion sesionId={sesion.id} version={evaluaciones} />
+          )}
 
           {evaluaciones.length === 0 ? (
             <div className="sesion-detail__empty" role="status">
