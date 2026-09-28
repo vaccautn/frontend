@@ -1,4 +1,4 @@
-import type { CategoriaAnimal } from "@/features/animales/types";
+import type { Animal, CategoriaAnimal } from "@/features/animales/types";
 
 export type EstadoServicio =
   | "PLANIFICADO"
@@ -73,12 +73,30 @@ export type ResultadoServicioRead = {
   id: number;
   servicio_id: number;
   animal_id: number;
+  /** Lote con el que la vaca participó del servicio (no cambia si se mueve). */
+  lote_id: number | null;
   estado: EstadoResultadoServicio;
   fecha_diagnostico: string | null;
   cria_id: number | null;
   observaciones: string;
   creado_en: string;
   actualizado_en: string;
+};
+
+export type ResultadoServicioUpdatePayload = {
+  estado?: EstadoResultadoServicio;
+  fecha_diagnostico?: string;
+  cria_id?: number;
+  observaciones?: string;
+};
+
+/** Vaca que participa del servicio: su resultado, el animal, el lote con el
+ * que participó y el lote en el que está hoy (pueden diferir). */
+export type ParticipanteServicio = {
+  resultado: ResultadoServicioRead;
+  animal: Animal;
+  lote_participacion: ServicioLoteRead | null;
+  lote_actual: ServicioLoteRead | null;
 };
 
 export type ResultadoServicioListParams = {

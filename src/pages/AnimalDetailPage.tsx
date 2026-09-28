@@ -35,7 +35,14 @@ import {
 import { useAnimalDashboard } from "@/features/animales/hooks/useAnimalDashboard";
 import { AnimalDashboard } from "@/features/animales/components/dashboard/AnimalDashboard";
 import { formatFecha } from "@/features/animales/utils/formatDate";
-import { RAZAS, SEXOS, ESTADOS_FILTRO } from "@/features/animales/constants";
+import {
+  CATEGORIA_ANIMAL_LABELS,
+  RAZAS,
+  SEXOS,
+  ESTADOS_FILTRO,
+} from "@/features/animales/constants";
+import { getLotes } from "@/features/lotes/services/lotesService";
+import type { LoteOption } from "@/features/lotes/types";
 import {
   validateRodeoEditarForm,
   type RodeoEditarFieldErrors,
@@ -85,8 +92,17 @@ export function AnimalDetailPage() {
   const [editErrors, setEditErrors] = useState<RodeoEditarFieldErrors>({});
   const [editFormError, setEditFormError] = useState("");
   const [isSavingDetails, setIsSavingDetails] = useState(false);
+  const [lotes, setLotes] = useState<LoteOption[]>([]);
 
   const latestEvaluacionesRequestId = useRef(0);
+
+  useEffect(() => {
+    getLotes()
+      .then(setLotes)
+      .catch(() => {
+        /* si falla, el selector de lote queda solo con "Sin lote" */
+      });
+  }, []);
 
   const animalId = Number(id);
   const {
@@ -399,12 +415,27 @@ export function AnimalDetailPage() {
 
                     <Field.Root className="animal-edit-page__field--full">
                       <Field.Label>Lote</Field.Label>
-                      <Input
-                        type="number"
-                        min={1}
-                        value={editValues.lote_id}
-                        onChange={updateEditField("lote_id")}
-                      />
+                      <NativeSelect.Root>
+                        <NativeSelect.Field
+                          value={editValues.lote_id}
+                          onChange={updateEditField("lote_id")}>
+                          <option value="">Sin lote</option>
+                          {lotes
+                            .filter(
+                              (lote) =>
+                                lote.activo ||
+                                String(lote.id) === editValues.lote_id,
+                            )
+                            .map((lote) => (
+                              <option key={lote.id} value={lote.id}>
+                                {lote.nombre} ·{" "}
+                                {CATEGORIA_ANIMAL_LABELS[lote.categoria] ??
+                                  lote.categoria}
+                              </option>
+                            ))}
+                        </NativeSelect.Field>
+                        <NativeSelect.Indicator />
+                      </NativeSelect.Root>
                     </Field.Root>
 
                     <div className="animal-edit-page__actions">
