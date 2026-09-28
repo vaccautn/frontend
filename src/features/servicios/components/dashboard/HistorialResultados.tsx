@@ -22,11 +22,15 @@ export function HistorialResultados({
     servicios.map((s) => [s.id, s.nombre || `Servicio #${s.id}`]),
   );
 
-  const ordenados = [...resultados].sort((a, b) => {
-    const fechaA = a.fecha_diagnostico ?? a.creado_en;
-    const fechaB = b.fecha_diagnostico ?? b.creado_en;
-    return fechaB.localeCompare(fechaA);
-  });
+  // Un resultado PENDIENTE solo indica que la vaca participa del servicio:
+  // todavía no es un resultado para mostrar en el historial.
+  const ordenados = resultados
+    .filter((r) => r.estado !== "PENDIENTE")
+    .sort((a, b) => {
+      const fechaA = a.fecha_diagnostico ?? a.creado_en;
+      const fechaB = b.fecha_diagnostico ?? b.creado_en;
+      return fechaB.localeCompare(fechaA);
+    });
   const visibles = ordenados.slice(0, MAX_ITEMS);
 
   return (

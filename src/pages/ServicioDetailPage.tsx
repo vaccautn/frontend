@@ -15,16 +15,17 @@ import {
   IconX,
 } from "@tabler/icons-react";
 import {
+  actualizarResultadoServicio,
   actualizarServicio,
   asociarLoteServicio,
-  crearResultadoServicio,
   desasociarLoteServicio,
   getLotesServicio,
-  getResultadosServicio,
+  getParticipantesServicio,
   getServicio,
 } from "@/features/servicios/services/serviciosService";
 import type {
   EstadoServicio,
+  ParticipanteServicio,
   ResultadoServicioRead,
   ServicioLoteRead,
   ServicioLotesAgrupados,
@@ -40,7 +41,10 @@ import {
   type ServicioEditarFieldErrors,
   type ServicioEditarValues,
 } from "@/features/servicios/utils/serviciosValidation";
-import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
+import {
+  CATEGORIA_ANIMAL_LABELS,
+  ESTADO_ANIMAL_LABELS,
+} from "@/features/animales/constants";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
@@ -96,12 +100,16 @@ export function ServicioDetailPage() {
   const [isAgregandoLote, setIsAgregandoLote] = useState(false);
   const [loteIdQuitando, setLoteIdQuitando] = useState<number | null>(null);
 
-  const [resultados, setResultados] = useState<ResultadoServicioRead[]>([]);
+  const [participantes, setParticipantes] = useState<ParticipanteServicio[]>(
+    [],
+  );
+  // Solo para la vista previa de un servicio PLANIFICADO, que todavía no
+  // tiene participantes: las vacas que hoy están en cada lote de vientres.
   const [animalesPorLoteId, setAnimalesPorLoteId] = useState<
     Map<number, Animal[]>
   >(new Map());
   const [loadingVacas, setLoadingVacas] = useState(false);
-  const [animalIdRegistrando, setAnimalIdRegistrando] = useState<
+  const [resultadoIdRegistrando, setResultadoIdRegistrando] = useState<
     number | null
   >(null);
 
@@ -149,17 +157,21 @@ export function ServicioDetailPage() {
       setStatus("loading");
 
       try {
-        const [servicioData, lotesData, resultadosData] = await Promise.all([
-          getServicio(servicioId),
+        // El servicio primero: al consultarlo el backend aplica la transición
+        // por fecha y, si sale de PLANIFICADO, fija los participantes.
+        const servicioData = await getServicio(servicioId);
+        const [lotesData, participantesData] = await Promise.all([
           getLotesServicio(servicioId),
-          getResultadosServicio({ servicioId }),
+          getParticipantesServicio(servicioId),
         ]);
         if (cancelled) return;
         setServicio(servicioData);
         setLotes(lotesData);
-        setResultados(resultadosData);
+        setParticipantes(participantesData);
         setStatus("ready");
-        void fetchVacas(lotesData.vientres);
+        if (servicioData.estado === "PLANIFICADO") {
+          void fetchVacas(lotesData.vientres);
+        }
       } catch (error) {
         if (cancelled) return;
         if (error instanceof ApiError && error.status === 404) {
@@ -259,22 +271,31 @@ export function ServicioDetailPage() {
 
   const refetchLotes = async () => {
     if (!servicio) return;
-    const nuevo = await getLotesServicio(servicio.id);
-    setLotes(nuevo);
-    void fetchVacas(nuevo.vientres);
+    const [nuevosLotes, nuevosParticipantes] = await Promise.all([
+      getLotesServicio(servicio.id),
+      getParticipantesServicio(servicio.id),
+    ]);
+    setLotes(nuevosLotes);
+    setParticipantes(nuevosParticipantes);
+    if (servicio.estado === "PLANIFICADO") {
+      void fetchVacas(nuevosLotes.vientres);
+    }
   };
 
-  const handleAgregarResultado = async (animalId: number) => {
-    if (!servicio) return;
-    setAnimalIdRegistrando(animalId);
+  const handleMarcarParida = async (resultado: ResultadoServicioRead) => {
+    setResultadoIdRegistrando(resultado.id);
     try {
-      const nuevoResultado = await crearResultadoServicio({
-        servicio_id: servicio.id,
-        animal_id: animalId,
+      const actualizado = await actualizarResultadoServicio(resultado.id, {
         estado: "PARIDA",
         fecha_diagnostico: localNaiveNow().slice(0, 10),
       });
-      setResultados((current) => [...current, nuevoResultado]);
+      setParticipantes((current) =>
+        current.map((p) =>
+          p.resultado.id === actualizado.id
+            ? { ...p, resultado: actualizado }
+            : p,
+        ),
+      );
       toast.success("Se registró que tuvo un ternero.");
     } catch (error) {
       toast.error(
@@ -283,13 +304,9 @@ export function ServicioDetailPage() {
           : "No se pudo registrar el resultado.",
       );
     } finally {
-      setAnimalIdRegistrando(null);
+      setResultadoIdRegistrando(null);
     }
   };
-
-  const resultadosPorAnimalId = new Map(
-    resultados.map((r) => [r.animal_id, r]),
-  );
 
   const handleAgregarLote = async () => {
     if (!servicio || !loteIdParaAgregar) return;
@@ -527,7 +544,9 @@ export function ServicioDetailPage() {
                 <h2>Vientres y toros</h2>
               </div>
               <Badge colorPalette="brand">
-                {resultados.length} resultado{resultados.length === 1 ? "" : "s"}
+                {participantes.length === 1
+                  ? "1 vaca participante"
+                  : `${participantes.length} vacas participantes`}
               </Badge>
             </div>
 
@@ -570,11 +589,12 @@ export function ServicioDetailPage() {
                 isEditing={isEditing}
                 loteIdQuitando={loteIdQuitando}
                 onQuitar={handleQuitarLote}
+                esVistaPrevia={servicio.estado === "PLANIFICADO"}
                 animalesPorLoteId={animalesPorLoteId}
                 loadingVacas={loadingVacas}
-                resultadosPorAnimalId={resultadosPorAnimalId}
-                animalIdRegistrando={animalIdRegistrando}
-                onAgregarResultado={handleAgregarResultado}
+                participantes={participantes}
+                resultadoIdRegistrando={resultadoIdRegistrando}
+                onMarcarParida={handleMarcarParida}
               />
               <LotesGrupo
                 titulo="Toros"
@@ -642,16 +662,57 @@ function LotesGrupo({
   );
 }
 
+
+type GrupoVientre = {
+  key: string;
+  /** null: participantes sin lote de participación (datos anteriores). */
+  lote: ServicioLoteRead | null;
+  /** false si el lote ya no está asociado pero conserva resultados. */
+  asociado: boolean;
+  participantes: ParticipanteServicio[];
+};
+
+/** Agrupa los participantes por el lote con el que participaron. Incluye los
+ * lotes asociados sin participantes y los lotes ya desasociados que todavía
+ * tienen resultados con diagnóstico. */
+function agruparPorLoteDeParticipacion(
+  lotes: ServicioLoteRead[],
+  participantes: ParticipanteServicio[],
+): GrupoVientre[] {
+  const grupos = new Map<string, GrupoVientre>(
+    lotes.map((lote) => [
+      String(lote.id),
+      { key: String(lote.id), lote, asociado: true, participantes: [] },
+    ]),
+  );
+  for (const participante of participantes) {
+    const lote = participante.lote_participacion;
+    const key = lote ? String(lote.id) : "sin-lote";
+    const grupo = grupos.get(key) ?? {
+      key,
+      lote,
+      asociado: false,
+      participantes: [],
+    };
+    grupo.participantes.push(participante);
+    grupos.set(key, grupo);
+  }
+  return [...grupos.values()];
+}
+
 type VientresGrupoProps = {
   lotes: ServicioLotesAgrupados["vientres"];
   isEditing: boolean;
   loteIdQuitando: number | null;
   onQuitar: (loteId: number) => void;
+  /** PLANIFICADO: todavía no hay participantes, se muestran las vacas que
+   * hoy están en cada lote, sin acciones. */
+  esVistaPrevia: boolean;
   animalesPorLoteId: Map<number, Animal[]>;
   loadingVacas: boolean;
-  resultadosPorAnimalId: Map<number, ResultadoServicioRead>;
-  animalIdRegistrando: number | null;
-  onAgregarResultado: (animalId: number) => void;
+  participantes: ParticipanteServicio[];
+  resultadoIdRegistrando: number | null;
+  onMarcarParida: (resultado: ResultadoServicioRead) => void;
 };
 
 function VientresGrupo({
@@ -659,86 +720,180 @@ function VientresGrupo({
   isEditing,
   loteIdQuitando,
   onQuitar,
+  esVistaPrevia,
   animalesPorLoteId,
   loadingVacas,
-  resultadosPorAnimalId,
-  animalIdRegistrando,
-  onAgregarResultado,
+  participantes,
+  resultadoIdRegistrando,
+  onMarcarParida,
 }: VientresGrupoProps) {
+  const grupos = esVistaPrevia
+    ? lotes.map((lote) => ({
+        key: String(lote.id),
+        lote,
+        asociado: true,
+        participantes: [],
+      }))
+    : agruparPorLoteDeParticipacion(lotes, participantes);
+
   return (
     <div className="servicio-detail__lotes-grupo">
       <div className="servicio-detail__lotes-grupo-header">
         <h2>Vientres</h2>
         <Badge colorPalette="brand">{lotes.length}</Badge>
       </div>
-      {lotes.length === 0 ? (
+      {esVistaPrevia && lotes.length > 0 && (
+        <p className="servicio-detail__vacas-vacio">
+          Vista previa: las vacas participantes se fijan cuando empieza el
+          servicio.
+        </p>
+      )}
+      {grupos.length === 0 ? (
         <p className="servicio-detail__lotes-vacio">
           No hay lotes de vientres asociados a este servicio.
         </p>
       ) : (
         <ul className="servicio-detail__lotes-lista">
-          {lotes.map((lote) => {
-            const vacas = animalesPorLoteId.get(lote.id) ?? [];
-            return (
-              <li key={lote.id} className="servicio-detail__vientre-lote">
-                <div className="servicio-detail__lote-item">
-                  <span>{lote.nombre}</span>
+          {grupos.map((grupo) => (
+            <li key={grupo.key} className="servicio-detail__vientre-lote">
+              <div className="servicio-detail__lote-item">
+                <span>{grupo.lote?.nombre ?? "Sin lote"}</span>
+                {grupo.lote && (
                   <span className="servicio-detail__lote-categoria">
-                    {CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? lote.categoria}
+                    {grupo.asociado
+                      ? (CATEGORIA_ANIMAL_LABELS[grupo.lote.categoria] ??
+                        grupo.lote.categoria)
+                      : "Ya no asociado"}
                   </span>
-                  {isEditing && (
-                    <button
-                      type="button"
-                      className="servicio-detail__lote-quitar"
-                      aria-label={`Quitar ${lote.nombre} del servicio`}
-                      disabled={loteIdQuitando === lote.id}
-                      onClick={() => onQuitar(lote.id)}>
-                      <IconX size={14} stroke={2} />
-                    </button>
-                  )}
-                </div>
-
-                {loadingVacas ? (
-                  <p className="servicio-detail__vacas-vacio">
-                    Cargando vacas...
-                  </p>
-                ) : vacas.length === 0 ? (
-                  <p className="servicio-detail__vacas-vacio">
-                    Este lote no tiene animales.
-                  </p>
-                ) : (
-                  <ul className="servicio-detail__vacas-lista">
-                    {vacas.map((vaca) => {
-                      const resultado = resultadosPorAnimalId.get(vaca.id);
-                      return (
-                        <li key={vaca.id} className="servicio-detail__vaca-item">
-                          <span>{vaca.caravana ?? `#${vaca.id}`}</span>
-                          {resultado ? (
-                            <span
-                              className={`resultado-badge resultado-badge--${resultado.estado}`}>
-                              {ESTADO_RESULTADO_SERVICIO_LABELS[
-                                resultado.estado
-                              ] ?? resultado.estado}
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              className="servicio-detail__agregar-resultado-btn"
-                              disabled={animalIdRegistrando === vaca.id}
-                              onClick={() => onAgregarResultado(vaca.id)}>
-                              Agregar resultado
-                            </button>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
                 )}
-              </li>
-            );
-          })}
+                {isEditing && grupo.lote && grupo.asociado && (
+                  <button
+                    type="button"
+                    className="servicio-detail__lote-quitar"
+                    aria-label={`Quitar ${grupo.lote.nombre} del servicio`}
+                    disabled={loteIdQuitando === grupo.lote.id}
+                    onClick={() => grupo.lote && onQuitar(grupo.lote.id)}>
+                    <IconX size={14} stroke={2} />
+                  </button>
+                )}
+              </div>
+
+              {esVistaPrevia ? (
+                <VacasVistaPrevia
+                  vacas={
+                    grupo.lote ? (animalesPorLoteId.get(grupo.lote.id) ?? []) : []
+                  }
+                  loading={loadingVacas}
+                />
+              ) : grupo.participantes.length === 0 ? (
+                <p className="servicio-detail__vacas-vacio">
+                  Este lote no aporta vacas al servicio.
+                </p>
+              ) : (
+                <ul className="servicio-detail__vacas-lista">
+                  {grupo.participantes.map((participante) => (
+                    <VacaParticipante
+                      key={participante.resultado.id}
+                      participante={participante}
+                      registrando={
+                        resultadoIdRegistrando === participante.resultado.id
+                      }
+                      onMarcarParida={onMarcarParida}
+                    />
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
         </ul>
       )}
     </div>
+  );
+}
+
+function VacasVistaPrevia({
+  vacas,
+  loading,
+}: {
+  vacas: Animal[];
+  loading: boolean;
+}) {
+  if (loading) {
+    return <p className="servicio-detail__vacas-vacio">Cargando vacas...</p>;
+  }
+  if (vacas.length === 0) {
+    return (
+      <p className="servicio-detail__vacas-vacio">Este lote no tiene animales.</p>
+    );
+  }
+  return (
+    <ul className="servicio-detail__vacas-lista">
+      {vacas.map((vaca) => (
+        <li key={vaca.id} className="servicio-detail__vaca-item">
+          <span>{vaca.caravana ?? `#${vaca.id}`}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+type VacaParticipanteProps = {
+  participante: ParticipanteServicio;
+  registrando: boolean;
+  onMarcarParida: (resultado: ResultadoServicioRead) => void;
+};
+
+/** Una vaca del servicio. Se muestra deshabilitada, sin acciones, si fue
+ * dada de baja o si hoy está en un lote distinto al de participación. */
+function VacaParticipante({
+  participante,
+  registrando,
+  onMarcarParida,
+}: VacaParticipanteProps) {
+  const { animal, resultado, lote_actual } = participante;
+
+  let motivoDeshabilitada: string | null = null;
+  if (animal.estado !== "ACTIVO") {
+    motivoDeshabilitada =
+      ESTADO_ANIMAL_LABELS[animal.estado] ?? animal.estado;
+  } else if (animal.lote_id !== resultado.lote_id) {
+    motivoDeshabilitada = lote_actual
+      ? `Actualmente en lote ${lote_actual.nombre}`
+      : "Actualmente sin lote";
+  }
+
+  const puedeMarcarParida =
+    !motivoDeshabilitada &&
+    (resultado.estado === "PENDIENTE" || resultado.estado === "PRENADA");
+
+  return (
+    <li
+      className={`servicio-detail__vaca-item${
+        motivoDeshabilitada ? " servicio-detail__vaca-item--deshabilitada" : ""
+      }`}
+      aria-disabled={motivoDeshabilitada ? true : undefined}>
+      <span>{animal.caravana ?? `#${animal.id}`}</span>
+      <span className="servicio-detail__vaca-acciones">
+        {motivoDeshabilitada && (
+          <span className="servicio-detail__vaca-motivo">
+            {motivoDeshabilitada}
+          </span>
+        )}
+        <span
+          className={`resultado-badge resultado-badge--${resultado.estado}`}>
+          {ESTADO_RESULTADO_SERVICIO_LABELS[resultado.estado] ??
+            resultado.estado}
+        </span>
+        {puedeMarcarParida && (
+          <button
+            type="button"
+            className="servicio-detail__agregar-resultado-btn"
+            disabled={registrando}
+            onClick={() => onMarcarParida(resultado)}>
+            Tuvo un ternero
+          </button>
+        )}
+      </span>
+    </li>
   );
 }

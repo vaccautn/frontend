@@ -1,9 +1,11 @@
 import { getAccessToken } from "@/features/auth";
 import { deleteRequest, getJson, patchJson, postJson } from "@/services/httpClient";
 import type {
+  ParticipanteServicio,
   ResultadoServicioCreatePayload,
   ResultadoServicioListParams,
   ResultadoServicioRead,
+  ResultadoServicioUpdatePayload,
   ServicioCreatePayload,
   ServicioListParams,
   ServicioLoteAsociacion,
@@ -42,6 +44,28 @@ export function crearResultadoServicio(
   return postJson<ResultadoServicioRead, ResultadoServicioCreatePayload>(
     "/resultados-servicio/",
     payload,
+    token,
+  );
+}
+
+export function actualizarResultadoServicio(
+  id: number,
+  payload: ResultadoServicioUpdatePayload,
+): Promise<ResultadoServicioRead> {
+  const token = getAccessToken();
+  return patchJson<ResultadoServicioRead, ResultadoServicioUpdatePayload>(
+    `/resultados-servicio/${id}`,
+    payload,
+    token,
+  );
+}
+
+export function getParticipantesServicio(
+  id: number,
+): Promise<ParticipanteServicio[]> {
+  const token = getAccessToken();
+  return getJson<ParticipanteServicio[]>(
+    `/servicios/${id}/participantes`,
     token,
   );
 }
