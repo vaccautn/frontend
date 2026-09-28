@@ -81,7 +81,10 @@ export function CargarResultadosServicioPage() {
         setDiagnosticos(
           new Map(
             participantesData
-              .filter((p) => esCargable(p.resultado.estado))
+              // Una vaca vacía que ya está en un reservicio queda bloqueada.
+              .filter(
+                (p) => esCargable(p.resultado.estado) && p.reservicio_id === null,
+              )
               .map((p) => [
                 p.resultado.id,
                 {
@@ -302,7 +305,8 @@ export function CargarResultadosServicioPage() {
 
 type FilaResultadoProps = {
   participante: ParticipanteServicio;
-  /** undefined: la vaca está Parida o con Aborto, no se carga desde acá. */
+  /** undefined: la vaca está Parida, con Aborto o en un reservicio; no se
+   * carga desde acá. */
   diagnostico: Diagnostico | undefined;
   mostrarErrorTipo: boolean;
   onChange: (cambio: Partial<Diagnostico>) => void;
@@ -402,7 +406,9 @@ function FilaResultado({
               ` · ${TIPO_PRENEZ_LABELS[resultado.tipo_prenez]}`}
           </span>
           <span className="servicio-detail__vaca-motivo">
-            No se modifica desde esta pantalla
+            {participante.reservicio_id !== null
+              ? "En reservicio: no se puede cambiar"
+              : "No se modifica desde esta pantalla"}
           </span>
         </div>
       )}

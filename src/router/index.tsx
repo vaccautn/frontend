@@ -16,6 +16,7 @@ import { SesionDetailPage } from "@/pages/SesionDetailPage";
 import { ServiciosPage } from "@/pages/ServiciosPage";
 import { ServicioDetailPage } from "@/pages/ServicioDetailPage";
 import { CargarResultadosServicioPage } from "@/pages/CargarResultadosServicioPage";
+import { CrearReservicioPage } from "@/pages/CrearReservicioPage";
 import ServicioNuevoPage from "@/pages/ServicioNuevoPage";
 
 export const router = createBrowserRouter([
@@ -59,6 +60,10 @@ export const router = createBrowserRouter([
           {
             path: "/servicios/:id/resultados",
             element: <CargarResultadosServicioPage />,
+          },
+          {
+            path: "/servicios/:id/reservicio",
+            element: <CrearReservicioPage />,
           },
         ],
       },

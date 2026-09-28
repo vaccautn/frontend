@@ -1,5 +1,5 @@
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Badge,
   Button,
@@ -13,6 +13,7 @@ import {
   IconChevronDown,
   IconClipboardCheck,
   IconEdit,
+  IconRepeat,
   IconX,
 } from "@tabler/icons-react";
 import {
@@ -23,6 +24,7 @@ import {
   getLotesServicio,
   getParticipantesServicio,
   getServicio,
+  getServicios,
 } from "@/features/servicios/services/serviciosService";
 import type {
   EstadoServicio,
@@ -102,6 +104,8 @@ export function ServicioDetailPage() {
   const [isAgregandoLote, setIsAgregandoLote] = useState(false);
   const [loteIdQuitando, setLoteIdQuitando] = useState<number | null>(null);
 
+  const [reservicios, setReservicios] = useState<ServicioRead[]>([]);
+  const [origen, setOrigen] = useState<ServicioRead | null>(null);
   const [participantes, setParticipantes] = useState<ParticipanteServicio[]>(
     [],
   );
@@ -162,14 +166,21 @@ export function ServicioDetailPage() {
         // El servicio primero: al consultarlo el backend aplica la transición
         // por fecha y, si sale de PLANIFICADO, fija los participantes.
         const servicioData = await getServicio(servicioId);
-        const [lotesData, participantesData] = await Promise.all([
-          getLotesServicio(servicioId),
-          getParticipantesServicio(servicioId),
-        ]);
+        const [lotesData, participantesData, reserviciosData, origenData] =
+          await Promise.all([
+            getLotesServicio(servicioId),
+            getParticipantesServicio(servicioId),
+            getServicios({ servicio_origen_id: servicioId }),
+            servicioData.servicio_origen_id !== null
+              ? getServicio(servicioData.servicio_origen_id)
+              : Promise.resolve(null),
+          ]);
         if (cancelled) return;
         setServicio(servicioData);
         setLotes(lotesData);
         setParticipantes(participantesData);
+        setReservicios(reserviciosData);
+        setOrigen(origenData);
         setStatus("ready");
         if (servicioData.estado === "PLANIFICADO") {
           void fetchVacas(lotesData.vientres);
@@ -382,7 +393,20 @@ export function ServicioDetailPage() {
         <>
           <div className="animal-page__hero">
             <div>
-              <span className="animal-page__eyebrow">Servicio</span>
+              <span className="animal-page__eyebrow">
+                {origen ? (
+                  <>
+                    Reservicio de{" "}
+                    <Link
+                      to={`/servicios/${origen.id}`}
+                      className="servicio-detail__link">
+                      {origen.nombre || `Servicio #${origen.id}`}
+                    </Link>
+                  </>
+                ) : (
+                  "Servicio"
+                )}
+              </span>
               <h1>{servicio.nombre || `#${servicio.id}`}</h1>
             </div>
             <div className="servicio-detail__hero-acciones">
@@ -397,6 +421,20 @@ export function ServicioDetailPage() {
                   Cargar resultados
                 </Button>
               )}
+              {servicio.estado === "FINALIZADO" &&
+                servicio.servicio_origen_id === null &&
+                participantes.some((p) => p.resultado.estado === "VACIA") && (
+                  <Button
+                    colorPalette="brand"
+                    variant="outline"
+                    size="sm"
+                    onClick={() =>
+                      navigate(`/servicios/${servicio.id}/reservicio`)
+                    }>
+                    <IconRepeat size={16} stroke={1.5} />
+                    Iniciar reservicio
+                  </Button>
+                )}
               <span
                 className={`servicio-badge servicio-badge--${servicio.estado}`}>
                 {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
@@ -549,6 +587,41 @@ export function ServicioDetailPage() {
           </div>
 
           <div className="animal-page__details-divider" />
+
+          {reservicios.length > 0 && (
+            <section className="animal-detail__section">
+              <div className="animal-detail__section-header">
+                <div>
+                  <span className="animal-detail__section-eyebrow">
+                    Vacas vacías
+                  </span>
+                  <h2>Reservicios</h2>
+                </div>
+              </div>
+              <ul className="servicio-detail__lotes-lista">
+                {reservicios.map((reservicio) => (
+                  <li key={reservicio.id} className="servicio-detail__lote-item">
+                    <Link
+                      to={`/servicios/${reservicio.id}`}
+                      className="servicio-detail__link">
+                      {reservicio.nombre || `Servicio #${reservicio.id}`}
+                    </Link>
+                    <span className="servicio-detail__lote-categoria">
+                      {formatFecha(reservicio.fecha_inicio)} –{" "}
+                      {reservicio.fecha_fin
+                        ? formatFecha(reservicio.fecha_fin)
+                        : "—"}
+                    </span>
+                    <span
+                      className={`servicio-badge servicio-badge--${reservicio.estado}`}>
+                      {ESTADO_SERVICIO_LABELS[reservicio.estado] ??
+                        reservicio.estado}
+                    </span>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section className="animal-detail__section">
             <div className="animal-detail__section-header">
