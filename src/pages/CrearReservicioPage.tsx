@@ -237,7 +237,7 @@ export function CrearReservicioPage() {
               <Input
                 value={values.nombre}
                 onChange={updateField("nombre")}
-                placeholder="Ej.: Otoño 2027"
+                placeholder="Ej.: Reservicio de otoño"
               />
             </Field.Root>
             <div />
@@ -267,7 +267,7 @@ export function CrearReservicioPage() {
               <Input
                 value={values.lote_nombre}
                 onChange={updateField("lote_nombre")}
-                placeholder="Ej.: Vacías otoño 2027"
+                placeholder="Ej.: Vacías para reservicio"
               />
               <Field.ErrorText>{errors.lote_nombre}</Field.ErrorText>
             </Field.Root>

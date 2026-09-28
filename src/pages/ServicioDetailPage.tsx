@@ -1,4 +1,10 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+} from "react";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Badge,
@@ -681,6 +687,7 @@ export function ServicioDetailPage() {
                 animalesPorLoteId={animalesPorLoteId}
                 loadingVacas={loadingVacas}
                 participantes={participantes}
+                reservicioPorId={new Map(reservicios.map((r) => [r.id, r]))}
                 resultadoIdRegistrando={resultadoIdRegistrando}
                 onMarcarParida={handleMarcarParida}
               />
@@ -799,6 +806,7 @@ type VientresGrupoProps = {
   animalesPorLoteId: Map<number, Animal[]>;
   loadingVacas: boolean;
   participantes: ParticipanteServicio[];
+  reservicioPorId: Map<number, ServicioRead>;
   resultadoIdRegistrando: number | null;
   onMarcarParida: (resultado: ResultadoServicioRead) => void;
 };
@@ -812,6 +820,7 @@ function VientresGrupo({
   animalesPorLoteId,
   loadingVacas,
   participantes,
+  reservicioPorId,
   resultadoIdRegistrando,
   onMarcarParida,
 }: VientresGrupoProps) {
@@ -883,6 +892,11 @@ function VientresGrupo({
                     <VacaParticipante
                       key={participante.resultado.id}
                       participante={participante}
+                      reservicio={
+                        participante.reservicio_id !== null
+                          ? reservicioPorId.get(participante.reservicio_id)
+                          : undefined
+                      }
                       registrando={
                         resultadoIdRegistrando === participante.resultado.id
                       }
@@ -927,27 +941,44 @@ function VacasVistaPrevia({
 
 type VacaParticipanteProps = {
   participante: ParticipanteServicio;
+  /** Reservicio en el que está la vaca, si está en uno. */
+  reservicio: ServicioRead | undefined;
   registrando: boolean;
   onMarcarParida: (resultado: ResultadoServicioRead) => void;
 };
 
 /** Una vaca del servicio. Se muestra deshabilitada, sin acciones, si fue
- * dada de baja o si hoy está en un lote distinto al de participación. */
+ * dada de baja, si está en un reservicio o si hoy está en un lote distinto
+ * al de participación. */
 function VacaParticipante({
   participante,
+  reservicio,
   registrando,
   onMarcarParida,
 }: VacaParticipanteProps) {
   const { animal, resultado, lote_actual } = participante;
+  const loteActualTexto = lote_actual
+    ? `lote ${lote_actual.nombre}`
+    : "sin lote";
 
-  let motivoDeshabilitada: string | null = null;
+  let motivoDeshabilitada: ReactNode = null;
   if (animal.estado !== "ACTIVO") {
     motivoDeshabilitada =
       ESTADO_ANIMAL_LABELS[animal.estado] ?? animal.estado;
+  } else if (participante.reservicio_id !== null) {
+    motivoDeshabilitada = (
+      <>
+        En reservicio{" "}
+        <Link
+          to={`/servicios/${participante.reservicio_id}`}
+          className="servicio-detail__link">
+          {reservicio?.nombre || `Servicio #${participante.reservicio_id}`}
+        </Link>{" "}
+        ({loteActualTexto})
+      </>
+    );
   } else if (animal.lote_id !== resultado.lote_id) {
-    motivoDeshabilitada = lote_actual
-      ? `Actualmente en lote ${lote_actual.nombre}`
-      : "Actualmente sin lote";
+    motivoDeshabilitada = `Actualmente en ${loteActualTexto}`;
   }
 
   const puedeMarcarParida =
