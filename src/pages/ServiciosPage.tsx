@@ -8,6 +8,8 @@ import { useServiciosFiltros } from "@/features/servicios/hooks/useServiciosFilt
 import { ServiciosFiltros } from "@/features/servicios/components/ServiciosFiltros";
 import { ESTADO_SERVICIO_LABELS } from "@/features/servicios/constants";
 import { ServiciosDashboard } from "@/features/servicios/components/dashboard/ServiciosDashboard";
+import { useServiciosDashboard } from "@/features/servicios/hooks/useServiciosDashboard";
+import { pendientesPorServicio } from "@/features/servicios/utils/servicioEstado";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
@@ -31,6 +33,14 @@ export function ServiciosPage() {
     clearFilters,
     params,
   } = useServiciosFiltros();
+  const dashboard = useServiciosDashboard();
+  // Sale de los datos del dashboard (servicios sin filtrar), así un filtro
+  // que deja afuera a los reservicios no cambia los indicadores.
+  const pendientes = pendientesPorServicio(
+    dashboard.servicios,
+    dashboard.resultados,
+    dashboard.animalActivoIds,
+  );
 
   const fetchServicios = useCallback(() => {
     setRefetching(true);
@@ -51,7 +61,10 @@ export function ServiciosPage() {
   useEffect(() => {
     if (location.state?.refresh) {
       fetchServicios();
+      dashboard.refetch();
     }
+    // dashboard.refetch es estable (useCallback sin dependencias)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state, fetchServicios]);
 
   // Para mostrar "Reservicio de <original>". Si un filtro deja afuera al
@@ -82,7 +95,7 @@ export function ServiciosPage() {
         </Button>
       </div>
 
-      <ServiciosDashboard />
+      <ServiciosDashboard data={dashboard} />
 
       <ServiciosFiltros
         estado={estado}
@@ -99,7 +112,7 @@ export function ServiciosPage() {
 
       {!initialLoading && !error && (
         <div
-          className="animales-table__wrapper"
+          className="animales-table__wrapper servicios-table__wrapper"
           style={{
             opacity: refetching ? 0.6 : 1,
             transition: "opacity 0.15s",
@@ -108,9 +121,9 @@ export function ServiciosPage() {
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader>Nombre</Table.ColumnHeader>
-                <Table.ColumnHeader>Inicio</Table.ColumnHeader>
-                <Table.ColumnHeader>Fin</Table.ColumnHeader>
+                <Table.ColumnHeader>Período</Table.ColumnHeader>
                 <Table.ColumnHeader>Estado</Table.ColumnHeader>
+                <Table.ColumnHeader>Pendientes</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -140,8 +153,8 @@ export function ServiciosPage() {
                         </span>
                       )}
                     </Table.Cell>
-                    <Table.Cell>{formatFecha(servicio.fecha_inicio)}</Table.Cell>
-                    <Table.Cell>
+                    <Table.Cell className="servicios-table__periodo">
+                      {formatFecha(servicio.fecha_inicio)} –{" "}
                       {servicio.fecha_fin ? formatFecha(servicio.fecha_fin) : "—"}
                     </Table.Cell>
                     <Table.Cell>
@@ -149,6 +162,26 @@ export function ServiciosPage() {
                         className={`servicio-badge servicio-badge--${servicio.estado}`}>
                         {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
                       </span>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <div className="servicios-table__pendientes">
+                        {pendientes.get(servicio.id)?.resultados && (
+                          <span className="servicio-alerta">
+                            Resultados por cargar
+                          </span>
+                        )}
+                        {pendientes.get(servicio.id)?.reservicio && (
+                          <span className="servicio-alerta servicio-alerta--reservicio">
+                            Reservicio por iniciar
+                          </span>
+                        )}
+                        {!pendientes.get(servicio.id)?.resultados &&
+                          !pendientes.get(servicio.id)?.reservicio && (
+                            <span className="servicios-table__sin-pendientes">
+                              —
+                            </span>
+                          )}
+                      </div>
                     </Table.Cell>
                   </Table.Row>
                 ))

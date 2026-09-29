@@ -35,6 +35,8 @@ export type ReservicioCreatePayload = {
   observaciones: string;
   lote: { nombre: string; categoria: CategoriaAnimal };
   animal_ids: number[];
+  /** Lotes de toros del servicio original que se suman al reservicio. */
+  toro_lote_ids: number[];
 };
 
 export type ServicioCreatePayload = {
@@ -145,12 +147,4 @@ export type ResultadoServicioCreatePayload = {
   estado: EstadoResultadoServicio;
   fecha_diagnostico?: string;
   observaciones?: string;
-};
-
-/** Un lote asociado a un servicio actualmente EN_CURSO, con el servicio al
- * que pertenece — usado para el listado "lotes en servicio" del dashboard. */
-export type LoteEnServicio = {
-  lote: ServicioLoteRead;
-  servicio: ServicioRead;
-  rol: "vientre" | "toro";
 };

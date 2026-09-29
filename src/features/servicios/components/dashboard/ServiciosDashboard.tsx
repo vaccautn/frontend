@@ -1,19 +1,13 @@
-import { Box, SimpleGrid, Text } from "@chakra-ui/react";
-import { useServiciosDashboard } from "@/features/servicios/hooks/useServiciosDashboard";
+import { Box, Text } from "@chakra-ui/react";
+import type { UseServiciosDashboardResult } from "@/features/servicios/hooks/useServiciosDashboard";
 import { ServiciosCalendario } from "./ServiciosCalendario";
-import { HistorialResultados } from "./HistorialResultados";
-import { LotesEnServicio } from "./LotesEnServicio";
-import { TimelineNacimientos } from "./TimelineNacimientos";
 
-export function ServiciosDashboard() {
-  const {
-    servicios,
-    resultados,
-    lotesEnServicio,
-    animalCaravanaPorId,
-    loading,
-    error,
-  } = useServiciosDashboard();
+export function ServiciosDashboard({
+  data,
+}: {
+  data: UseServiciosDashboardResult;
+}) {
+  const { servicios, loading, error } = data;
 
   return (
     <Box
@@ -50,42 +44,6 @@ export function ServiciosDashboard() {
         <ServiciosCalendario servicios={servicios} loading={loading} />
       </Box>
 
-      <Box
-        p="3"
-        border="1px solid"
-        borderColor="var(--border)"
-        borderRadius="8px"
-        bg="var(--bg)">
-        <TimelineNacimientos
-          resultados={resultados}
-          servicios={servicios}
-          loading={loading}
-        />
-      </Box>
-
-      <SimpleGrid columns={{ base: 1, lg: 2 }} gap="4">
-        <Box
-          p="3"
-          border="1px solid"
-          borderColor="var(--border)"
-          borderRadius="8px"
-          bg="var(--bg)">
-          <HistorialResultados
-            resultados={resultados}
-            servicios={servicios}
-            animalCaravanaPorId={animalCaravanaPorId}
-            loading={loading}
-          />
-        </Box>
-        <Box
-          p="3"
-          border="1px solid"
-          borderColor="var(--border)"
-          borderRadius="8px"
-          bg="var(--bg)">
-          <LotesEnServicio lotesEnServicio={lotesEnServicio} loading={loading} />
-        </Box>
-      </SimpleGrid>
     </Box>
   );
 }

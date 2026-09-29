@@ -61,3 +61,52 @@ export const EvaluacionesIcon = () => (
     />
   </svg>
 );
+
+type SiluetaProps = { size?: number };
+
+/** Cabeza de vaca de frente: cuernos cortos, orejas a los costados y hocico
+ * ancho. */
+export const VacaIcon = ({ size = 20 }: SiluetaProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true">
+    <path d="M8.2 6.2C7.6 5 7.9 3.9 8.8 3.4M15.8 6.2c.6-1.2.3-2.3-.6-2.8" />
+    <path d="M7.8 7.6 4 7.2c-.4 1.6.9 2.8 3.9 2.6M16.2 7.6l3.8-.4c.4 1.6-.9 2.8-3.9 2.6" />
+    <path d="M7.8 13V7.4c1.2-1.3 2.6-1.9 4.2-1.9s3 .6 4.2 1.9V13" />
+    <rect x="6.8" y="12.6" width="10.4" height="7.4" rx="3.7" />
+    <path d="M10 16.3h.01M14 16.3h.01" strokeWidth="2" />
+    <path d="M10 9.6h.01M14 9.6h.01" strokeWidth="1.8" />
+  </svg>
+);
+
+/** Cabeza de toro de frente: cuernos largos hacia los costados, frente ancha
+ * y argolla en la nariz. */
+export const ToroIcon = ({ size = 20 }: SiluetaProps) => (
+  <svg
+    xmlns="http://www.w3.org/2000/svg"
+    viewBox="0 0 24 24"
+    width={size}
+    height={size}
+    fill="none"
+    stroke="currentColor"
+    strokeWidth="1.5"
+    strokeLinecap="round"
+    strokeLinejoin="round"
+    aria-hidden="true">
+    <path d="M7.4 7C4.6 7 2.6 5.8 2.2 3.2M16.6 7c2.8 0 4.8-1.2 5.2-3.8" />
+    <path d="M7.2 8.6 4.2 9c.1 1.3 1.3 2 3.2 1.8M16.8 8.6l3 .4c-.1 1.3-1.3 2-3.2 1.8" />
+    <path d="M7.4 12.8V7.2C8.6 6 10.2 5.4 12 5.4s3.4.6 4.6 1.8v5.6" />
+    <rect x="6.6" y="12.4" width="10.8" height="6.6" rx="3.3" />
+    <path d="M10 15.6h.01M14 15.6h.01" strokeWidth="2" />
+    <path d="M10 9.4h.01M14 9.4h.01" strokeWidth="1.8" />
+    <circle cx="12" cy="19.6" r="1.6" />
+  </svg>
+);

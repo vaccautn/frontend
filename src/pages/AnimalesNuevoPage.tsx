@@ -5,7 +5,6 @@ import {
   Drawer,
   Field,
   Input,
-  NativeSelect,
   Portal,
   Textarea,
 } from "@chakra-ui/react";
@@ -28,6 +27,7 @@ import {
   SEXOS,
 } from "@/features/animales/constants";
 import type { LoteOption } from "@/features/lotes/types";
+import { SelectOpciones } from "@/components/SelectOpciones";
 import { toast } from "react-toastify";
 
 function AnimalesNuevoPage() {
@@ -70,18 +70,20 @@ function AnimalesNuevoPage() {
     setTimeout(() => navigate("/animales", { state: { refresh } }), 250);
   };
 
+  const setField = (field: keyof RodeoNuevoValues, value: string) => {
+    setValues((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: undefined }));
+    setFormError("");
+  };
+
   const updateField =
     (field: keyof RodeoNuevoValues) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
-      setValues((current) => ({ ...current, [field]: event.target.value }));
-      setErrors((current) => ({ ...current, [field]: undefined }));
-      setFormError("");
-    };
+    (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
+      setField(field, event.target.value);
 
   // Cambiar el sexo invalida la categoría elegida (HEMBRA y MACHO tienen
   // categorías disjuntas en el backend), así que se limpia junto con el sexo.
-  const updateSexo = (event: ChangeEvent<HTMLSelectElement>) => {
-    const sexo = event.target.value;
+  const updateSexo = (sexo: string) => {
     setValues((current) => ({ ...current, sexo, categoria: "" }));
     setErrors((current) => ({ ...current, sexo: undefined, categoria: undefined }));
     setFormError("");
@@ -223,57 +225,52 @@ function AnimalesNuevoPage() {
 
                 <Field.Root invalid={!!errors.raza}>
                   <Field.Label>Raza</Field.Label>
-                  <NativeSelect.Root>
-                    <NativeSelect.Field
-                      value={values.raza}
-                      onChange={updateField("raza")}>
-                      <option value="">Seleccioná una raza</option>
-                      {RAZAS.map((raza) => (
-                        <option key={raza} value={raza}>
-                          {raza}
-                        </option>
-                      ))}
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                  </NativeSelect.Root>
+                  <SelectOpciones
+                    aria-label="Raza"
+                    placeholder="Seleccioná una raza"
+                    opciones={RAZAS.map((raza) => ({ value: raza, label: raza }))}
+                    value={values.raza}
+                    onChange={(raza) => setField("raza", raza)}
+                  />
                   <Field.ErrorText>{errors.raza}</Field.ErrorText>
                 </Field.Root>
 
                 <Field.Root invalid={!!errors.sexo}>
                   <Field.Label>Sexo</Field.Label>
-                  <NativeSelect.Root>
-                    <NativeSelect.Field value={values.sexo} onChange={updateSexo}>
-                      <option value="">Seleccioná el sexo</option>
-                      {SEXOS.map(({ value, label }) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                  </NativeSelect.Root>
+                  <SelectOpciones
+                    aria-label="Sexo"
+                    placeholder="Seleccioná el sexo"
+                    opciones={[...SEXOS]}
+                    value={values.sexo}
+                    onChange={updateSexo}
+                  />
                   <Field.ErrorText>{errors.sexo}</Field.ErrorText>
                 </Field.Root>
 
                 <Field.Root invalid={!!errors.categoria}>
                   <Field.Label>Categoría</Field.Label>
-                  <NativeSelect.Root disabled={!values.sexo}>
-                    <NativeSelect.Field
-                      value={values.categoria}
-                      onChange={updateField("categoria")}>
-                      <option value="">
-                        {values.sexo
-                          ? "Seleccioná una categoría"
-                          : "Elegí el sexo primero"}
-                      </option>
-                      {categoriasDisponibles.map((value) => (
-                        <option key={value} value={value}>
-                          {CATEGORIA_ANIMAL_LABELS[value] ?? value}
-                        </option>
-                      ))}
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                  </NativeSelect.Root>
+                  <SelectOpciones
+                    aria-label="Categoría"
+                    disabled={!values.sexo}
+                    placeholder={
+                      values.sexo
+                        ? "Seleccioná una categoría"
+                        : "Elegí el sexo primero"
+                    }
+                    opciones={categoriasDisponibles.map((value) => ({
+                      value,
+                      label: CATEGORIA_ANIMAL_LABELS[value] ?? value,
+                    }))}
+                    value={values.categoria}
+                    onChange={(categoria) => {
+                      setValues((current) => ({ ...current, categoria }));
+                      setErrors((current) => ({
+                        ...current,
+                        categoria: undefined,
+                      }));
+                      setFormError("");
+                    }}
+                  />
                   <Field.ErrorText>{errors.categoria}</Field.ErrorText>
                 </Field.Root>
 
@@ -303,23 +300,18 @@ function AnimalesNuevoPage() {
                         </button>
                       </div>
                     </Field.Label>
-                    <NativeSelect.Root>
-                      <NativeSelect.Field
-                        value={values.lote_id}
-                        onChange={updateField("lote_id")}>
-                        <option value="">
-                          {lotesLoading
-                            ? "Cargando lotes..."
-                            : "Selecciona un lote"}
-                        </option>
-                        {lotes.map((lote) => (
-                          <option key={lote.id} value={lote.id}>
-                            {lote.nombre}
-                          </option>
-                        ))}
-                      </NativeSelect.Field>
-                      <NativeSelect.Indicator />
-                    </NativeSelect.Root>
+                    <SelectOpciones
+                      aria-label="Lote"
+                      placeholder={
+                        lotesLoading ? "Cargando lotes..." : "Seleccioná un lote"
+                      }
+                      opciones={lotes.map((lote) => ({
+                        value: String(lote.id),
+                        label: lote.nombre,
+                      }))}
+                      value={values.lote_id}
+                      onChange={(loteId) => setField("lote_id", loteId)}
+                    />
                     <Field.ErrorText>{errors.lote_id}</Field.ErrorText>
                     {lotesError && (
                       <p className="status-message error">{lotesError}</p>
@@ -356,22 +348,16 @@ function AnimalesNuevoPage() {
 
                     <Field.Root>
                       <Field.Label>Categoría del lote</Field.Label>
-                      <NativeSelect.Root>
-                        <NativeSelect.Field
-                          value={nuevoLoteCategoria}
-                          onChange={(event) => {
-                            setNuevoLoteCategoria(event.target.value);
-                            setNuevoLoteError("");
-                          }}>
-                          <option value="">Seleccioná una categoría</option>
-                          {CATEGORIAS_ANIMAL.map(({ value, label }) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
-                        </NativeSelect.Field>
-                        <NativeSelect.Indicator />
-                      </NativeSelect.Root>
+                      <SelectOpciones
+                        aria-label="Categoría del lote"
+                        placeholder="Seleccioná una categoría"
+                        opciones={[...CATEGORIAS_ANIMAL]}
+                        value={nuevoLoteCategoria}
+                        onChange={(categoria) => {
+                          setNuevoLoteCategoria(categoria);
+                          setNuevoLoteError("");
+                        }}
+                      />
                     </Field.Root>
 
                     <Field.Root>

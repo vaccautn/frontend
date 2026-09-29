@@ -11,11 +11,13 @@ import { IconArrowLeft } from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import {
   crearReservicio,
+  getLotesServicio,
   getParticipantesServicio,
   getServicio,
 } from "@/features/servicios/services/serviciosService";
 import type {
   ParticipanteServicio,
+  ServicioLoteRead,
   ServicioRead,
 } from "@/features/servicios/types";
 import {
@@ -29,6 +31,7 @@ import {
 import type { CategoriaAnimal } from "@/features/animales/types";
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
+import { FechaInput } from "@/components/FechaInput";
 import "@/features/animales/components/animales.css";
 import "@/features/servicios/components/servicios.css";
 
@@ -76,6 +79,11 @@ export function CrearReservicioPage() {
   const [servicio, setServicio] = useState<ServicioRead | null>(null);
   const [elegibles, setElegibles] = useState<ParticipanteServicio[]>([]);
   const [seleccionadas, setSeleccionadas] = useState<Set<number>>(new Set());
+  const [lotesToros, setLotesToros] = useState<ServicioLoteRead[]>([]);
+  // Por defecto el reservicio usa todos los toros del servicio original.
+  const [torosSeleccionados, setTorosSeleccionados] = useState<Set<number>>(
+    new Set(),
+  );
   const [values, setValues] = useState<FormValues>(VALORES_INICIALES);
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState("");
@@ -91,10 +99,15 @@ export function CrearReservicioPage() {
       }
       try {
         const servicioData = await getServicio(servicioId);
-        const participantes = await getParticipantesServicio(servicioId);
+        const [participantes, lotesOrigen] = await Promise.all([
+          getParticipantesServicio(servicioId),
+          getLotesServicio(servicioId),
+        ]);
         if (cancelled) return;
         setServicio(servicioData);
         setElegibles(participantes.filter(esElegible));
+        setLotesToros(lotesOrigen.toros);
+        setTorosSeleccionados(new Set(lotesOrigen.toros.map((l) => l.id)));
         setStatus("ready");
       } catch (error) {
         if (cancelled) return;
@@ -113,17 +126,20 @@ export function CrearReservicioPage() {
 
   const volverAlServicio = () => navigate(`/servicios/${servicioId}`);
 
+  const setField = (field: keyof FormValues, value: string) => {
+    setValues((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: undefined }));
+    setFormError("");
+  };
+
   const updateField =
     (field: keyof FormValues) =>
     (
       event: ChangeEvent<
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       >,
-    ) => {
-      setValues((current) => ({ ...current, [field]: event.target.value }));
-      setErrors((current) => ({ ...current, [field]: undefined }));
-      setFormError("");
-    };
+    ) =>
+      setField(field, event.target.value);
 
   const toggleVaca = (animalId: number) => {
     setSeleccionadas((current) => {
@@ -134,6 +150,15 @@ export function CrearReservicioPage() {
     });
     setErrors((current) => ({ ...current, vacas: undefined }));
     setFormError("");
+  };
+
+  const toggleToros = (loteId: number) => {
+    setTorosSeleccionados((current) => {
+      const siguiente = new Set(current);
+      if (siguiente.has(loteId)) siguiente.delete(loteId);
+      else siguiente.add(loteId);
+      return siguiente;
+    });
   };
 
   const handleSubmit = async () => {
@@ -164,6 +189,7 @@ export function CrearReservicioPage() {
           categoria: values.lote_categoria as CategoriaAnimal,
         },
         animal_ids: [...seleccionadas],
+        toro_lote_ids: [...torosSeleccionados],
       });
       toast.success("Reservicio creado correctamente.");
       navigate(`/servicios/${reservicio.id}`);
@@ -231,113 +257,166 @@ export function CrearReservicioPage() {
             </div>
           </div>
 
-          <div className="animal-edit-page__form">
-            <Field.Root>
-              <Field.Label>Nombre del reservicio</Field.Label>
-              <Input
-                value={values.nombre}
-                onChange={updateField("nombre")}
-                placeholder="Ej.: Reservicio de otoño"
-              />
-            </Field.Root>
-            <div />
-
-            <Field.Root invalid={!!errors.fecha_inicio}>
-              <Field.Label>Fecha de inicio</Field.Label>
-              <Input
-                type="date"
-                value={values.fecha_inicio}
-                onChange={updateField("fecha_inicio")}
-              />
-              <Field.ErrorText>{errors.fecha_inicio}</Field.ErrorText>
-            </Field.Root>
-
-            <Field.Root invalid={!!errors.fecha_fin}>
-              <Field.Label>Fecha de fin</Field.Label>
-              <Input
-                type="date"
-                value={values.fecha_fin}
-                onChange={updateField("fecha_fin")}
-              />
-              <Field.ErrorText>{errors.fecha_fin}</Field.ErrorText>
-            </Field.Root>
-
-            <Field.Root invalid={!!errors.lote_nombre}>
-              <Field.Label>Nombre del lote nuevo</Field.Label>
-              <Input
-                value={values.lote_nombre}
-                onChange={updateField("lote_nombre")}
-                placeholder="Ej.: Vacías para reservicio"
-              />
-              <Field.ErrorText>{errors.lote_nombre}</Field.ErrorText>
-            </Field.Root>
-
-            <Field.Root invalid={!!errors.lote_categoria}>
-              <Field.Label>Categoría del lote</Field.Label>
-              <NativeSelect.Root>
-                <NativeSelect.Field
-                  value={values.lote_categoria}
-                  onChange={updateField("lote_categoria")}>
-                  <option value="">Seleccioná la categoría</option>
-                  {CATEGORIAS_POR_SEXO.HEMBRA.map((categoria) => (
-                    <option key={categoria} value={categoria}>
-                      {CATEGORIA_ANIMAL_LABELS[categoria] ?? categoria}
-                    </option>
-                  ))}
-                </NativeSelect.Field>
-                <NativeSelect.Indicator />
-              </NativeSelect.Root>
-              <Field.ErrorText>{errors.lote_categoria}</Field.ErrorText>
-            </Field.Root>
-
-            <Field.Root className="animal-edit-page__field--full">
-              <Field.Label>Observaciones</Field.Label>
-              <Textarea
-                value={values.observaciones}
-                onChange={updateField("observaciones")}
-                rows={2}
-              />
-            </Field.Root>
-          </div>
-
-          <div className="animal-detail__section-header">
-            <div>
-              <span className="animal-detail__section-eyebrow">
-                Vacas vacías
-              </span>
-              <h2>Elegí las vacas que entran al reservicio</h2>
+          <div className="reservicio__panel">
+            <div className="animal-detail__section-header">
+              <div>
+                <span className="animal-detail__section-eyebrow">Detalles</span>
+                <h2>Datos del reservicio</h2>
+              </div>
             </div>
-            <span className="cargar-resultados__resumen">
-              {seleccionadas.size} de {elegibles.length} seleccionada
-              {elegibles.length === 1 ? "" : "s"}
-            </span>
+
+            <div className="animal-edit-page__form">
+              <Field.Root className="animal-edit-page__field--full">
+                <Field.Label>Nombre del reservicio</Field.Label>
+                <Input
+                  value={values.nombre}
+                  onChange={updateField("nombre")}
+                  placeholder="Ej.: Reservicio de otoño"
+                />
+              </Field.Root>
+
+              <div className="reservicio__fechas animal-edit-page__field--full">
+                <Field.Root invalid={!!errors.fecha_inicio}>
+                  <Field.Label>Fecha de inicio</Field.Label>
+                  <FechaInput
+                    value={values.fecha_inicio}
+                    onChange={(value) => setField("fecha_inicio", value)}
+                  />
+                  <Field.ErrorText>{errors.fecha_inicio}</Field.ErrorText>
+                </Field.Root>
+
+                <Field.Root invalid={!!errors.fecha_fin}>
+                  <Field.Label>Fecha de fin</Field.Label>
+                  <FechaInput
+                    value={values.fecha_fin}
+                    onChange={(value) => setField("fecha_fin", value)}
+                  />
+                  <Field.ErrorText>{errors.fecha_fin}</Field.ErrorText>
+                </Field.Root>
+              </div>
+
+              <Field.Root className="animal-edit-page__field--full">
+                <Field.Label>Observaciones</Field.Label>
+                <Textarea
+                  value={values.observaciones}
+                  onChange={updateField("observaciones")}
+                  rows={3}
+                />
+              </Field.Root>
+
+              <span className="reservicio__panel-seccion">Lote nuevo</span>
+
+              <Field.Root invalid={!!errors.lote_nombre}>
+                <Field.Label>Nombre del lote</Field.Label>
+                <Input
+                  value={values.lote_nombre}
+                  onChange={updateField("lote_nombre")}
+                  placeholder="Ej.: Vacías para reservicio"
+                />
+                <Field.HelperText>
+                  Las vacas elegidas pasan a este lote.
+                </Field.HelperText>
+                <Field.ErrorText>{errors.lote_nombre}</Field.ErrorText>
+              </Field.Root>
+
+              <Field.Root invalid={!!errors.lote_categoria}>
+                <Field.Label>Categoría del lote</Field.Label>
+                <NativeSelect.Root>
+                  <NativeSelect.Field
+                    value={values.lote_categoria}
+                    onChange={updateField("lote_categoria")}>
+                    <option value="">Seleccioná la categoría</option>
+                    {CATEGORIAS_POR_SEXO.HEMBRA.map((categoria) => (
+                      <option key={categoria} value={categoria}>
+                        {CATEGORIA_ANIMAL_LABELS[categoria] ?? categoria}
+                      </option>
+                    ))}
+                  </NativeSelect.Field>
+                  <NativeSelect.Indicator />
+                </NativeSelect.Root>
+                <Field.ErrorText>{errors.lote_categoria}</Field.ErrorText>
+              </Field.Root>
+            </div>
           </div>
 
-          {elegibles.length === 0 ? (
-            <p className="servicio-detail__lotes-vacio">
-              No hay vacas vacías disponibles: todas están en otro reservicio o
-              ya no están activas.
-            </p>
-          ) : (
-            <ul className="cargar-resultados__lista">
-              {elegibles.map(({ animal, lote_actual }) => (
-                <li key={animal.id} className="cargar-resultados__fila">
-                  <label className="reservicio__vaca">
-                    <input
-                      type="checkbox"
-                      checked={seleccionadas.has(animal.id)}
-                      onChange={() => toggleVaca(animal.id)}
-                    />
-                    <strong>{animal.caravana ?? `#${animal.id}`}</strong>
-                    <span>{lote_actual?.nombre ?? "Sin lote"}</span>
-                  </label>
-                </li>
-              ))}
-            </ul>
-          )}
-          {errors.vacas && (
-            <p className="cargar-resultados__error">{errors.vacas}</p>
-          )}
+          <div className="reservicio__panel">
+            <div className="animal-detail__section-header">
+              <div>
+                <span className="animal-detail__section-eyebrow">
+                  Vacas vacías
+                </span>
+                <h2>Elegí las vacas que entran al reservicio</h2>
+              </div>
+              <span className="cargar-resultados__resumen">
+                {seleccionadas.size} de {elegibles.length} seleccionada
+                {elegibles.length === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            {elegibles.length === 0 ? (
+              <p className="servicio-detail__lotes-vacio">
+                No hay vacas vacías disponibles: todas están en otro reservicio o
+                ya no están activas.
+              </p>
+            ) : (
+              <ul className="cargar-resultados__lista">
+                {elegibles.map(({ animal, lote_actual }) => (
+                  <li key={animal.id} className="cargar-resultados__fila">
+                    <label className="reservicio__vaca">
+                      <input
+                        type="checkbox"
+                        checked={seleccionadas.has(animal.id)}
+                        onChange={() => toggleVaca(animal.id)}
+                      />
+                      <strong>{animal.caravana ?? `#${animal.id}`}</strong>
+                      <span>{lote_actual?.nombre ?? "Sin lote"}</span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+            {errors.vacas && (
+              <p className="cargar-resultados__error">{errors.vacas}</p>
+            )}
+          </div>
+
+          <div className="reservicio__panel">
+            <div className="animal-detail__section-header">
+              <div>
+                <span className="animal-detail__section-eyebrow">Toros</span>
+                <h2>Lotes de toros del servicio original</h2>
+              </div>
+              <span className="cargar-resultados__resumen">
+                {torosSeleccionados.size} de {lotesToros.length} seleccionado
+                {lotesToros.length === 1 ? "" : "s"}
+              </span>
+            </div>
+
+            {lotesToros.length === 0 ? (
+              <p className="servicio-detail__lotes-vacio">
+                El servicio original no tiene lotes de toros.
+              </p>
+            ) : (
+              <ul className="cargar-resultados__lista">
+                {lotesToros.map((lote) => (
+                  <li key={lote.id} className="cargar-resultados__fila">
+                    <label className="reservicio__vaca">
+                      <input
+                        type="checkbox"
+                        checked={torosSeleccionados.has(lote.id)}
+                        onChange={() => toggleToros(lote.id)}
+                      />
+                      <strong>{lote.nombre}</strong>
+                      <span>
+                        {CATEGORIA_ANIMAL_LABELS[lote.categoria] ??
+                          lote.categoria}
+                      </span>
+                    </label>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </div>
 
           {formError && (
             <p className="status-message error" role="alert">

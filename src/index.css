@@ -42,6 +42,7 @@
   --orange: var(--ocre-campo);
   --orange-bg: #fbeadd;
   --orange-border: #edc99a;
+  --info-bg: #e4ebf1;
   --shadow: rgba(21, 32, 25, 0.12) 0 18px 45px;
 
   --sans: "Manrope", serif;
@@ -93,4 +94,32 @@ p {
 button,
 input {
   font: inherit;
+}
+
+/* Campos de fecha nativos: mismo color de texto que el resto de los inputs,
+ * placeholder atenuado cuando están vacíos e ícono de calendario con el
+ * hover de marca. */
+input[type="date"] {
+  color-scheme: light;
+  color: var(--text-h);
+  font-family: inherit;
+}
+
+input[type="date"][value=""] {
+  color: var(--text);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background: var(--verde-pastel);
+  opacity: 1;
 }

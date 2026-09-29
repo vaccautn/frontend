@@ -22,6 +22,9 @@ function getPageTitle(pathname: string) {
   if (pathname.startsWith("/sesiones")) {
     return "Sesiones de evaluación";
   }
+  if (pathname.startsWith("/servicios")) {
+    return "Servicios";
+  }
 
   return pageTitles[pathname] ?? "Sin título";
 }

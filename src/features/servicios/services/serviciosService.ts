@@ -157,7 +157,11 @@ export function getServicios(
   }
 
   const qs = searchParams.toString();
-  return getJson<ServicioRead[]>(`/servicios/${qs ? `?${qs}` : ""}`, token);
+  // Un servicio eliminado queda CANCELADO en el backend; para el usuario ya
+  // no existe, así que no se lista en ningún lado.
+  return getJson<ServicioRead[]>(`/servicios/${qs ? `?${qs}` : ""}`, token).then(
+    (servicios) => servicios.filter((s) => s.estado !== "CANCELADO"),
+  );
 }
 
 export function getServicio(id: number): Promise<ServicioRead> {
@@ -168,4 +172,11 @@ export function getServicio(id: number): Promise<ServicioRead> {
 export function getLotesServicio(id: number): Promise<ServicioLotesAgrupados> {
   const token = getAccessToken();
   return getJson<ServicioLotesAgrupados>(`/servicios/${id}/lotes`, token);
+}
+
+/** El backend no borra el servicio: lo pasa a CANCELADO. Se permite desde
+ * PLANIFICADO, EN_CURSO o FINALIZADO. */
+export function eliminarServicio(id: number): Promise<void> {
+  const token = getAccessToken();
+  return deleteRequest(`/servicios/${id}`, token);
 }

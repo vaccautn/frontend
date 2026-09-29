@@ -16,6 +16,7 @@ import { getLotes } from "@/features/lotes/services/lotesService";
 import type { LoteOption } from "@/features/lotes/types";
 import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 import { ApiError } from "@/services/httpClient";
+import { FechaInput } from "@/components/FechaInput";
 import {
   initialServicioNuevoValues,
   validateServicioNuevoForm,
@@ -62,13 +63,16 @@ function ServicioNuevoPage() {
     setTimeout(() => navigate(path, { state: { refresh } }), 250);
   };
 
+  const setField = (field: keyof ServicioNuevoValues, value: string) => {
+    setValues((current) => ({ ...current, [field]: value }));
+    setErrors((current) => ({ ...current, [field]: undefined }));
+    setFormError("");
+  };
+
   const updateField =
     (field: keyof ServicioNuevoValues) =>
-    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
-      setValues((current) => ({ ...current, [field]: event.target.value }));
-      setErrors((current) => ({ ...current, [field]: undefined }));
-      setFormError("");
-    };
+    (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      setField(field, event.target.value);
 
   const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -165,20 +169,18 @@ function ServicioNuevoPage() {
 
                 <Field.Root invalid={!!errors.fecha_inicio}>
                   <Field.Label>Fecha de inicio</Field.Label>
-                  <Input
-                    type="date"
+                  <FechaInput
                     value={values.fecha_inicio}
-                    onChange={updateField("fecha_inicio")}
+                    onChange={(value) => setField("fecha_inicio", value)}
                   />
                   <Field.ErrorText>{errors.fecha_inicio}</Field.ErrorText>
                 </Field.Root>
 
                 <Field.Root invalid={!!errors.fecha_fin}>
                   <Field.Label>Fecha de fin</Field.Label>
-                  <Input
-                    type="date"
+                  <FechaInput
                     value={values.fecha_fin}
-                    onChange={updateField("fecha_fin")}
+                    onChange={(value) => setField("fecha_fin", value)}
                   />
                   <Field.ErrorText>{errors.fecha_fin}</Field.ErrorText>
                 </Field.Root>
