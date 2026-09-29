@@ -60,12 +60,12 @@ export function BajaAnimalModal({
     }
 
     if (!motivo) {
-      setFormError("Selecciona un motivo de baja.");
+      setFormError("Seleccioná un motivo de baja.");
       return;
     }
 
     if (!fechaBaja) {
-      setFormError("Selecciona una fecha de baja.");
+      setFormError("Seleccioná una fecha de baja.");
       return;
     }
 
@@ -96,7 +96,7 @@ export function BajaAnimalModal({
           normalizeBackendDetail(error.detail) ?? "Error al dar de baja el animal.",
         );
       } else {
-        setFormError("No se pudo dar de baja el animal. Proba nuevamente.");
+        setFormError("No se pudo dar de baja el animal. Probá nuevamente.");
       }
     } finally {
       if (shouldResetSubmitting) {
@@ -168,7 +168,7 @@ export function BajaAnimalModal({
                 setFormError("");
               }}
               required>
-              <option value="">Selecciona un motivo</option>
+              <option value="">Seleccioná un motivo</option>
               {MOTIVOS.map(({ value, label }) => (
                 <option key={value} value={value}>
                   {label}

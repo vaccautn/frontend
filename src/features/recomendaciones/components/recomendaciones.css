@@ -1,0 +1,230 @@
+.recomendaciones__subtitulo {
+  margin: 0 0 0.5rem;
+  font-size: 0.82rem;
+  color: var(--text);
+  opacity: 0.85;
+}
+
+.recomendaciones__sin-pendientes {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1.1rem 1.25rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--success);
+}
+
+.recomendaciones__sin-pendientes strong {
+  display: block;
+  color: var(--text-h);
+  font-size: 0.95rem;
+}
+
+.recomendaciones__sin-pendientes p {
+  margin: 0.15rem 0 0;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.recomendaciones__vacio {
+  margin: 0.25rem 0 0.75rem;
+  font-size: 0.85rem;
+  color: var(--text);
+  opacity: 0.75;
+}
+
+.recomendaciones__ventana {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  font-size: 0.85rem;
+  color: var(--text-h);
+}
+
+.recomendaciones__periodo {
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.recomendaciones__col-foto {
+  width: 4rem;
+}
+
+.recomendaciones__col-medida {
+  width: 15rem;
+  min-width: 13rem;
+}
+
+.recomendaciones__foto {
+  width: 2.25rem;
+  height: 2.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+  color: var(--text);
+  overflow: hidden;
+}
+
+.recomendaciones__foto img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.recomendaciones__foto--boton {
+  padding: 0;
+  cursor: zoom-in;
+  transition: box-shadow 0.15s;
+}
+
+.recomendaciones__foto--boton:hover {
+  box-shadow: 0 0 0 2px var(--focus);
+}
+
+.recomendaciones__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.6rem;
+  margin: 0.9rem 0;
+}
+
+.recomendaciones__aviso {
+  flex-basis: 100%;
+  margin: 0;
+  text-align: right;
+  font-size: 0.8rem;
+  color: var(--warning);
+}
+
+.recomendaciones__plegable {
+  margin-top: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  overflow: hidden;
+}
+
+.recomendaciones__plegable > summary {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.75rem 1rem;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: var(--text-h);
+  list-style: none;
+  transition: background 0.15s;
+}
+
+.recomendaciones__plegable > summary::-webkit-details-marker {
+  display: none;
+}
+
+.recomendaciones__plegable > summary:hover {
+  background: var(--bg);
+}
+
+.recomendaciones__plegable-icono {
+  flex-shrink: 0;
+  color: var(--accent-strong);
+  transform: rotate(-90deg);
+  transition: transform 0.15s;
+}
+
+.recomendaciones__plegable[open] .recomendaciones__plegable-icono {
+  transform: rotate(0deg);
+}
+
+.recomendaciones__plegable[open] > summary {
+  border-bottom: 1px solid var(--border);
+}
+
+.recomendaciones__plegable-cantidad {
+  padding: 0.1rem 0.55rem;
+  border-radius: 999px;
+  background: var(--verde-pastel);
+  color: var(--accent-strong);
+  font-size: 0.75rem;
+}
+
+.recomendaciones__decidida {
+  display: grid;
+  grid-template-columns: minmax(6rem, 1fr) minmax(9rem, 1.5fr) 7rem 6.5rem;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 1rem;
+  font-size: 0.88rem;
+}
+
+.recomendaciones__decidida + .recomendaciones__decidida {
+  border-top: 1px solid var(--border);
+}
+
+.recomendaciones__decidida strong {
+  color: var(--text-h);
+}
+
+.recomendaciones__decidida--header {
+  background: var(--verde-pastel);
+  color: var(--text-h);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.recomendaciones__estado {
+  padding: 0.15rem 0.6rem;
+  border-radius: 999px;
+  font-size: 0.75rem;
+  font-weight: 700;
+}
+
+.recomendaciones__estado--ACEPTADA {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.recomendaciones__estado--RECHAZADA {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.recomendaciones__fecha {
+  font-size: 0.82rem;
+  color: var(--text);
+}
+
+@media (max-width: 640px) {
+  .recomendaciones__decidida {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .recomendaciones__decidida--header {
+    display: none;
+  }
+}
+
+.recomendaciones__chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0;
+  padding: 0.75rem 1rem;
+}
+
+.recomendaciones__chips > li {
+  padding: 0.2rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 0.8rem;
+  background: var(--bg);
+}

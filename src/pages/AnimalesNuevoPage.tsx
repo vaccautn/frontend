@@ -378,7 +378,7 @@ function AnimalesNuevoPage() {
                   !lotesError &&
                   !isCreatingLote && (
                     <p className="status-message error">
-                      No tenes lotes disponibles para registrar animales.
+                      No tenés lotes disponibles para registrar animales.
                     </p>
                   )}
               </form>

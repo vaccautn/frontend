@@ -36,6 +36,9 @@ const config = defineConfig({
     },
     semanticTokens: {
       colors: {
+        // Texto por defecto de los componentes de Chakra: verde muy oscuro
+        // (--text-h) en vez de negro, para bajar el contraste.
+        fg: { value: "var(--text-h)" },
         brand: {
           solid: { value: "{colors.verdeVacca}" },
           contrast: { value: "white" },

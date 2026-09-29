@@ -78,6 +78,7 @@ import { localNaiveNow } from "@/utils/localDateTime";
 import { toast } from "react-toastify";
 import "@/features/animales/components/animales.css";
 import "@/features/servicios/components/servicios.css";
+import { RecomendacionesServicio } from "@/features/recomendaciones/components/RecomendacionesServicio";
 
 const CAMPOS: { label: string; render: (servicio: ServicioRead) => string }[] = [
   {
@@ -756,6 +757,14 @@ export function ServicioDetailPage() {
             terneros={cantidadTerneros}
             loading={loadingAnimales}
           />
+
+          {(servicio.estado === "PLANIFICADO" ||
+            servicio.estado === "EN_CURSO") && (
+            <RecomendacionesServicio
+              key={servicio.id}
+              servicioId={servicio.id}
+            />
+          )}
 
           {reservicios.length > 0 && (
             <section className="animal-detail__section">
