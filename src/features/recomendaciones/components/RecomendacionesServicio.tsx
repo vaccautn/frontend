@@ -1,73 +1,69 @@
-import { useCallback, useEffect, useState } from "react";
-import { Input } from "@chakra-ui/react";
-import { formatFecha } from "@/features/animales/utils/formatDate";
+import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
+import { IconAlertTriangle } from "@tabler/icons-react";
 import { getRecomendacionesServicio } from "../services/recomendacionesService";
-import type { RecomendacionesServicio as Datos } from "../types";
-import { RecomendacionesPanel } from "./RecomendacionesPanel";
+import type { AptitudVaca } from "../types";
+import "./recomendaciones.css";
 
-const DIAS_POR_DEFECTO = 30;
+/** Ventana de CC que se mira para el preservicio (S20). */
+const DIAS = 30;
 
-/** Preservicio de un servicio: última CC de cada vaca dentro de los últimos
- * N días (S20), editable por el productor. */
+/** Aviso en el detalle del servicio: vacas con recomendaciones pendientes.
+ * Las recomendaciones se deciden desde la sesión donde se evaluó cada vaca.
+ * Si no hay pendientes (o falla la consulta) no muestra nada. */
 export function RecomendacionesServicio({ servicioId }: { servicioId: number }) {
-  const [diasInput, setDiasInput] = useState(String(DIAS_POR_DEFECTO));
-  const [dias, setDias] = useState(DIAS_POR_DEFECTO);
-  const [datos, setDatos] = useState<Datos | null>(null);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState("");
-
-  const cargar = useCallback(() => {
-    setError("");
-    getRecomendacionesServicio(servicioId, dias)
-      .then(setDatos)
-      .catch(() => setError("No se pudieron cargar las recomendaciones."))
-      .finally(() => setLoading(false));
-  }, [servicioId, dias]);
+  const [conPendientes, setConPendientes] = useState<AptitudVaca[]>([]);
 
   useEffect(() => {
-    const timer = window.setTimeout(cargar, 0);
-    return () => window.clearTimeout(timer);
-  }, [cargar]);
+    let cancelled = false;
+    getRecomendacionesServicio(servicioId, DIAS)
+      .then((datos) => {
+        if (cancelled) return;
+        setConPendientes(
+          datos.vacas.filter((vaca) =>
+            vaca.recomendaciones.some((r) => r.estado === "PENDIENTE"),
+          ),
+        );
+      })
+      .catch(() => {
+        /* el aviso es informativo: si falla, no se muestra */
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [servicioId]);
 
-  const aplicarDias = () => {
-    const valor = Number(diasInput);
-    if (Number.isInteger(valor) && valor >= 1) setDias(valor);
-    else setDiasInput(String(dias));
-  };
+  if (conPendientes.length === 0) return null;
 
-  const controles = (
-    <div className="recomendaciones__ventana">
-      <label htmlFor={`dias-cc-${servicioId}`}>CC de los últimos</label>
-      <Input
-        id={`dias-cc-${servicioId}`}
-        type="number"
-        min={1}
-        size="sm"
-        width="5rem"
-        value={diasInput}
-        onChange={(event) => setDiasInput(event.target.value)}
-        onBlur={aplicarDias}
-        onKeyDown={(event) => {
-          if (event.key === "Enter") aplicarDias();
-        }}
-      />
-      <span>días</span>
-      {datos && (
-        <span className="recomendaciones__periodo">
-          ({formatFecha(datos.desde)} al {formatFecha(datos.fecha_referencia)})
-        </span>
-      )}
-    </div>
-  );
-
+  const cantidad = conPendientes.length;
   return (
-    <RecomendacionesPanel
-      vacas={datos?.vacas ?? []}
-      loading={loading}
-      error={error}
-      mostrarSinCc
-      controles={controles}
-      onDecidido={cargar}
-    />
+    <div className="recomendaciones__alerta" role="status">
+      <IconAlertTriangle size={20} stroke={1.75} />
+      <div>
+        <strong>
+          {cantidad === 1
+            ? "1 vaca con recomendación pendiente"
+            : `${cantidad} vacas con recomendación pendiente`}
+        </strong>
+        <p>
+          Revisalas desde la sesión donde se evaluaron:{" "}
+          {conPendientes.map((vaca, i) => (
+            <span key={vaca.animal.id}>
+              {i > 0 && ", "}
+              {vaca.evaluacion ? (
+                <Link
+                  to={`/sesiones/${vaca.evaluacion.sesion_id}`}
+                  className="recomendaciones__alerta-link">
+                  {vaca.animal.caravana ?? `#${vaca.animal.id}`}
+                </Link>
+              ) : (
+                (vaca.animal.caravana ?? `#${vaca.animal.id}`)
+              )}
+            </span>
+          ))}
+          .
+        </p>
+      </div>
+    </div>
   );
 }

@@ -1310,13 +1310,21 @@
 /* ── Historial de evaluaciones: tabla con filas expandibles ── */
 .animal-evaluaciones-table__wrapper {
   margin-top: 0.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
   overflow-x: auto;
+}
+
+/* El borde lo pone el wrapper: sin línea extra debajo de la última fila. */
+.animal-evaluaciones-table__wrapper tbody tr:last-child td {
+  border-bottom: none;
 }
 
 .animal-evaluaciones-table__cc {
   display: inline-flex;
   align-items: center;
   padding: 0.4rem 1rem;
+  border: 1px solid transparent;
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.85rem;
@@ -1325,16 +1333,19 @@
 /* El color depende del mes de la evaluación, no solo del valor: ver
  * features/animales/utils/ccColor.ts (nivelCC). */
 .animal-evaluaciones-table__cc--normal {
+  border-color: var(--success-border);
   background: var(--success-bg);
   color: var(--success);
 }
 
 .animal-evaluaciones-table__cc--atencion {
+  border-color: var(--warning-border);
   background: var(--warning-bg);
   color: var(--warning);
 }
 
 .animal-evaluaciones-table__cc--critico {
+  border-color: var(--danger-border);
   background: var(--danger-bg);
   color: var(--danger);
 }

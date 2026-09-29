@@ -751,13 +751,6 @@ export function ServicioDetailPage() {
 
           <div className="animal-page__details-divider" />
 
-          <ServicioDashboard
-            vacas={cantidadVacas}
-            toros={contarToros(lotes?.toros ?? [], animalesPorLoteId)}
-            terneros={cantidadTerneros}
-            loading={loadingAnimales}
-          />
-
           {(servicio.estado === "PLANIFICADO" ||
             servicio.estado === "EN_CURSO") && (
             <RecomendacionesServicio
@@ -765,6 +758,13 @@ export function ServicioDetailPage() {
               servicioId={servicio.id}
             />
           )}
+
+          <ServicioDashboard
+            vacas={cantidadVacas}
+            toros={contarToros(lotes?.toros ?? [], animalesPorLoteId)}
+            terneros={cantidadTerneros}
+            loading={loadingAnimales}
+          />
 
           {reservicios.length > 0 && (
             <section className="animal-detail__section">

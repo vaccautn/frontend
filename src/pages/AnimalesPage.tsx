@@ -27,7 +27,6 @@ const COLUMNAS = [
   "Fecha de nacimiento",
   "Lote",
   "Categoría del lote",
-  "Estado",
 ];
 
 export function AnimalesPage() {
@@ -241,7 +240,6 @@ export function AnimalesPage() {
                           ] ?? "—")
                         : "—"}
                     </Table.Cell>
-                    <Table.Cell>{animal.estado}</Table.Cell>
                   </Table.Row>
                 ))
               )}

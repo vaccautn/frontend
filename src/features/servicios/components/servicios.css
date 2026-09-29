@@ -1,9 +1,10 @@
-/* Mismo patrón que .animal-evaluaciones-table__cc: pill sin borde, colores
+/* Pill con borde, igual que los avisos de .servicio-alerta, con los colores
  * semánticos del theme (--success/--warning/--orange/--danger). */
 .servicio-badge {
   display: inline-flex;
   align-items: center;
   padding: 0.4rem 1rem;
+  border: 1px solid transparent;
   border-radius: 999px;
   font-weight: 700;
   font-size: 0.85rem;
@@ -11,26 +12,31 @@
 }
 
 .servicio-badge--PLANIFICADO {
+  border-color: var(--success-border);
   background: var(--verde-pastel);
   color: var(--accent-strong);
 }
 
 .servicio-badge--EN_CURSO {
+  border-color: var(--warning-border);
   background: var(--warning-bg);
   color: var(--warning);
 }
 
 .servicio-badge--FINALIZADO {
+  border-color: var(--success-border);
   background: var(--success-bg);
   color: var(--success);
 }
 
 .servicio-badge--CERRADO {
+  border-color: var(--azul-acero);
   background: var(--gris-niebla);
   color: var(--text-h);
 }
 
 .servicio-badge--CANCELADO {
+  border-color: var(--danger-border);
   background: var(--danger-bg);
   color: var(--danger);
 }

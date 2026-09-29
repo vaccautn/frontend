@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useState } from "react";
 import {
   Button,
   Portal,
@@ -49,10 +49,6 @@ type Props = {
   vacas: AptitudVaca[];
   loading: boolean;
   error: string;
-  /** Solo por servicio: vacas sin evaluación de CC dentro de la ventana. */
-  mostrarSinCc?: boolean;
-  /** Controles extra en el encabezado (p. ej. la ventana de días). */
-  controles?: ReactNode;
   onDecidido: () => void;
 };
 
@@ -60,8 +56,6 @@ export function RecomendacionesPanel({
   vacas,
   loading,
   error,
-  mostrarSinCc = false,
-  controles,
   onDecidido,
 }: Props) {
   // Medida elegida por fila (animal_id -> tipo). Si una fila no tiene
@@ -72,7 +66,7 @@ export function RecomendacionesPanel({
   );
   const [decidiendo, setDecidiendo] = useState(false);
 
-  const { pendientes, decididas, sinCc } = useMemo(() => {
+  const { pendientes, decididas } = useMemo(() => {
     const pend: Pendiente[] = [];
     const yaDecididas: { rec: RecomendacionRead; vaca: AptitudVaca }[] = [];
     for (const vaca of vacas) {
@@ -90,7 +84,6 @@ export function RecomendacionesPanel({
     return {
       pendientes: pend,
       decididas: yaDecididas,
-      sinCc: vacas.filter((v) => v.aptitud === "SIN_CC"),
     };
   }, [vacas]);
 
@@ -139,7 +132,6 @@ export function RecomendacionesPanel({
           <span className="animal-detail__section-eyebrow">Preservicio</span>
           <h2>Recomendaciones</h2>
         </div>
-        {controles}
       </div>
 
       {loading && <p className="recomendaciones__vacio">Cargando...</p>}
@@ -282,13 +274,6 @@ export function RecomendacionesPanel({
                 ))}
               </div>
             </details>
-          )}
-
-          {mostrarSinCc && sinCc.length > 0 && (
-            <ListaPlegable
-              titulo={`Sin CC en el período (${sinCc.length})`}
-              vacas={sinCc}
-            />
           )}
         </>
       )}
@@ -443,34 +428,5 @@ function RecomendacionFoto({
         </Portal>
       )}
     </>
-  );
-}
-
-function ListaPlegable({
-  titulo,
-  vacas,
-}: {
-  titulo: string;
-  vacas: AptitudVaca[];
-}) {
-  return (
-    <details className="recomendaciones__plegable">
-      <summary>
-        <IconChevronDown
-          size={16}
-          stroke={1.75}
-          className="recomendaciones__plegable-icono"
-        />
-        {titulo}
-      </summary>
-      <ul className="recomendaciones__chips">
-        {vacas.map((vaca) => (
-          <li key={vaca.animal.id}>
-            {caravanaDe(vaca)}
-            {vaca.evaluacion && ` · CC ${vaca.evaluacion.valor_cc}`}
-          </li>
-        ))}
-      </ul>
-    </details>
   );
 }

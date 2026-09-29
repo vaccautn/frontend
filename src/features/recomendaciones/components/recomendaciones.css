@@ -35,18 +35,40 @@
   opacity: 0.75;
 }
 
-.recomendaciones__ventana {
+/* Aviso en el detalle del servicio: vacas con recomendación pendiente. */
+.recomendaciones__alerta {
   display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 0.5rem;
-  font-size: 0.85rem;
-  color: var(--text-h);
+  align-items: flex-start;
+  gap: 0.75rem;
+  margin-bottom: 1.5rem;
+  padding: 0.9rem 1.1rem;
+  border: 1px solid var(--warning-border);
+  border-radius: 8px;
+  background: var(--warning-bg);
+  color: var(--marron-cuero);
 }
 
-.recomendaciones__periodo {
+.recomendaciones__alerta svg {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+}
+
+.recomendaciones__alerta strong {
+  display: block;
+  color: var(--text-h);
+  font-size: 0.92rem;
+}
+
+.recomendaciones__alerta p {
+  margin: 0.2rem 0 0;
   color: var(--text);
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+}
+
+.recomendaciones__alerta-link {
+  color: var(--accent-strong);
+  font-weight: 700;
+  text-decoration: underline;
 }
 
 .recomendaciones__col-foto {
@@ -210,21 +232,4 @@
   .recomendaciones__decidida--header {
     display: none;
   }
-}
-
-.recomendaciones__chips {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-  list-style: none;
-  margin: 0;
-  padding: 0.75rem 1rem;
-}
-
-.recomendaciones__chips > li {
-  padding: 0.2rem 0.6rem;
-  border: 1px solid var(--border);
-  border-radius: 999px;
-  font-size: 0.8rem;
-  background: var(--bg);
 }
