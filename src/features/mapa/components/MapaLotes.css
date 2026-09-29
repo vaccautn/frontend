@@ -1,0 +1,187 @@
+.mapa-page {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+  height: calc(100vh - 140px);
+}
+
+.mapa-page__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.mapa-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.75rem;
+  background: var(--chakra-colors-bg-subtle, #f7fafc);
+  border-radius: 0.5rem;
+}
+
+.mapa-toolbar__hint {
+  font-size: 0.85rem;
+  color: var(--chakra-colors-fg-muted, #4a5568);
+}
+
+.mapa-page__contenido {
+  position: relative;
+  flex: 1;
+  display: flex;
+  min-height: 0;
+}
+
+.mapa-page__mapa {
+  flex: 1;
+  min-height: 0;
+  border-radius: 0.5rem;
+  overflow: hidden;
+}
+
+.mapa-leyenda {
+  position: absolute;
+  bottom: 1rem;
+  left: 1rem;
+  z-index: 10;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+  background: rgba(255, 255, 255, 0.92);
+  padding: 0.5rem 0.75rem;
+  border-radius: 0.5rem;
+  list-style: none;
+  font-size: 0.8rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.mapa-leyenda__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mapa-leyenda__color {
+  width: 0.8rem;
+  height: 0.8rem;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+.mapa-detalle {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 10;
+  width: 15rem;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.mapa-detalle__header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+}
+
+.mapa-detalle__header h3 {
+  flex: 1;
+  font-size: 0.95rem;
+  margin: 0;
+}
+
+.mapa-detalle__estado {
+  color: white;
+  font-size: 0.7rem;
+  font-weight: 600;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+}
+
+.mapa-detalle__cerrar {
+  background: none;
+  border: none;
+  cursor: pointer;
+  display: flex;
+}
+
+.mapa-detalle__lista {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.35rem 0.5rem;
+  margin: 0;
+  font-size: 0.85rem;
+}
+
+.mapa-detalle__lista dt {
+  color: var(--chakra-colors-fg-muted, #718096);
+}
+
+.mapa-detalle__lista dd {
+  margin: 0;
+  font-weight: 600;
+  text-align: right;
+}
+
+.mapa-recomendaciones {
+  position: absolute;
+  bottom: 1rem;
+  right: 1rem;
+  z-index: 10;
+  width: 18rem;
+  max-height: 45%;
+  overflow-y: auto;
+  background: rgba(255, 255, 255, 0.97);
+  border-radius: 0.5rem;
+  padding: 0.75rem;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+}
+
+.mapa-recomendaciones__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+}
+
+.mapa-recomendaciones__header h3 {
+  font-size: 0.9rem;
+  margin: 0;
+}
+
+.mapa-recomendaciones__acciones {
+  display: flex;
+  gap: 0.25rem;
+}
+
+.mapa-recomendaciones__lista {
+  list-style: none;
+  margin: 0.5rem 0 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mapa-recomendaciones__item {
+  font-size: 0.82rem;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  padding-bottom: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.mapa-recomendaciones__cantidad {
+  font-weight: 600;
+}
+
+.mapa-recomendaciones__motivo {
+  color: var(--chakra-colors-fg-muted, #718096);
+  font-size: 0.78rem;
+}

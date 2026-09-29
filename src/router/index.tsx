@@ -16,6 +16,7 @@ import { SesionDetailPage } from "@/pages/SesionDetailPage";
 import { ServiciosPage } from "@/pages/ServiciosPage";
 import { ServicioDetailPage } from "@/pages/ServicioDetailPage";
 import ServicioNuevoPage from "@/pages/ServicioNuevoPage";
+import { MapaPage } from "@/pages/MapaPage";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard
@@ -55,6 +56,7 @@ export const router = createBrowserRouter([
             children: [{ path: "nuevo", element: <ServicioNuevoPage /> }],
           },
           { path: "/servicios/:id", element: <ServicioDetailPage /> },
+          { path: "/mapa", element: <MapaPage /> },
         ],
       },
     ],

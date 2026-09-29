@@ -6,9 +6,11 @@ import {
   IconList,
   IconChartBar,
   IconCalendarHeart,
+  IconMap,
   IconMenu2,
   IconSettings,
 } from "@tabler/icons-react";
+import { ConfiguracionCargaForm } from "@/features/mapa/components/ConfiguracionCargaForm";
 
 const navItems = [
   // {
@@ -30,6 +32,11 @@ const navItems = [
     label: "Servicios",
     to: "/servicios",
     icon: <IconCalendarHeart size={20} stroke={1} />,
+  },
+  {
+    label: "Mapa",
+    to: "/mapa",
+    icon: <IconMap size={20} stroke={1} />,
   },
 ];
 
@@ -91,7 +98,9 @@ export function Sidebar({ isOpen, onClose }: SidebarProps) {
             <Dialog.Header>
               <Dialog.Title>Configuración</Dialog.Title>
             </Dialog.Header>
-            <Dialog.Body />
+            <Dialog.Body>
+              <ConfiguracionCargaForm />
+            </Dialog.Body>
             <Dialog.CloseTrigger asChild>
               <button
                 type="button"
