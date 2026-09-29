@@ -13,6 +13,15 @@ type Props = {
 };
 
 export function AnimalDashboard({ data, loading, error }: Props) {
+  // El histograma agrega evaluaciones de distintos meses; se usa la fecha de
+  // la evaluación más reciente como referencia para resolver el nivel de
+  // alerta (mismo criterio "estado actual" que las tablas).
+  const evolucion = data?.evolucion ?? [];
+  const fechaReferencia =
+    evolucion.length > 0
+      ? evolucion[evolucion.length - 1].fecha
+      : new Date().toISOString();
+
   return (
     <Box
       my="7"
@@ -69,7 +78,11 @@ export function AnimalDashboard({ data, loading, error }: Props) {
           borderColor="var(--border)"
           borderRadius="8px"
           bg="var(--bg)">
-          <DashboardHistograma histograma={data?.histograma ?? []} loading={loading} />
+          <DashboardHistograma
+            histograma={data?.histograma ?? []}
+            loading={loading}
+            fecha={fechaReferencia}
+          />
         </Box>
       </SimpleGrid>
 

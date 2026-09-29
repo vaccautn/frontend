@@ -307,6 +307,7 @@ export function SesionDetailPage() {
             data={dashboard.data}
             loading={dashboard.loading}
             error={dashboard.error}
+            fecha={sesion.fecha_inicio}
           />
 
           {sesion.estado === "CERRADA" && (

@@ -68,7 +68,11 @@ export function AnimalesDashboard() {
           borderColor="var(--border)"
           borderRadius="8px"
           bg="var(--bg)">
-          <DashboardHistograma histograma={data?.histograma ?? []} loading={loading} />
+          <DashboardHistograma
+            histograma={data?.histograma ?? []}
+            loading={loading}
+            fecha={new Date().toISOString()}
+          />
         </Box>
         <Box
           p="3"
