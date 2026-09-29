@@ -323,10 +323,18 @@ export function SesionDetailPage() {
               </p>
             </div>
           ) : (
-            <SesionEvaluacionesTable
-              evaluaciones={evaluaciones}
-              onEdit={setEditingEvaluacion}
-            />
+            <section className="animal-detail__section">
+              <div className="animal-detail__section-header">
+                <div>
+                  <span className="animal-detail__section-eyebrow">Sesión</span>
+                  <h2>Evaluaciones</h2>
+                </div>
+              </div>
+              <SesionEvaluacionesTable
+                evaluaciones={evaluaciones}
+                onEdit={setEditingEvaluacion}
+              />
+            </section>
           )}
 
           <button

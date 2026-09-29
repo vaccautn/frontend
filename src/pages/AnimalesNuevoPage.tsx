@@ -310,7 +310,7 @@ function AnimalesNuevoPage() {
                         <option value="">
                           {lotesLoading
                             ? "Cargando lotes..."
-                            : "Selecciona un lote"}
+                            : "Seleccioná un lote"}
                         </option>
                         {lotes.map((lote) => (
                           <option key={lote.id} value={lote.id}>
@@ -392,7 +392,7 @@ function AnimalesNuevoPage() {
                   !lotesError &&
                   !isCreatingLote && (
                     <p className="status-message error">
-                      No tenes lotes disponibles para registrar animales.
+                      No tenés lotes disponibles para registrar animales.
                     </p>
                   )}
               </form>

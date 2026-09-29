@@ -1,6 +1,18 @@
 import { useEffect, useMemo, useState, type ReactNode } from "react";
-import { Button, Spinner } from "@chakra-ui/react";
-import { IconPhoto } from "@tabler/icons-react";
+import {
+  Button,
+  Portal,
+  Select,
+  Spinner,
+  Table,
+  createListCollection,
+} from "@chakra-ui/react";
+import {
+  IconChevronDown,
+  IconCircleCheck,
+  IconPhoto,
+  IconX,
+} from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
@@ -60,31 +72,27 @@ export function RecomendacionesPanel({
   );
   const [decidiendo, setDecidiendo] = useState(false);
 
-  const { pendientes, decididas, aptas, sinCc, conRecomendacion } =
-    useMemo(() => {
-      const pend: Pendiente[] = [];
-      const yaDecididas: { rec: RecomendacionRead; vaca: AptitudVaca }[] = [];
-      for (const vaca of vacas) {
-        const recsPendientes = vaca.recomendaciones.filter(
-          (r) => r.estado === "PENDIENTE",
-        );
-        if (recsPendientes.length > 0) pend.push({ vaca, recs: recsPendientes });
-        for (const rec of vaca.recomendaciones) {
-          if (rec.estado !== "PENDIENTE") yaDecididas.push({ rec, vaca });
-        }
-      }
-      yaDecididas.sort((a, b) =>
-        (b.rec.fecha_decision ?? "").localeCompare(a.rec.fecha_decision ?? ""),
+  const { pendientes, decididas, sinCc } = useMemo(() => {
+    const pend: Pendiente[] = [];
+    const yaDecididas: { rec: RecomendacionRead; vaca: AptitudVaca }[] = [];
+    for (const vaca of vacas) {
+      const recsPendientes = vaca.recomendaciones.filter(
+        (r) => r.estado === "PENDIENTE",
       );
-      return {
-        pendientes: pend,
-        decididas: yaDecididas,
-        aptas: vacas.filter((v) => v.aptitud === "APTA"),
-        sinCc: vacas.filter((v) => v.aptitud === "SIN_CC"),
-        conRecomendacion: vacas.filter((v) => v.aptitud === "CON_RECOMENDACION")
-          .length,
-      };
-    }, [vacas]);
+      if (recsPendientes.length > 0) pend.push({ vaca, recs: recsPendientes });
+      for (const rec of vaca.recomendaciones) {
+        if (rec.estado !== "PENDIENTE") yaDecididas.push({ rec, vaca });
+      }
+    }
+    yaDecididas.sort((a, b) =>
+      (b.rec.fecha_decision ?? "").localeCompare(a.rec.fecha_decision ?? ""),
+    );
+    return {
+      pendientes: pend,
+      decididas: yaDecididas,
+      sinCc: vacas.filter((v) => v.aptitud === "SIN_CC"),
+    };
+  }, [vacas]);
 
   const medidaElegida = (vacaId: number, recs: RecomendacionRead[]) =>
     seleccion[vacaId] ?? recs[0].tipo;
@@ -129,7 +137,7 @@ export function RecomendacionesPanel({
       <div className="animal-detail__section-header">
         <div>
           <span className="animal-detail__section-eyebrow">Preservicio</span>
-          <h2>Calificaciones críticas</h2>
+          <h2>Recomendaciones</h2>
         </div>
         {controles}
       </div>
@@ -143,81 +151,76 @@ export function RecomendacionesPanel({
 
       {!loading && !error && (
         <>
-          <p className="recomendaciones__subtitulo">
-            Los valores por defecto son recomendaciones para cada caso en
-            particular.
-          </p>
-          <p className="recomendaciones__resumen">
-            <strong>{aptas.length}</strong> apta{aptas.length === 1 ? "" : "s"}{" "}
-            para servicio · <strong>{conRecomendacion}</strong> con
-            recomendación
-            {mostrarSinCc && (
-              <>
-                {" "}
-                · <strong>{sinCc.length}</strong> sin CC
-              </>
-            )}
-          </p>
-
-          {vacas.length === 0 ? (
-            <p className="recomendaciones__vacio">
-              No hay vacas evaluadas para mostrar.
-            </p>
-          ) : pendientes.length === 0 ? (
-            <p className="recomendaciones__vacio">
-              No hay recomendaciones pendientes.
-            </p>
+          {pendientes.length === 0 ? (
+            // Con decisiones tomadas alcanza con el desplegable de abajo.
+            decididas.length === 0 && (
+            <div className="recomendaciones__sin-pendientes">
+              <IconCircleCheck size={28} stroke={1.5} />
+              <div>
+                <strong>No hay recomendaciones para hacer</strong>
+                <p>
+                  {vacas.length === 0
+                    ? "Todavía no hay vacas evaluadas para analizar."
+                    : "Ninguna vaca evaluada necesita una medida de manejo."}
+                </p>
+              </div>
+            </div>
+            )
           ) : (
             <>
-              <div className="recomendaciones__tabla">
-                <div className="recomendaciones__tabla-header">
-                  <span>Animal</span>
-                  <span>Calificación</span>
-                  <span>Medida</span>
-                </div>
-                <ul className="recomendaciones__filas">
-                  {pendientes.map(({ vaca, recs }) => {
-                    const tipoElegido = medidaElegida(vaca.animal.id, recs);
-                    const nivel = vaca.evaluacion
-                      ? nivelCC(vaca.evaluacion.valor_cc, vaca.evaluacion.fecha)
-                      : "normal";
-                    return (
-                      <li key={vaca.animal.id} className="recomendaciones__fila">
-                        <RecomendacionFoto
-                          evaluacionId={vaca.evaluacion?.id ?? null}
-                        />
-                        <span className="recomendaciones__animal">
-                          <strong>{caravanaDe(vaca)}</strong>
-                          <span>{vaca.lote?.nombre ?? "Sin lote"}</span>
-                        </span>
-                        <span
-                          className={`recomendaciones__cc recomendaciones__cc--${nivel}`}>
-                          CC {vaca.evaluacion?.valor_cc ?? "—"}
-                        </span>
-                        <select
-                          className="recomendaciones__medida"
-                          value={tipoElegido}
-                          onChange={(event) =>
-                            elegirMedida(
-                              vaca.animal.id,
-                              event.target.value as TipoRecomendacion,
-                            )
-                          }
-                          aria-label={`Medida para ${caravanaDe(vaca)}`}>
-                          {MEDIDAS.map(({ tipo, label }) => {
-                            const disponible = recs.some((r) => r.tipo === tipo);
-                            return (
-                              <option key={tipo} value={tipo} disabled={!disponible}>
-                                {label}
-                                {disponible ? "" : " (no aplica)"}
-                              </option>
-                            );
-                          })}
-                        </select>
-                      </li>
-                    );
-                  })}
-                </ul>
+              <p className="recomendaciones__subtitulo">
+                Los valores por defecto son recomendaciones para cada caso en
+                particular.
+              </p>
+              <div className="animal-evaluaciones-table__wrapper">
+                <Table.Root className="animales-table animal-evaluaciones-table">
+                  <Table.Header>
+                    <Table.Row>
+                      <Table.ColumnHeader className="recomendaciones__col-foto">
+                        Foto
+                      </Table.ColumnHeader>
+                      <Table.ColumnHeader>Animal</Table.ColumnHeader>
+                      <Table.ColumnHeader>Lote</Table.ColumnHeader>
+                      <Table.ColumnHeader>CC</Table.ColumnHeader>
+                      <Table.ColumnHeader className="recomendaciones__col-medida">
+                        Medida
+                      </Table.ColumnHeader>
+                    </Table.Row>
+                  </Table.Header>
+                  <Table.Body>
+                    {pendientes.map(({ vaca, recs }) => {
+                      const nivel = vaca.evaluacion
+                        ? nivelCC(vaca.evaluacion.valor_cc, vaca.evaluacion.fecha)
+                        : "normal";
+                      return (
+                        <Table.Row key={vaca.animal.id}>
+                          <Table.Cell className="recomendaciones__col-foto">
+                            <RecomendacionFoto
+                              evaluacionId={vaca.evaluacion?.id ?? null}
+                              caravana={caravanaDe(vaca)}
+                            />
+                          </Table.Cell>
+                          <Table.Cell>{caravanaDe(vaca)}</Table.Cell>
+                          <Table.Cell>{vaca.lote?.nombre ?? "Sin lote"}</Table.Cell>
+                          <Table.Cell>
+                            <span
+                              className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${nivel}`}>
+                              {vaca.evaluacion?.valor_cc ?? "—"}
+                            </span>
+                          </Table.Cell>
+                          <Table.Cell className="recomendaciones__col-medida">
+                            <MedidaSelect
+                              caravana={caravanaDe(vaca)}
+                              recs={recs}
+                              value={medidaElegida(vaca.animal.id, recs)}
+                              onChange={(tipo) => elegirMedida(vaca.animal.id, tipo)}
+                            />
+                          </Table.Cell>
+                        </Table.Row>
+                      );
+                    })}
+                  </Table.Body>
+                </Table.Root>
               </div>
 
               <div className="recomendaciones__acciones">
@@ -239,34 +242,48 @@ export function RecomendacionesPanel({
           )}
 
           {decididas.length > 0 && (
-            <details className="recomendaciones__plegable">
-              <summary>Decididas ({decididas.length})</summary>
-              <ul className="recomendaciones__lista">
+            <details
+              className="recomendaciones__plegable"
+              open={pendientes.length === 0}>
+              <summary>
+                <IconChevronDown
+                  size={16}
+                  stroke={1.75}
+                  className="recomendaciones__plegable-icono"
+                />
+                Recomendaciones decididas
+                <span className="recomendaciones__plegable-cantidad">
+                  {decididas.length}
+                </span>
+              </summary>
+              <div className="recomendaciones__decididas">
+                <div className="recomendaciones__decidida recomendaciones__decidida--header">
+                  <span>Animal</span>
+                  <span>Medida</span>
+                  <span>Estado</span>
+                  <span>Fecha</span>
+                </div>
                 {decididas.map(({ rec, vaca }) => (
-                  <li key={rec.id} className="recomendaciones__decidida">
+                  <div key={rec.id} className="recomendaciones__decidida">
                     <strong>{caravanaDe(vaca)}</strong>
                     <span>{TIPO_LABELS[rec.tipo]}</span>
-                    <span
-                      className={`recomendaciones__estado recomendaciones__estado--${rec.estado}`}>
-                      {rec.estado === "ACEPTADA" ? "Aceptada" : "Rechazada"}
-                    </span>
-                    {rec.fecha_decision && (
-                      <span className="recomendaciones__fecha">
-                        {formatFecha(rec.fecha_decision.slice(0, 10))}
+                    <span>
+                      <span
+                        className={`recomendaciones__estado recomendaciones__estado--${rec.estado}`}>
+                        {rec.estado === "ACEPTADA" ? "Aceptada" : "Rechazada"}
                       </span>
-                    )}
-                  </li>
+                    </span>
+                    <span className="recomendaciones__fecha">
+                      {rec.fecha_decision
+                        ? formatFecha(rec.fecha_decision.slice(0, 10))
+                        : "—"}
+                    </span>
+                  </div>
                 ))}
-              </ul>
+              </div>
             </details>
           )}
 
-          {aptas.length > 0 && (
-            <ListaPlegable
-              titulo={`Aptas para servicio (${aptas.length})`}
-              vacas={aptas}
-            />
-          )}
           {mostrarSinCc && sinCc.length > 0 && (
             <ListaPlegable
               titulo={`Sin CC en el período (${sinCc.length})`}
@@ -279,9 +296,90 @@ export function RecomendacionesPanel({
   );
 }
 
-function RecomendacionFoto({ evaluacionId }: { evaluacionId: number | null }) {
+/** Desplegable de Chakra con las tres medidas; las que no aplican a la vaca
+ * quedan deshabilitadas. */
+function MedidaSelect({
+  caravana,
+  recs,
+  value,
+  onChange,
+}: {
+  caravana: string;
+  recs: RecomendacionRead[];
+  value: TipoRecomendacion;
+  onChange: (tipo: TipoRecomendacion) => void;
+}) {
+  const collection = useMemo(
+    () =>
+      createListCollection({
+        items: MEDIDAS.map(({ tipo, label }) => {
+          const disponible = recs.some((r) => r.tipo === tipo);
+          return {
+            value: tipo,
+            label: disponible ? label : `${label} (no aplica)`,
+            disabled: !disponible,
+          };
+        }),
+        isItemDisabled: (item) => item.disabled,
+      }),
+    [recs],
+  );
+
+  return (
+    <Select.Root
+      collection={collection}
+      size="sm"
+      colorPalette="brand"
+      value={[value]}
+      onValueChange={(details) => {
+        const tipo = details.value[0] as TipoRecomendacion | undefined;
+        if (tipo) onChange(tipo);
+      }}
+      positioning={{ sameWidth: true }}>
+      <Select.HiddenSelect aria-label={`Medida para ${caravana}`} />
+      <Select.Control>
+        <Select.Trigger bg="var(--panel)">
+          <Select.ValueText />
+        </Select.Trigger>
+        <Select.IndicatorGroup>
+          <Select.Indicator />
+        </Select.IndicatorGroup>
+      </Select.Control>
+      <Portal>
+        <Select.Positioner>
+          <Select.Content>
+            {collection.items.map((item) => (
+              <Select.Item item={item} key={item.value}>
+                {item.label}
+                <Select.ItemIndicator />
+              </Select.Item>
+            ))}
+          </Select.Content>
+        </Select.Positioner>
+      </Portal>
+    </Select.Root>
+  );
+}
+
+function RecomendacionFoto({
+  evaluacionId,
+  caravana,
+}: {
+  evaluacionId: number | null;
+  caravana: string;
+}) {
   const [url, setUrl] = useState<string | null>(null);
   const [loading, setLoading] = useState(evaluacionId !== null);
+  const [ampliada, setAmpliada] = useState(false);
+
+  useEffect(() => {
+    if (!ampliada) return;
+    const cerrarConEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setAmpliada(false);
+    };
+    document.addEventListener("keydown", cerrarConEscape);
+    return () => document.removeEventListener("keydown", cerrarConEscape);
+  }, [ampliada]);
 
   useEffect(() => {
     // Sin evaluación no hay nada que buscar: el estado inicial (sin url,
@@ -304,16 +402,47 @@ function RecomendacionFoto({ evaluacionId }: { evaluacionId: number | null }) {
     };
   }, [evaluacionId]);
 
+  if (loading || !url) {
+    return (
+      <div className="recomendaciones__foto">
+        {loading ? <Spinner size="xs" /> : <IconPhoto size={16} stroke={1.5} />}
+      </div>
+    );
+  }
+
   return (
-    <div className="recomendaciones__foto">
-      {loading ? (
-        <Spinner size="xs" />
-      ) : url ? (
+    <>
+      <button
+        type="button"
+        className="recomendaciones__foto recomendaciones__foto--boton"
+        aria-label={`Ver foto de ${caravana} en pantalla completa`}
+        onClick={() => setAmpliada(true)}>
         <img src={url} alt="" />
-      ) : (
-        <IconPhoto size={16} stroke={1.5} />
+      </button>
+      {ampliada && (
+        <Portal>
+          <div
+            className="animal-imagenes__lightbox"
+            onClick={() => setAmpliada(false)}>
+            <button
+              type="button"
+              className="animal-imagenes__lightbox-close"
+              aria-label="Cerrar"
+              onClick={(event) => {
+                event.stopPropagation();
+                setAmpliada(false);
+              }}>
+              <IconX size={20} stroke={1.75} />
+            </button>
+            <img
+              src={url}
+              alt={`Evaluación de ${caravana} en pantalla completa`}
+              onClick={(event) => event.stopPropagation()}
+            />
+          </div>
+        </Portal>
       )}
-    </div>
+    </>
   );
 }
 
@@ -326,7 +455,14 @@ function ListaPlegable({
 }) {
   return (
     <details className="recomendaciones__plegable">
-      <summary>{titulo}</summary>
+      <summary>
+        <IconChevronDown
+          size={16}
+          stroke={1.75}
+          className="recomendaciones__plegable-icono"
+        />
+        {titulo}
+      </summary>
       <ul className="recomendaciones__chips">
         {vacas.map((vaca) => (
           <li key={vaca.animal.id}>
