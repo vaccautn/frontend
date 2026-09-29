@@ -1,0 +1,88 @@
+.lotes-drawer__crear {
+  display: flex;
+  flex-direction: column;
+  gap: 1.1rem;
+}
+
+.lotes-drawer__divider {
+  margin: 1.5rem 0;
+  border-bottom: 1px solid var(--border);
+}
+
+.lotes-drawer__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.lotes-drawer__item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.lotes-drawer__item-info {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  min-width: 0;
+}
+
+.lotes-drawer__item-nombre {
+  color: var(--text-h);
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.lotes-drawer__item-categoria {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.lotes-drawer__item-actions {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+}
+
+.lotes-drawer__icon-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text-h);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.lotes-drawer__icon-btn:hover:not(:disabled) {
+  background: var(--verde-pastel);
+  color: var(--accent-strong);
+}
+
+.lotes-drawer__icon-btn--danger:hover:not(:disabled) {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.lotes-drawer__icon-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

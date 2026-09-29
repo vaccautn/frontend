@@ -169,7 +169,7 @@
 
 .header__title {
   margin: 0;
-  font-size: 1.2rem;
+  font-size: clamp(14.4px, calc(12.655px + 0.545vw), 19.2px);
   line-height: 1;
 }
 
@@ -182,7 +182,7 @@
 .app-shell__content-inner {
   max-width: 1400px;
   margin: 0 auto;
-  padding: 2rem 2.5rem;
+  padding: 5rem 2.5rem;
 }
 
 .header__user {
@@ -315,4 +315,75 @@
 .logout-confirm__confirm:disabled {
   cursor: not-allowed;
   opacity: 0.6;
+}
+
+/* ── Bottom nav (mobile only) ── */
+.bottom-nav {
+  display: none;
+}
+
+@media (max-width: 800px) {
+  /* El sidebar deja de tener sentido con solo 2 accesos: se oculta del todo */
+  .sidebar {
+    display: none;
+  }
+
+  /* El botón que abre/cierra el sidebar tampoco aplica en mobile */
+  .header__menu-toggle {
+    display: none;
+  }
+
+  .bottom-nav {
+    display: flex;
+    align-items: center;
+    justify-content: space-around;
+    flex-shrink: 0;
+    height: 60px;
+    background: var(--panel);
+    border-top: 1px solid var(--border);
+  }
+
+  .bottom-nav__link {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.15rem;
+    flex: 1;
+    height: 100%;
+    border: none;
+    background: none;
+    color: var(--text);
+    font: inherit;
+    font-size: 0.72rem;
+    cursor: pointer;
+    text-decoration: none;
+  }
+
+  .bottom-nav__link--active {
+    color: var(--accent-strong);
+    font-weight: 650;
+  }
+
+  .bottom-nav__icon {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  /* El contenido ya no necesita el padding grande pensado para desktop */
+  .app-shell__content-inner {
+    padding: 1.5rem 1rem;
+  }
+}
+
+@media (max-width: 500px) {
+  .section-header {
+    flex-direction: column;
+    align-items: baseline !important;
+
+    button {
+      width: 100%;
+    }
+  }
 }

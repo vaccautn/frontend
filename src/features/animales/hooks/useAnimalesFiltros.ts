@@ -1,6 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import type {
   AnimalListParams,
+  CategoriaAnimal,
   EstadoFiltro,
 } from "@/features/animales/types";
 
@@ -12,6 +13,17 @@ export function useAnimalesFiltros() {
   const [sexo, setSexo] = useState<"MACHO" | "HEMBRA" | null>(null);
   const [raza, setRaza] = useState<string | null>(null);
   const [estado, setEstado] = useState<EstadoFiltro | null>("ACTIVO");
+  const [loteId, setLoteId] = useState<number | null>(null);
+  const [categoriaLote, setCategoriaLote] = useState<CategoriaAnimal | null>(
+    null,
+  );
+
+  // Al cambiar la categoría, el lote elegido puede haber quedado fuera de
+  // esa categoría: se limpia para no dejar un filtro de lote inconsistente.
+  const handleCategoriaLoteChange = (value: CategoriaAnimal | null) => {
+    setCategoriaLote(value);
+    setLoteId(null);
+  };
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -27,18 +39,23 @@ export function useAnimalesFiltros() {
       ...(sexo ? { sexo } : {}),
       ...(raza ? { raza } : {}),
       ...(trimmedCaravana ? { caravana: trimmedCaravana } : {}),
+      ...(loteId !== null ? { lote_id: loteId } : {}),
     };
-  }, [estado, sexo, raza, debouncedCaravana]);
+  }, [estado, sexo, raza, debouncedCaravana, loteId]);
 
   return {
     caravanaInput,
     sexo,
     raza,
     estado,
+    loteId,
+    categoriaLote,
     setCaravanaInput,
     setSexo,
     setRaza,
     setEstado,
+    setLoteId,
+    setCategoriaLote: handleCategoriaLoteChange,
     params,
   };
 }

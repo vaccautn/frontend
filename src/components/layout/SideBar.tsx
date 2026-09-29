@@ -2,20 +2,34 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Dialog, IconButton } from "@chakra-ui/react";
 import {
-  IconHome2,
+  // IconHome2,
   IconList,
   IconChartBar,
+  IconCalendarHeart,
   IconMenu2,
   IconSettings,
 } from "@tabler/icons-react";
 
 const navItems = [
-  { label: "Inicio", to: "/dashboard", icon: <IconHome2 size={20} stroke={1} /> },
-  { label: "Animales", to: "/animales", icon: <IconList size={20} stroke={1} /> },
+  // {
+  //   label: "Inicio",
+  //   to: "/dashboard",
+  //   icon: <IconHome2 size={20} stroke={1} />,
+  // },
   {
-    label: "Evaluaciones",
-    to: "/evaluaciones",
+    label: "Animales",
+    to: "/animales",
+    icon: <IconList size={20} stroke={1} />,
+  },
+  {
+    label: "Sesiones",
+    to: "/sesiones",
     icon: <IconChartBar size={20} stroke={1} />,
+  },
+  {
+    label: "Servicios",
+    to: "/servicios",
+    icon: <IconCalendarHeart size={20} stroke={1} />,
   },
 ];
 

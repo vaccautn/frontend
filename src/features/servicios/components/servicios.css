@@ -1,0 +1,706 @@
+/* Pill con borde, igual que los avisos de .servicio-alerta, con los colores
+ * semánticos del theme (--success/--warning/--orange/--danger). */
+.servicio-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.4rem 1rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.85rem;
+  white-space: nowrap;
+}
+
+.servicio-badge--PLANIFICADO {
+  border-color: var(--success-border);
+  background: var(--verde-pastel);
+  color: var(--accent-strong);
+}
+
+.servicio-badge--EN_CURSO {
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
+  color: var(--warning);
+}
+
+.servicio-badge--FINALIZADO {
+  border-color: var(--success-border);
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.servicio-badge--CERRADO {
+  border-color: var(--azul-acero);
+  background: var(--gris-niebla);
+  color: var(--text-h);
+}
+
+.servicio-badge--CANCELADO {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.resultado-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.75rem;
+  border-radius: 999px;
+  font-weight: 700;
+  font-size: 0.78rem;
+  white-space: nowrap;
+}
+
+.resultado-badge--PENDIENTE {
+  background: var(--info-bg);
+  color: var(--azul-acero);
+}
+
+.resultado-badge--PRENADA,
+.resultado-badge--PARIDA {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.resultado-badge--VACIA {
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
+.resultado-badge--ABORTO {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.servicio-detail__lotes {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.servicio-detail__toros-toggle {
+  width: 100%;
+  margin-bottom: 0;
+  padding: 0;
+  border: none;
+  background: transparent;
+  color: inherit;
+  cursor: pointer;
+  font: inherit;
+  text-align: left;
+}
+
+.servicio-detail__toros-toggle[aria-expanded="true"] {
+  margin-bottom: 0.75rem;
+}
+
+.servicio-detail__toros-resumen {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  color: var(--text);
+}
+
+.reservicio__fechas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 17rem));
+  gap: 1.25rem;
+}
+
+@media (max-width: 640px) {
+  .reservicio__fechas {
+    grid-template-columns: 1fr;
+  }
+}
+
+.servicio-detail__lotes-grupo {
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.servicio-detail__lotes-grupo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+
+.servicio-detail__lotes-grupo h2 {
+  margin: 0;
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.servicio-detail__lotes-grupo-titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+}
+
+.servicio-detail__lotes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.servicio-detail__lote-item {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.5rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--bg);
+}
+
+.servicio-detail__lote-categoria {
+  color: var(--text);
+  font-size: 0.8rem;
+}
+
+.servicio-detail__lote-quitar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 22px;
+  height: 22px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--text);
+  cursor: pointer;
+  transition:
+    background 0.15s,
+    color 0.15s;
+}
+
+.servicio-detail__lote-quitar:hover:not(:disabled) {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.servicio-detail__lote-quitar:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.servicio-detail__vientre-lote {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.servicio-detail__vacas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  list-style: none;
+  margin: 0 0 0 1rem;
+  padding: 0;
+}
+
+.servicio-detail__vaca-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.35rem 0.6rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  font-size: 0.85rem;
+}
+
+.servicio-detail__vaca-item--deshabilitada {
+  background: var(--bg);
+  opacity: 0.6;
+}
+
+.servicio-detail__vaca-acciones {
+  display: inline-flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.4rem;
+}
+
+.servicio-detail__vaca-motivo {
+  font-size: 0.78rem;
+  font-style: italic;
+  color: var(--text);
+}
+
+.servicio-detail__vacas-vacio {
+  margin: 0 0 0 1rem;
+  color: var(--text);
+  opacity: 0.7;
+  font-size: 0.8rem;
+}
+
+.servicio-detail__agregar-lote {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem;
+  margin: -0.5rem 0 1rem;
+}
+
+.servicio-detail__lotes-vacio {
+  margin: 0;
+  color: var(--text);
+  opacity: 0.7;
+  font-size: 0.9rem;
+}
+
+.servicio-form__lotes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  max-height: 220px;
+  overflow-y: auto;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 0.5rem;
+}
+
+.servicio-form__lote-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.35rem 0.4rem;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.servicio-form__lote-item:hover {
+  background: var(--verde-pastel);
+}
+
+.servicio-form__lote-item span:first-of-type {
+  flex: 1;
+}
+
+.servicio-form__lote-categoria {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.servicio-form__lotes-vacio {
+  margin: 0;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+/* ── Calendario navegable del dashboard de servicios ── */
+/* Tamaño estándar de date-picker (un poco más grande que uno nativo), no
+ * a lo ancho del panel: el mes queda en una columna fija y el detalle del
+ * día seleccionado ocupa el resto del espacio. */
+
+.servicios-calendario__mes {
+  flex: 0 0 auto;
+  width: min(300px, 100%);
+}
+
+.servicios-calendario__seleccion {
+  flex: 1 1 220px;
+  min-width: 220px;
+  padding-top: 0;
+}
+
+.servicios-calendario__hoy {
+  height: 26px;
+  padding: 0 0.6rem;
+  font-size: 0.74rem;
+}
+
+.servicios-calendario__grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 0.2rem;
+}
+
+.servicios-calendario__weekday {
+  padding: 0.2rem 0;
+  color: var(--text);
+  font-size: 0.68rem;
+  font-weight: 700;
+  text-align: center;
+  text-transform: uppercase;
+  opacity: 0.7;
+}
+
+.servicios-calendario__dia {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.15rem;
+  aspect-ratio: 1;
+  padding: 0.15rem;
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  background: var(--panel);
+  color: var(--text-h);
+  cursor: pointer;
+  font: inherit;
+  font-size: 0.76rem;
+  transition:
+    background 0.15s,
+    border-color 0.15s;
+}
+
+.servicios-calendario__dia:hover {
+  background: var(--verde-pastel);
+  border-color: var(--accent);
+}
+
+.servicios-calendario__dia--fuera-de-mes {
+  color: var(--text);
+  opacity: 0.4;
+}
+
+.servicios-calendario__dia--hoy {
+  color: var(--accent-strong);
+  font-weight: 700;
+}
+
+.servicios-calendario__dia--seleccionado {
+  border-color: var(--accent-strong);
+  background: var(--verde-pastel);
+}
+
+.servicios-calendario__dots {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.servicios-calendario__dot {
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+}
+
+.servicios-calendario__dot--PLANIFICADO {
+  background: var(--accent-strong);
+}
+
+.servicios-calendario__dot--EN_CURSO {
+  background: var(--warning);
+}
+
+.servicios-calendario__dot--FINALIZADO {
+  background: var(--success);
+}
+
+.servicios-calendario__dot--CERRADO {
+  background: var(--text-h);
+}
+
+.servicios-calendario__dot--CANCELADO {
+  background: var(--danger);
+}
+
+.servicios-calendario__servicio-item {
+  background: var(--panel);
+  cursor: pointer;
+}
+
+.servicios-calendario__servicio-item:hover {
+  border-color: var(--accent);
+  background: var(--panel);
+}
+
+/* ── Carga de resultados del servicio ─────────────────────────────────── */
+
+.cargar-resultados__fecha {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+  min-width: 200px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.cargar-resultados__resumen {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.cargar-resultados__lista {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  list-style: none;
+  margin: 0 0 1rem;
+  padding: 0;
+}
+
+.cargar-resultados__fila {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.cargar-resultados__error {
+  font-size: 0.75rem;
+  color: var(--danger);
+}
+
+.cargar-resultados__acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.servicio-detail__hero-acciones {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 0.75rem;
+}
+
+/* ── Reservicio ───────────────────────────────────────────────────────── */
+
+.servicio-detail__link {
+  color: var(--accent-strong);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+.reservicio__vaca {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  cursor: pointer;
+  font-size: 0.9rem;
+}
+
+.reservicio__vaca input {
+  width: 1.1rem;
+  height: 1.1rem;
+  accent-color: var(--accent-strong);
+}
+
+.servicios-table__wrapper {
+  max-height: 32rem;
+  overflow-y: auto;
+}
+
+.servicios-table__wrapper thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+
+.servicios-table__periodo {
+  white-space: nowrap;
+}
+
+.servicios-table__pendientes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.servicios-table__sin-pendientes {
+  color: var(--text);
+  opacity: 0.6;
+}
+
+.servicio-alerta {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.25rem 0.65rem;
+  border: 1px solid var(--warning-border);
+  border-radius: 999px;
+  background: var(--warning-bg);
+  color: var(--marron-cuero);
+  font-size: 0.75rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.servicio-alerta--reservicio {
+  border-color: var(--orange-border);
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
+.servicios-table__reservicio {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.75rem;
+  color: var(--accent-strong);
+}
+
+/* ── Iniciar reservicio: formulario de detalles ── */
+.reservicio__panel {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  margin-bottom: 2rem;
+  padding: 1.5rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+}
+
+.reservicio__panel .cargar-resultados__lista {
+  margin: 0;
+}
+
+.reservicio__panel .cargar-resultados__error {
+  margin: 0;
+}
+
+.reservicio__panel-seccion {
+  grid-column: 1 / -1;
+  margin: 0.5rem 0 -0.25rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--border);
+  color: var(--accent-strong);
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+/* ── Modo "cargar resultados" en el detalle del servicio ── */
+.servicio-resultados__barra {
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: 1rem 1.25rem;
+  border: 1px solid var(--accent);
+  border-radius: 8px;
+  background: var(--verde-pastel);
+}
+
+.servicio-resultados__barra .status-message {
+  margin: 0;
+}
+
+.servicio-resultados__barra-datos {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.servicio-resultados__barra-acciones {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.6rem;
+}
+
+/* Opciones de diagnóstico: control segmentado + lugar fijo para el tipo de
+ * preñez, así al elegir "Preñada" nada se corre. */
+.diagnostico {
+  display: grid;
+  grid-template-columns: auto 10.5rem;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.diagnostico__opciones {
+  display: inline-flex;
+  padding: 3px;
+  gap: 2px;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--bg);
+}
+
+.diagnostico__opcion {
+  position: relative;
+  min-width: 5.5rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 6px;
+  color: var(--text);
+  font-size: 0.82rem;
+  font-weight: 600;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+  transition:
+    background 0.15s,
+    color 0.15s,
+    box-shadow 0.15s;
+}
+
+.diagnostico__opcion:hover:not(.diagnostico__opcion--activa) {
+  background: var(--panel);
+  color: var(--text-h);
+}
+
+.diagnostico__opcion input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.diagnostico__opcion:focus-within {
+  outline: 2px solid var(--focus);
+  outline-offset: 1px;
+}
+
+.diagnostico__opcion--activa {
+  box-shadow: 0 1px 2px rgba(21, 32, 25, 0.12);
+}
+
+.diagnostico__opcion--PENDIENTE {
+  background: var(--info-bg);
+  color: var(--azul-acero);
+}
+
+.diagnostico__opcion--PRENADA {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.diagnostico__opcion--VACIA {
+  background: var(--orange-bg);
+  color: var(--orange);
+}
+
+.diagnostico__tipo {
+  min-height: 32px;
+}
+
+@media (max-width: 640px) {
+  .diagnostico {
+    grid-template-columns: 1fr;
+  }
+
+  .diagnostico__tipo:empty {
+    display: none;
+  }
+}

@@ -21,7 +21,7 @@
   --rosa-hembra: #c97a94;
 
   --text: #59645c;
-  --text-h: #152019;
+  --text-h: #1d3527;
   --bg: #f7f8f4;
   --panel: #ffffff;
   --border: #dfe4dc;
@@ -39,6 +39,10 @@
   --success: var(--verde-confirmacion);
   --success-bg: var(--verde-pastel);
   --success-border: #bcd8c3;
+  --orange: var(--ocre-campo);
+  --orange-bg: #fbeadd;
+  --orange-border: #edc99a;
+  --info-bg: #e4ebf1;
   --shadow: rgba(21, 32, 25, 0.12) 0 18px 45px;
 
   --sans: "Manrope", serif;
@@ -74,7 +78,7 @@ body {
 
 h1 {
   font-family: var(--heading);
-  font-size: 42px;
+  font-size: clamp(24px, calc(17.455px + 2.045vw), 42px);
   line-height: 1.05;
   font-weight: 700;
   letter-spacing: 0;
@@ -83,6 +87,7 @@ h1 {
 }
 
 p {
+  font-size: 1rem;
   margin: 0;
 }
 
@@ -91,8 +96,30 @@ input {
   font: inherit;
 }
 
-@media (max-width: 560px) {
-  h1 {
-    font-size: 34px;
-  }
+/* Campos de fecha nativos: mismo color de texto que el resto de los inputs,
+ * placeholder atenuado cuando están vacíos e ícono de calendario con el
+ * hover de marca. */
+input[type="date"] {
+  color-scheme: light;
+  color: var(--text-h);
+  font-family: inherit;
+}
+
+input[type="date"][value=""] {
+  color: var(--text);
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator {
+  padding: 2px;
+  border-radius: 4px;
+  cursor: pointer;
+  opacity: 0.55;
+  transition:
+    opacity 0.15s,
+    background 0.15s;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  background: var(--verde-pastel);
+  opacity: 1;
 }

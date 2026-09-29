@@ -3,6 +3,7 @@ import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./SideBar";
 import { Header } from "./Header";
+import { BottomNav } from "./BottomNav";
 import { ToastContainer } from "react-toastify";
 
 export default function AppLayout() {
@@ -21,6 +22,7 @@ export default function AppLayout() {
             <Outlet />
           </div>
         </main>
+        <BottomNav />
       </div>
       <ToastContainer position="bottom-right" autoClose={3000} />
     </div>
