@@ -493,6 +493,58 @@
   text-underline-offset: 2px;
 }
 
+/* Reservicios del servicio: toda la fila es el link. */
+.servicio-detail__reservicios {
+  margin-bottom: 1.5rem;
+}
+
+.servicio-detail__reservicio {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--accent-strong);
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
+}
+
+.servicio-detail__reservicio:hover {
+  border-color: var(--accent);
+  background: var(--verde-pastel);
+}
+
+.servicio-detail__reservicio:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.servicio-detail__reservicio-nombre {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-h);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.servicio-detail__reservicio-flecha {
+  flex-shrink: 0;
+  color: var(--text);
+  transition: transform 0.15s;
+}
+
+.servicio-detail__reservicio:hover .servicio-detail__reservicio-flecha {
+  transform: translateX(2px);
+  color: var(--accent-strong);
+}
+
 .reservicio__vaca {
   display: flex;
   align-items: center;

@@ -7,6 +7,7 @@ import { getSesion } from "@/features/sesiones/services/sesionesService";
 import {
   getAnimalesAgrupadosPorLote,
   getEvaluacionesCc,
+  FotoRechazadaError,
   registrarEvaluacionCCCompleta,
   updateEvaluacionCcEnSesion,
 } from "@/features/animales/services/animalesService";
@@ -188,6 +189,7 @@ export function CargarEvaluacionesPage() {
             sesionId,
             animalId,
             valorCc: data.valorCc,
+            valorCcInferido: data.valorCcInferido,
             escalaMin: data.escalaMin,
             escalaMax: data.escalaMax,
             observaciones: data.observaciones,
@@ -212,7 +214,9 @@ export function CargarEvaluacionesPage() {
         toast.error(
           error instanceof ApiError
             ? normalizeBackendDetail(error.detail)
-            : "No se pudo registrar la evaluación. Probá nuevamente.",
+            : error instanceof FotoRechazadaError
+              ? error.message
+              : "No se pudo registrar la evaluación. Probá nuevamente.",
         );
         return false;
       }

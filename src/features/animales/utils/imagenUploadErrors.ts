@@ -43,3 +43,29 @@ export function getImagenUploadErrorMessage(
 
   return mensaje;
 }
+
+/** Mismos límites que valida el backend en POST /evaluaciones-cc/{id}/imagenes. */
+export const FORMATOS_IMAGEN = ["image/jpeg", "image/png"];
+export const ACCEPT_IMAGEN = FORMATOS_IMAGEN.join(",");
+export const TAMANO_MAX_IMAGEN = 10 * 1024 * 1024;
+
+/**
+ * Valida formato (JPG/PNG) y tamaño antes de subir. Devuelve el mensaje de
+ * error del primer archivo inválido, o null si todos son válidos. El
+ * `accept` del input no alcanza: el usuario puede elegir "Todos los archivos"
+ * o arrastrar cualquier cosa.
+ */
+export function validarImagenes(files: File[]): string | null {
+  for (const file of files) {
+    if (!FORMATOS_IMAGEN.includes(file.type)) {
+      return `"${file.name}" no es una imagen válida. Se aceptan solo JPG y PNG.`;
+    }
+    if (file.size === 0) {
+      return `"${file.name}" está vacío.`;
+    }
+    if (file.size > TAMANO_MAX_IMAGEN) {
+      return `"${file.name}" supera el tamaño máximo de 10 MB.`;
+    }
+  }
+  return null;
+}

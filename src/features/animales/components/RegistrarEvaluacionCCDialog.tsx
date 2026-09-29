@@ -32,11 +32,19 @@ import type {
   EvaluacionCC,
   EvidenciaImagenRead,
 } from "@/features/animales/types";
-import { getImagenUploadErrorMessage } from "@/features/animales/utils/imagenUploadErrors";
+import {
+  ACCEPT_IMAGEN,
+  FORMATOS_IMAGEN,
+  TAMANO_MAX_IMAGEN,
+  getImagenUploadErrorMessage,
+  validarImagenes,
+} from "@/features/animales/utils/imagenUploadErrors";
 import { localNaiveNow } from "@/utils/localDateTime";
 
 export interface EvaluacionCCPendiente {
   valorCc: number;
+  /** true si no se cargó a mano: valorCc es un provisorio que calcula la IA. */
+  valorCcInferido: boolean;
   escalaMin: number;
   escalaMax: number;
   observaciones: string;
@@ -175,6 +183,11 @@ export function RegistrarEvaluacionCCDialog({
     const nuevosArchivos = Array.from(event.target.files ?? []);
     event.target.value = "";
     if (nuevosArchivos.length === 0 || !evaluacionExistente) return;
+    const errorFormato = validarImagenes(nuevosArchivos);
+    if (errorFormato) {
+      toast.error(errorFormato);
+      return;
+    }
 
     setIsUploadingImage(true);
     let subidaOk = false;
@@ -288,8 +301,8 @@ export function RegistrarEvaluacionCCDialog({
 
     // Placeholder neutro (mitad de la escala) para la creación cuando no se
     // eligió un valor a mano: la IA lo va a sobreescribir apenas procese la
-    // foto adjunta. Si la foto termina rechazada, este valor queda como
-    // aproximación hasta que alguien la reevalúe a mano.
+    // foto adjunta. Si la foto termina rechazada, la evaluación se anula (ver
+    // registrarEvaluacionCCCompleta) para que el provisorio no quede guardado.
     const valorCcFinal = normalizedScore
       ? Number(normalizedScore)
       : Math.round((DEFAULT_CC_SCALE.min + DEFAULT_CC_SCALE.max) / 2);
@@ -298,6 +311,7 @@ export function RegistrarEvaluacionCCDialog({
     setIsSaving(true);
     const guardado = await onGuardar({
       valorCc: valorCcFinal,
+      valorCcInferido: !normalizedScore,
       escalaMin: DEFAULT_CC_SCALE.min,
       escalaMax: DEFAULT_CC_SCALE.max,
       observaciones: values.observaciones.trim(),
@@ -404,7 +418,7 @@ export function RegistrarEvaluacionCCDialog({
                         <input
                           ref={imageInputRef}
                           type="file"
-                          accept="image/*"
+                          accept={ACCEPT_IMAGEN}
                           multiple
                           hidden
                           onChange={handleImageInputChange}
@@ -414,9 +428,20 @@ export function RegistrarEvaluacionCCDialog({
                       <FileUpload.Root
                         alignItems="stretch"
                         maxFiles={10}
+                        accept={FORMATOS_IMAGEN}
+                        maxFileSize={TAMANO_MAX_IMAGEN}
                         onFileChange={(details) =>
                           setFiles(details.acceptedFiles)
-                        }>
+                        }
+                        onFileReject={(details) => {
+                          const error = validarImagenes(
+                            details.files.map((rechazado) => rechazado.file),
+                          );
+                          toast.error(
+                            error ??
+                              "Algunos archivos no se agregaron. Se aceptan hasta 10 imágenes JPG o PNG de 10 MB.",
+                          );
+                        }}>
                         <FileUpload.HiddenInput />
                         <FileUpload.Dropzone className="dropzone">
                           <Icon size="md" color="fg.muted">
@@ -431,7 +456,7 @@ export function RegistrarEvaluacionCCDialog({
                           </Icon>
                           <FileUpload.DropzoneContent>
                             <Box>Arrastrá y soltá archivos aquí</Box>
-                            <Box color="fg.muted">.png, .jpg up to 5MB</Box>
+                            <Box color="fg.muted">JPG o PNG, hasta 10 MB</Box>
                           </FileUpload.DropzoneContent>
                         </FileUpload.Dropzone>
                         <FileUpload.ItemGroup>

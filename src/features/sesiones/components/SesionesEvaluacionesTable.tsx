@@ -31,7 +31,6 @@ export function SesionEvaluacionesTable({
           <Table.Row>
             <Table.ColumnHeader>Animal</Table.ColumnHeader>
             <Table.ColumnHeader>CC</Table.ColumnHeader>
-            <Table.ColumnHeader>Escala</Table.ColumnHeader>
             <Table.ColumnHeader>Evaluada</Table.ColumnHeader>
             <Table.ColumnHeader>Observaciones</Table.ColumnHeader>
             <Table.ColumnHeader className="animal-evaluaciones-table__col-toggle" />
@@ -73,9 +72,6 @@ export function SesionEvaluacionesTable({
                     </span>
                   </Table.Cell>
                   <Table.Cell>
-                    {evaluacion.escala_min}–{evaluacion.escala_max}
-                  </Table.Cell>
-                  <Table.Cell>
                     {formatEventDateTime(evaluacion.fecha)}
                   </Table.Cell>
                   <Table.Cell className="animal-evaluaciones-table__observaciones">
@@ -96,7 +92,7 @@ export function SesionEvaluacionesTable({
 
                 {isExpanded && (
                   <Table.Row className="animal-evaluaciones-table__expand-row">
-                    <Table.Cell colSpan={6}>
+                    <Table.Cell colSpan={5}>
                       <SesionEvaluacionRowDetail
                         evaluacion={evaluacion}
                         onEdit={() => onEdit(evaluacion)}

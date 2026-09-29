@@ -144,6 +144,9 @@ export interface RegistrarEvaluacionCCParams {
   sesionId?: number;
   animalId: number;
   valorCc: number;
+  /** true si `valorCc` es un provisorio a la espera de la inferencia por foto
+   * (no lo eligió el usuario). */
+  valorCcInferido?: boolean;
   escalaMin: number;
   escalaMax: number;
   observaciones: string;

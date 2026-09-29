@@ -19,6 +19,7 @@ import {
 import {
   IconArrowLeft,
   IconChevronDown,
+  IconChevronRight,
   IconClipboardCheck,
   IconEdit,
   IconRepeat,
@@ -767,34 +768,37 @@ export function ServicioDetailPage() {
           />
 
           {reservicios.length > 0 && (
-            <section className="animal-detail__section">
+            <section className="animal-detail__section servicio-detail__reservicios">
               <div className="animal-detail__section-header">
-                <div>
-                  <span className="animal-detail__section-eyebrow">
-                    Vacas vacías
-                  </span>
-                  <h2>Reservicios</h2>
-                </div>
+                <h2>Reservicios</h2>
               </div>
               <ul className="servicio-detail__lotes-lista">
                 {reservicios.map((reservicio) => (
-                  <li key={reservicio.id} className="servicio-detail__lote-item">
+                  <li key={reservicio.id}>
                     <Link
                       to={`/servicios/${reservicio.id}`}
-                      className="servicio-detail__link">
-                      {reservicio.nombre || `Servicio #${reservicio.id}`}
+                      className="servicio-detail__reservicio">
+                      <IconRepeat size={18} stroke={1.5} />
+                      <span className="servicio-detail__reservicio-nombre">
+                        {reservicio.nombre || `Servicio #${reservicio.id}`}
+                      </span>
+                      <span className="servicio-detail__lote-categoria">
+                        {formatFecha(reservicio.fecha_inicio)} –{" "}
+                        {reservicio.fecha_fin
+                          ? formatFecha(reservicio.fecha_fin)
+                          : "—"}
+                      </span>
+                      <span
+                        className={`servicio-badge servicio-badge--${reservicio.estado}`}>
+                        {ESTADO_SERVICIO_LABELS[reservicio.estado] ??
+                          reservicio.estado}
+                      </span>
+                      <IconChevronRight
+                        size={18}
+                        stroke={1.5}
+                        className="servicio-detail__reservicio-flecha"
+                      />
                     </Link>
-                    <span className="servicio-detail__lote-categoria">
-                      {formatFecha(reservicio.fecha_inicio)} –{" "}
-                      {reservicio.fecha_fin
-                        ? formatFecha(reservicio.fecha_fin)
-                        : "—"}
-                    </span>
-                    <span
-                      className={`servicio-badge servicio-badge--${reservicio.estado}`}>
-                      {ESTADO_SERVICIO_LABELS[reservicio.estado] ??
-                        reservicio.estado}
-                    </span>
                   </li>
                 ))}
               </ul>

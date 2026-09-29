@@ -1,10 +1,10 @@
 import { useState } from "react";
 import { Box, SimpleGrid, Text } from "@chakra-ui/react";
 import { useAnimalesDashboard } from "@/features/animales/hooks/useAnimalesDashboard";
-import { useTernerosPendientes } from "@/features/animales/hooks/useTernerosPendientes";
+import { useVacasPrenadas } from "@/features/animales/hooks/useVacasPrenadas";
 import { KpiCriticos } from "./KpiCriticos";
 import { KpiEvaluados } from "./KpiEvaluados";
-import { KpiTernerosPendientes } from "./KpiTernerosPendientes";
+import { KpiVacasPrenadas } from "./KpiVacasPrenadas";
 import { DashboardHistograma } from "./DashboardHistograma";
 import { DashboardEvolucion } from "./DashboardEvolucion";
 import { DashboardLoteFiltro } from "./DashboardLoteFiltro";
@@ -12,7 +12,7 @@ import { DashboardLoteFiltro } from "./DashboardLoteFiltro";
 export function AnimalesDashboard() {
   const [loteId, setLoteId] = useState<number | null>(null);
   const { data, loading, error } = useAnimalesDashboard(loteId);
-  const ternerosPendientes = useTernerosPendientes();
+  const vacasPrenadas = useVacasPrenadas(loteId);
 
   return (
     <Box
@@ -54,9 +54,9 @@ export function AnimalesDashboard() {
           evaluados={data?.total_animales_evaluados ?? 0}
           loading={loading}
         />
-        <KpiTernerosPendientes
-          count={ternerosPendientes.count}
-          loading={ternerosPendientes.loading}
+        <KpiVacasPrenadas
+          count={vacasPrenadas.count}
+          loading={vacasPrenadas.loading}
         />
       </SimpleGrid>
 
