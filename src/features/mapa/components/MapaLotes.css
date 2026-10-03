@@ -12,6 +12,16 @@
   gap: 0.75rem;
 }
 
+.mapa-page__selector-capas {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.25rem;
+  background: var(--chakra-colors-bg-subtle, #f7fafc);
+  padding: 0.2rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--chakra-colors-border, #e2e8f0);
+}
+
 .mapa-toolbar {
   display: flex;
   flex-wrap: wrap;

@@ -1,9 +1,12 @@
 import { useEffect, useMemo, useRef, useState } from "react";
+import { Button } from "@chakra-ui/react";
+import { IconMap, IconSatellite } from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import Map from "ol/Map";
 import View from "ol/View";
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
+import XYZ from "ol/source/XYZ";
 import VectorLayer from "ol/layer/Vector";
 import VectorSource from "ol/source/Vector";
 import ImageLayer from "ol/layer/Image";
@@ -48,7 +51,13 @@ const PROYECCION_MAPA = "EPSG:3857";
 const PROYECCION_DATOS = "EPSG:4326";
 const geoJsonFormat = new GeoJSON();
 
+const ESRI_WORLD_IMAGERY_URL =
+  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
+const ESRI_ATTRIBUTIONS =
+  "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community";
+
 type Modo = "ver" | "dibujar" | "editar";
+type TipoCapaBase = "satelite" | "calles";
 
 function estiloLote(feature: FeatureLike): Style {
   const propiedades = feature.get("propiedades") as LotePotreroPropiedades | undefined;
@@ -67,8 +76,8 @@ function estiloLote(feature: FeatureLike): Style {
 
 function estiloReferenciaKmz(): Style {
   return new Style({
-    stroke: new Stroke({ color: "#718096", width: 1.5, lineDash: [4, 4] }),
-    fill: new Fill({ color: "rgba(160, 174, 192, 0.08)" }),
+    stroke: new Stroke({ color: "#f7fafc", width: 2, lineDash: [5, 5] }),
+    fill: new Fill({ color: "rgba(255, 255, 255, 0.12)" }),
   });
 }
 
@@ -113,6 +122,7 @@ function estiloMovimiento(feature: FeatureLike): Style[] {
 export function MapaLotes() {
   const mapDivRef = useRef<HTMLDivElement | null>(null);
   const mapRef = useRef<Map | null>(null);
+  const baseTileLayerRef = useRef<TileLayer | null>(null);
   const lotesSourceRef = useRef(new VectorSource());
   const kmzSourceRef = useRef(new VectorSource());
   const drawSourceRef = useRef(new VectorSource());
@@ -130,6 +140,7 @@ export function MapaLotes() {
     refetch: refetchRecomendaciones,
   } = useRecomendaciones();
 
+  const [tipoCapaBase, setTipoCapaBase] = useState<TipoCapaBase>("satelite");
   const [modo, setModo] = useState<Modo>("ver");
   const [todosLosLotes, setTodosLosLotes] = useState<LoteOption[]>([]);
   const [loteParaDibujo, setLoteParaDibujo] = useState<number | "">("");
@@ -153,16 +164,25 @@ export function MapaLotes() {
   useEffect(() => {
     if (!mapDivRef.current || mapRef.current) return;
 
+    const baseTileLayer = new TileLayer({
+      source: new XYZ({
+        url: ESRI_WORLD_IMAGERY_URL,
+        attributions: ESRI_ATTRIBUTIONS,
+        maxZoom: 19,
+      }),
+    });
+    baseTileLayerRef.current = baseTileLayer;
+
     const map = new Map({
       target: mapDivRef.current,
       layers: [
-        new TileLayer({ source: new OSM() }),
+        baseTileLayer,
         new VectorLayer({ source: kmzSourceRef.current, style: estiloReferenciaKmz }),
         new VectorLayer({ source: lotesSourceRef.current, style: estiloLote }),
         new VectorLayer({ source: drawSourceRef.current, style: estiloDibujoEnCurso }),
         new VectorLayer({ source: recomendacionesSourceRef.current, style: estiloMovimiento }),
       ],
-      view: new View({ center: fromLonLat([-64, -34]), zoom: 5 }),
+      view: new View({ center: fromLonLat([-64, -34]), zoom: 5, maxZoom: 19 }),
     });
 
     map.on("click", (evento) => {
@@ -178,8 +198,23 @@ export function MapaLotes() {
     return () => {
       map.setTarget(undefined);
       mapRef.current = null;
+      baseTileLayerRef.current = null;
     };
   }, []);
+
+  // ── Actualizar capa base (Satélite Esri / Calles OSM) ──────────────────────
+  useEffect(() => {
+    if (!baseTileLayerRef.current) return;
+    const nuevoSource =
+      tipoCapaBase === "satelite"
+        ? new XYZ({
+            url: ESRI_WORLD_IMAGERY_URL,
+            attributions: ESRI_ATTRIBUTIONS,
+            maxZoom: 19,
+          })
+        : new OSM();
+    baseTileLayerRef.current.setSource(nuevoSource);
+  }, [tipoCapaBase]);
 
   // ── Sincronizar los lotes-potrero (backend) con la capa vectorial ───────────
   useEffect(() => {
@@ -380,6 +415,25 @@ export function MapaLotes() {
     <div className="mapa-page">
       <div className="mapa-page__acciones">
         <KmzUploader onCargado={handleKmzCargado} />
+
+        <div className="mapa-page__selector-capas">
+          <Button
+            size="sm"
+            variant={tipoCapaBase === "satelite" ? "solid" : "ghost"}
+            colorPalette={tipoCapaBase === "satelite" ? "brand" : "gray"}
+            onClick={() => setTipoCapaBase("satelite")}>
+            <IconSatellite size={16} stroke={1.75} />
+            Satélite (Esri)
+          </Button>
+          <Button
+            size="sm"
+            variant={tipoCapaBase === "calles" ? "solid" : "ghost"}
+            colorPalette={tipoCapaBase === "calles" ? "brand" : "gray"}
+            onClick={() => setTipoCapaBase("calles")}>
+            <IconMap size={16} stroke={1.75} />
+            Calles (OSM)
+          </Button>
+        </div>
       </div>
 
       <DibujoToolbar
