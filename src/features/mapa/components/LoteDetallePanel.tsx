@@ -1,4 +1,6 @@
-import { IconX } from "@tabler/icons-react";
+import { useNavigate } from "react-router-dom";
+import { Button } from "@chakra-ui/react";
+import { IconArrowRight, IconX } from "@tabler/icons-react";
 import { colorPorEstadoLote, labelPorEstadoLote } from "../utils/estadoLoteColor";
 import type { LotePotreroPropiedades } from "../types";
 
@@ -12,6 +14,8 @@ function formatearNumero(valor: number | null, decimales = 1): string {
 }
 
 export function LoteDetallePanel({ lote, onCerrar }: Props) {
+  const navigate = useNavigate();
+
   return (
     <div className="mapa-detalle">
       <div className="mapa-detalle__header">
@@ -32,12 +36,12 @@ export function LoteDetallePanel({ lote, onCerrar }: Props) {
 
       <dl className="mapa-detalle__lista">
         <div>
-          <dt>Superficie</dt>
-          <dd>{formatearNumero(lote.superficie_ha)} ha</dd>
+          <dt>Categoría</dt>
+          <dd>{lote.categoria}</dd>
         </div>
         <div>
-          <dt>Receptividad</dt>
-          <dd>{formatearNumero(lote.receptividad_ev_ha)} EV/ha</dd>
+          <dt>Superficie</dt>
+          <dd>{formatearNumero(lote.superficie_ha)} ha</dd>
         </div>
         <div>
           <dt>Animales</dt>
@@ -48,10 +52,32 @@ export function LoteDetallePanel({ lote, onCerrar }: Props) {
           <dd>{formatearNumero(lote.carga_animales_ha, 2)} cab/ha</dd>
         </div>
         <div>
-          <dt>CC promedio</dt>
+          <dt>Receptividad</dt>
+          <dd>{formatearNumero(lote.receptividad_ev_ha)} EV/ha</dd>
+        </div>
+        <div>
+          <dt>CC (últ. sesión)</dt>
           <dd>{formatearNumero(lote.cc_promedio, 2)}</dd>
         </div>
+        {lote.edad_promedio_meses !== undefined && lote.edad_promedio_meses !== null && (
+          <div>
+            <dt>Edad prom.</dt>
+            <dd>{formatearNumero(lote.edad_promedio_meses, 0)} meses</dd>
+          </div>
+        )}
       </dl>
+
+      <div className="mapa-detalle__footer">
+        <Button
+          size="xs"
+          variant="outline"
+          colorPalette="brand"
+          width="100%"
+          onClick={() => navigate(`/animales?lote_id=${lote.id}`)}>
+          Ver animales del lote
+          <IconArrowRight size={13} />
+        </Button>
+      </div>
     </div>
   );
 }

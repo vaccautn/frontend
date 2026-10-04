@@ -25,6 +25,7 @@ function normalizarFeature(feature: LotePotreroFeature): LotePotreroFeature {
       superficie_ha: numeroONull(feature.properties.superficie_ha),
       receptividad_ev_ha: numeroONull(feature.properties.receptividad_ev_ha),
       carga_animales_ha: numeroONull(feature.properties.carga_animales_ha),
+      edad_promedio_meses: numeroONull(feature.properties.edad_promedio_meses),
     },
   };
 }

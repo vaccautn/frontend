@@ -11,6 +11,7 @@ export type LotePotreroPropiedades = {
   cantidad_animales: number;
   carga_animales_ha: number | null;
   cc_promedio: number | null;
+  edad_promedio_meses?: number | null;
   estado: EstadoLote;
   centroide: GeoJSON.Point | null;
 };

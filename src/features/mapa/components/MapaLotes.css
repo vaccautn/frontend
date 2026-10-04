@@ -195,3 +195,174 @@
   color: var(--chakra-colors-fg-muted, #718096);
   font-size: 0.78rem;
 }
+
+.mapa-btn-micampo {
+  position: absolute;
+  top: 0.5rem;
+  left: 3.25rem;
+  z-index: 10;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  background: rgba(255, 255, 255, 0.95);
+  border: 1px solid var(--chakra-colors-border, #e2e8f0);
+  border-radius: 0.375rem;
+  padding: 0.35rem 0.65rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: #2d3748;
+  cursor: pointer;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.15);
+  transition: all 0.15s ease;
+}
+
+.mapa-btn-micampo:hover {
+  background: #ffffff;
+  color: var(--chakra-colors-brand-600, #2b6cb0);
+  transform: translateY(-1px);
+}
+
+.mapa-buscador {
+  position: relative;
+  flex: 1;
+  max-width: 22rem;
+  min-width: 14rem;
+}
+
+.mapa-buscador__input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.mapa-buscador__icon-search {
+  position: absolute;
+  left: 0.6rem;
+  color: var(--chakra-colors-fg-muted, #718096);
+  pointer-events: none;
+}
+
+.mapa-buscador__input {
+  width: 100%;
+  height: 2rem;
+  padding: 0.25rem 2rem 0.25rem 2rem;
+  font-size: 0.82rem;
+  border-radius: 0.5rem;
+  border: 1px solid var(--chakra-colors-border, #e2e8f0);
+  background: var(--chakra-colors-bg-subtle, #f7fafc);
+  outline: none;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+
+.mapa-buscador__input:focus {
+  border-color: var(--chakra-colors-brand-500, #3182ce);
+  background: #ffffff;
+  box-shadow: 0 0 0 1px var(--chakra-colors-brand-500, #3182ce);
+}
+
+.mapa-buscador__spinner {
+  position: absolute;
+  right: 0.6rem;
+  color: var(--chakra-colors-brand-500, #3182ce);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mapa-buscador__btn-limpiar {
+  position: absolute;
+  right: 0.5rem;
+  background: none;
+  border: none;
+  padding: 0.2rem;
+  cursor: pointer;
+  color: var(--chakra-colors-fg-muted, #718096);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+.mapa-buscador__btn-limpiar:hover {
+  background: rgba(0, 0, 0, 0.06);
+  color: #1a202c;
+}
+
+.mapa-buscador__dropdown {
+  position: absolute;
+  top: calc(100% + 0.35rem);
+  left: 0;
+  right: 0;
+  z-index: 50;
+  background: #ffffff;
+  border-radius: 0.5rem;
+  border: 1px solid var(--chakra-colors-border, #e2e8f0);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.mapa-buscador__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.75rem;
+  cursor: pointer;
+  font-size: 0.8rem;
+  transition: background 0.1s ease;
+}
+
+.mapa-buscador__item:hover {
+  background: var(--chakra-colors-bg-subtle, #f7fafc);
+}
+
+.mapa-buscador__item--vacio {
+  color: var(--chakra-colors-fg-muted, #718096);
+  cursor: default;
+  font-style: italic;
+  padding: 0.6rem 0.75rem;
+}
+
+.mapa-buscador__pin {
+  color: var(--chakra-colors-brand-500, #3182ce);
+  flex-shrink: 0;
+}
+
+.mapa-buscador__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mapa-buscador__nombre {
+  font-weight: 600;
+  color: #1a202c;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mapa-buscador__detalle {
+  font-size: 0.72rem;
+  color: var(--chakra-colors-fg-muted, #718096);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mapa-detalle__footer {
+  margin-top: 0.75rem;
+  padding-top: 0.5rem;
+  border-top: 1px solid rgba(0, 0, 0, 0.06);
+}
+

@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Button } from "@chakra-ui/react";
-import { IconMap, IconSatellite } from "@tabler/icons-react";
+import { IconFocusCentered, IconMap, IconSatellite } from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import Map from "ol/Map";
 import View from "ol/View";
@@ -20,6 +20,7 @@ import OlFeature from "ol/Feature";
 import type { FeatureLike } from "ol/Feature";
 import LineString from "ol/geom/LineString";
 import Point from "ol/geom/Point";
+import OlPolygon from "ol/geom/Polygon";
 import Style from "ol/style/Style";
 import Fill from "ol/style/Fill";
 import Stroke from "ol/style/Stroke";
@@ -45,6 +46,8 @@ import { LeyendaCarga } from "./LeyendaCarga";
 import { LoteDetallePanel } from "./LoteDetallePanel";
 import { RecomendacionesPanel } from "./RecomendacionesPanel";
 import { GuardarPoligonoDialog } from "./GuardarPoligonoDialog";
+import { VincularKmzDialog } from "./VincularKmzDialog";
+import { BuscadorLocalidad } from "./BuscadorLocalidad";
 import "./MapaLotes.css";
 
 const PROYECCION_MAPA = "EPSG:3857";
@@ -74,10 +77,20 @@ function estiloLote(feature: FeatureLike): Style {
   });
 }
 
-function estiloReferenciaKmz(): Style {
+function estiloReferenciaKmz(feature: FeatureLike): Style {
+  const nombre = feature.get("name") as string | undefined;
   return new Style({
-    stroke: new Stroke({ color: "#f7fafc", width: 2, lineDash: [5, 5] }),
-    fill: new Fill({ color: "rgba(255, 255, 255, 0.12)" }),
+    stroke: new Stroke({ color: "#facc15", width: 2.5, lineDash: [6, 4] }),
+    fill: new Fill({ color: "rgba(250, 204, 21, 0.18)" }),
+    text: nombre
+      ? new Text({
+          text: nombre,
+          font: "bold 11px sans-serif",
+          fill: new Fill({ color: "#ffffff" }),
+          backgroundFill: new Fill({ color: "rgba(0, 0, 0, 0.75)" }),
+          padding: [2, 5, 2, 5],
+        })
+      : undefined,
   });
 }
 
@@ -148,6 +161,12 @@ export function MapaLotes() {
   const [guardando, setGuardando] = useState(false);
   const [loteSeleccionado, setLoteSeleccionado] = useState<LotePotreroPropiedades | null>(null);
   const [mostrarRecomendaciones, setMostrarRecomendaciones] = useState(true);
+  const [poligonoKmzSeleccionado, setPoligonoKmzSeleccionado] = useState<{
+    feature: OlFeature;
+    geom: GeoJSON.Polygon;
+    nombre: string;
+  } | null>(null);
+  const [vinculandoKmz, setVinculandoKmz] = useState(false);
 
   const lotesSinPoligono = useMemo(() => {
     const idsConPoligono = new Set(features.map((f) => f.properties.id));
@@ -182,16 +201,44 @@ export function MapaLotes() {
         new VectorLayer({ source: drawSourceRef.current, style: estiloDibujoEnCurso }),
         new VectorLayer({ source: recomendacionesSourceRef.current, style: estiloMovimiento }),
       ],
-      view: new View({ center: fromLonLat([-64, -34]), zoom: 5, maxZoom: 19 }),
+      view: new View({ center: fromLonLat([-64, -34]), zoom: 6, minZoom: 6, maxZoom: 19 }),
     });
 
     map.on("click", (evento) => {
-      const feature = map.forEachFeatureAtPixel(
+      // 1. Clic en un lote de Vacca
+      const loteFeature = map.forEachFeatureAtPixel(
         evento.pixel,
         (f) => f as OlFeature,
         { layerFilter: (layer) => layer.getSource() === lotesSourceRef.current },
       );
-      setLoteSeleccionado((feature?.get("propiedades") as LotePotreroPropiedades) ?? null);
+      if (loteFeature) {
+        setLoteSeleccionado((loteFeature.get("propiedades") as LotePotreroPropiedades) ?? null);
+        return;
+      }
+
+      // 2. Clic en un potrero importado de KMZ
+      const kmzFeature = map.forEachFeatureAtPixel(
+        evento.pixel,
+        (f) => f as OlFeature,
+        { layerFilter: (layer) => layer.getSource() === kmzSourceRef.current },
+      );
+      if (kmzFeature) {
+        const geom = kmzFeature.getGeometry();
+        if (geom instanceof OlPolygon) {
+          const geomGeoJSON = geoJsonFormat.writeGeometryObject(geom, {
+            dataProjection: PROYECCION_DATOS,
+            featureProjection: PROYECCION_MAPA,
+          }) as GeoJSON.Polygon;
+          setPoligonoKmzSeleccionado({
+            feature: kmzFeature,
+            geom: geomGeoJSON,
+            nombre: (kmzFeature.get("name") as string) || "",
+          });
+          return;
+        }
+      }
+
+      setLoteSeleccionado(null);
     });
 
     mapRef.current = map;
@@ -379,6 +426,60 @@ export function MapaLotes() {
     }
   };
 
+  const confirmarVinculacionKmz = async (loteId: number, receptividadEvHa?: number) => {
+    if (!poligonoKmzSeleccionado) return;
+    setVinculandoKmz(true);
+    try {
+      await guardarGeometriaLote(loteId, {
+        geom: poligonoKmzSeleccionado.geom,
+        receptividad_ev_ha: receptividadEvHa,
+      });
+      toast.success("Potrero vinculado exitosamente al lote.");
+      kmzSourceRef.current.removeFeature(poligonoKmzSeleccionado.feature);
+      setPoligonoKmzSeleccionado(null);
+      refetchLotes();
+      refetchRecomendaciones();
+    } catch (error) {
+      toast.error(
+        error instanceof ApiError
+          ? normalizeBackendDetail(error.detail)
+          : "No se pudo vincular el potrero.",
+      );
+    } finally {
+      setVinculandoKmz(false);
+    }
+  };
+
+  const centrarEnMiCampo = () => {
+    const extent = lotesSourceRef.current.getExtent();
+    if (extent && !isEmpty(extent)) {
+      mapRef.current?.getView().fit(extent, {
+        padding: [80, 80, 80, 80],
+        maxZoom: 17,
+        duration: 800,
+      });
+      return;
+    }
+    const kmzExtent = kmzSourceRef.current.getExtent();
+    if (kmzExtent && !isEmpty(kmzExtent)) {
+      mapRef.current?.getView().fit(kmzExtent, {
+        padding: [80, 80, 80, 80],
+        maxZoom: 17,
+        duration: 800,
+      });
+      return;
+    }
+    toast.info("Aún no tienes lotes delimitados en el mapa.");
+  };
+
+  const handleSelectLocalidad = ({ lon, lat }: { lon: number; lat: number }) => {
+    mapRef.current?.getView().animate({
+      center: fromLonLat([lon, lat]),
+      zoom: 13,
+      duration: 1200,
+    });
+  };
+
   const handleKmzCargado = (capa: CapaKmz) => {
     kmzSourceRef.current.clear();
     const kmlFeatures = new KML({ extractStyles: false }).readFeatures(capa.kml, {
@@ -434,6 +535,8 @@ export function MapaLotes() {
             Calles (OSM)
           </Button>
         </div>
+
+        <BuscadorLocalidad onSelectLocalidad={handleSelectLocalidad} />
       </div>
 
       <DibujoToolbar
@@ -451,6 +554,15 @@ export function MapaLotes() {
 
       <div className="mapa-page__contenido">
         <div ref={mapDivRef} className="mapa-page__mapa" />
+
+        <button
+          type="button"
+          className="mapa-btn-micampo"
+          onClick={centrarEnMiCampo}
+          title="Centrar en mi campo">
+          <IconFocusCentered size={16} stroke={1.75} />
+          <span>Mi Campo</span>
+        </button>
 
         <LeyendaCarga />
 
@@ -475,6 +587,15 @@ export function MapaLotes() {
         saving={guardando}
         onCancelar={() => setPoligonoPendiente(null)}
         onConfirmar={confirmarGuardadoPoligono}
+      />
+
+      <VincularKmzDialog
+        open={poligonoKmzSeleccionado !== null}
+        nombreDetectado={poligonoKmzSeleccionado?.nombre ?? ""}
+        lotesDisponibles={lotesSinPoligono}
+        saving={vinculandoKmz}
+        onCancelar={() => setPoligonoKmzSeleccionado(null)}
+        onConfirmar={confirmarVinculacionKmz}
       />
     </div>
   );
