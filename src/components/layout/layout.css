@@ -234,10 +234,21 @@
   box-sizing: border-box;
 }
 
+.app-shell__content--full {
+  overflow: hidden;
+}
+
 .app-shell__content-inner {
   max-width: 1400px;
   margin: 0 auto;
   padding: 4rem 2.5rem;
+}
+
+.app-shell__content-inner--full {
+  max-width: none;
+  margin: 0;
+  padding: 0;
+  height: 100%;
 }
 
 .logout-confirm__backdrop {

@@ -18,7 +18,6 @@ import {
   IconSettings,
   IconChevronDown,
   IconLogout,
-  IconUserEdit,
 } from "@tabler/icons-react";
 import { ConfiguracionCargaForm } from "@/features/mapa/components/ConfiguracionCargaForm";
 import { getStoredUser, useAuth } from "@/features/auth";

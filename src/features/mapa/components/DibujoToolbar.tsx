@@ -5,6 +5,8 @@ import type { LoteOption } from "@/features/lotes/types";
 type Modo = "ver" | "dibujar" | "editar";
 
 type Props = {
+  open: boolean;
+  onClose: () => void;
   modo: Modo;
   lotesSinPoligono: LoteOption[];
   loteParaDibujo: number | "";
@@ -14,10 +16,11 @@ type Props = {
   onCancelar: () => void;
   onEliminarSeleccionado: () => void;
   puedeEliminarSeleccionado: boolean;
-  hayLotesConPoligono: boolean;
 };
 
 export function DibujoToolbar({
+  open,
+  onClose,
   modo,
   lotesSinPoligono,
   loteParaDibujo,
@@ -27,70 +30,74 @@ export function DibujoToolbar({
   onCancelar,
   onEliminarSeleccionado,
   puedeEliminarSeleccionado,
-  hayLotesConPoligono,
 }: Props) {
-  if (modo !== "ver") {
-    return (
-      <div className="mapa-toolbar">
-        <span className="mapa-toolbar__hint">
-          {modo === "dibujar"
-            ? "Dibujá el contorno del lote sobre el mapa (doble clic para terminar)."
-            : "Arrastrá los vértices para ajustar el lote. Los cambios se guardan solos."}
-        </span>
-        <Button size="sm" variant="ghost" onClick={onCancelar}>
-          <IconX size={16} stroke={1.75} />
-          {modo === "dibujar" ? "Cancelar dibujo" : "Terminar edición"}
-        </Button>
-      </div>
-    );
-  }
-
   return (
-    <div className="mapa-toolbar">
-      <NativeSelect.Root size="sm" width="14rem">
-        <NativeSelect.Field
-          value={loteParaDibujo}
-          onChange={(event) =>
-            onLoteParaDibujoChange(event.target.value ? Number(event.target.value) : "")
-          }>
-          <option value="">Elegí un lote para dibujar...</option>
-          {lotesSinPoligono.map((lote) => (
-            <option key={lote.id} value={lote.id}>
-              {lote.nombre}
-            </option>
-          ))}
-        </NativeSelect.Field>
-        <NativeSelect.Indicator />
-      </NativeSelect.Root>
+    <>
+      {open && (
+        <div className="mapa-lotes-popover">
+          <div className="mapa-lotes-popover__header">
+            <span>Lotes</span>
+            <button
+              type="button"
+              className="mapa-lotes-popover__cerrar"
+              onClick={onClose}
+              title="Cerrar">
+              <IconX size={16} stroke={1.75} />
+            </button>
+          </div>
 
-      <Button
-        size="sm"
-        colorPalette="brand"
-        disabled={!loteParaDibujo}
-        onClick={onIniciarDibujo}>
-        <IconPolygon size={16} stroke={1.75} />
-        Dibujar lote
-      </Button>
+          <NativeSelect.Root size="sm" width="100%">
+            <NativeSelect.Field
+              value={loteParaDibujo}
+              onChange={(event) =>
+                onLoteParaDibujoChange(event.target.value ? Number(event.target.value) : "")
+              }>
+              <option value="">Elegí un lote…</option>
+              {lotesSinPoligono.map((lote) => (
+                <option key={lote.id} value={lote.id}>
+                  {lote.nombre}
+                </option>
+              ))}
+            </NativeSelect.Field>
+            <NativeSelect.Indicator />
+          </NativeSelect.Root>
 
-      <Button
-        size="sm"
-        variant="outline"
-        colorPalette="brand"
-        disabled={!hayLotesConPoligono}
-        onClick={onIniciarEdicion}>
-        <IconPencil size={16} stroke={1.75} />
-        Editar forma
-      </Button>
+          <Button
+            width="100%"
+            colorPalette="brand"
+            disabled={!loteParaDibujo}
+            onClick={onIniciarDibujo}>
+            <IconPolygon size={16} stroke={1.75} />
+            Dibujar lote
+          </Button>
 
-      <Button
-        size="sm"
-        variant="outline"
-        colorPalette="red"
-        disabled={!puedeEliminarSeleccionado}
-        onClick={onEliminarSeleccionado}>
-        <IconTrash size={16} stroke={1.75} />
-        Quitar polígono seleccionado
-      </Button>
-    </div>
+          {puedeEliminarSeleccionado && (
+            <div className="mapa-lotes-popover__acciones">
+              <Button flex="1" size="sm" variant="subtle" colorPalette="brand" onClick={onIniciarEdicion}>
+                <IconPencil size={14} stroke={1.75} />
+                Editar forma
+              </Button>
+              <Button flex="1" size="sm" variant="subtle" colorPalette="red" onClick={onEliminarSeleccionado}>
+                <IconTrash size={14} stroke={1.75} />
+                Quitar
+              </Button>
+            </div>
+          )}
+        </div>
+      )}
+
+      {modo !== "ver" && (
+        <div className="mapa-hint-pill">
+          <span>
+            {modo === "dibujar"
+              ? "Dibujá el contorno del lote sobre el mapa (doble clic para terminar)."
+              : "Arrastrá los vértices para ajustar el lote. Los cambios se guardan solos."}
+          </span>
+          <button type="button" className="mapa-hint-pill__accion" onClick={onCancelar}>
+            {modo === "dibujar" ? "Cancelar dibujo" : "Terminar edición"}
+          </button>
+        </div>
+      )}
+    </>
   );
 }

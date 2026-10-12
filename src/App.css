@@ -142,6 +142,9 @@
   gap: 1rem;
 }
 
+.ol-attribution {
+  display: none !important;
+}
 @media (max-width: 800px) {
   .auth-shell {
     align-items: stretch;

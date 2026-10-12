@@ -86,7 +86,7 @@ export function BuscadorLocalidad({ onSelectLocalidad }: Props) {
         <input
           type="text"
           className="mapa-buscador__input"
-          placeholder="Buscar localidad o paraje (Argentina)..."
+          placeholder="Buscar localidad o paraje"
           value={query}
           onChange={(e: ChangeEvent<HTMLInputElement>) => {
             const val = e.target.value;

@@ -49,13 +49,13 @@ export function KmzUploader({ onCargado }: Props) {
         onChange={handleChange}
       />
       <Button
-        variant="outline"
-        colorPalette="brand"
+        className="mapa-kmz-btn"
+        title="Cargar mapa del campo (KML o KMZ)"
         loading={cargando}
         loadingText="Leyendo..."
         onClick={() => inputRef.current?.click()}>
         <IconUpload size={18} stroke={1.5} />
-        Cargar mapa del campo (KML o KMZ)
+        KML
       </Button>
     </>
   );

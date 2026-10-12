@@ -1,9 +1,10 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { Button } from "@chakra-ui/react";
-import { IconFocusCentered, IconMap, IconSatellite } from "@tabler/icons-react";
+import { IconFocusCentered, IconPolygon } from "@tabler/icons-react";
 import { toast } from "react-toastify";
+import "ol/ol.css";
 import Map from "ol/Map";
 import View from "ol/View";
+import { defaults as defaultControls } from "ol/control";
 import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
 import XYZ from "ol/source/XYZ";
@@ -155,6 +156,7 @@ export function MapaLotes() {
 
   const [tipoCapaBase, setTipoCapaBase] = useState<TipoCapaBase>("satelite");
   const [modo, setModo] = useState<Modo>("ver");
+  const [toolsOpen, setToolsOpen] = useState(false);
   const [todosLosLotes, setTodosLosLotes] = useState<LoteOption[]>([]);
   const [loteParaDibujo, setLoteParaDibujo] = useState<number | "">("");
   const [poligonoPendiente, setPoligonoPendiente] = useState<GeoJSON.Polygon | null>(null);
@@ -194,6 +196,7 @@ export function MapaLotes() {
 
     const map = new Map({
       target: mapDivRef.current,
+      controls: defaultControls({ zoom: false }),
       layers: [
         baseTileLayer,
         new VectorLayer({ source: kmzSourceRef.current, style: estiloReferenciaKmz }),
@@ -480,6 +483,20 @@ export function MapaLotes() {
     });
   };
 
+  const acercarZoom = () => {
+    const vista = mapRef.current?.getView();
+    const actual = vista?.getZoom();
+    if (!vista || actual === undefined) return;
+    vista.animate({ zoom: actual + 1, duration: 200 });
+  };
+
+  const alejarZoom = () => {
+    const vista = mapRef.current?.getView();
+    const actual = vista?.getZoom();
+    if (!vista || actual === undefined) return;
+    vista.animate({ zoom: actual - 1, duration: 200 });
+  };
+
   const handleKmzCargado = (capa: CapaKmz) => {
     kmzSourceRef.current.clear();
     const kmlFeatures = new KML({ extractStyles: false }).readFeatures(capa.kml, {
@@ -514,32 +531,64 @@ export function MapaLotes() {
 
   return (
     <div className="mapa-page">
-      <div className="mapa-page__acciones">
-        <KmzUploader onCargado={handleKmzCargado} />
+      <div ref={mapDivRef} className="mapa-page__mapa" />
 
-        <div className="mapa-page__selector-capas">
-          <Button
-            size="sm"
-            variant={tipoCapaBase === "satelite" ? "solid" : "ghost"}
-            colorPalette={tipoCapaBase === "satelite" ? "brand" : "gray"}
-            onClick={() => setTipoCapaBase("satelite")}>
-            <IconSatellite size={16} stroke={1.75} />
-            Satélite (Esri)
-          </Button>
-          <Button
-            size="sm"
-            variant={tipoCapaBase === "calles" ? "solid" : "ghost"}
-            colorPalette={tipoCapaBase === "calles" ? "brand" : "gray"}
-            onClick={() => setTipoCapaBase("calles")}>
-            <IconMap size={16} stroke={1.75} />
-            Calles (OSM)
-          </Button>
+      <div className="mapa-page__overlay-top">
+        <div className="mapa-page__top-row">
+          <div className="mapa-busqueda-pill">
+            <span className="mapa-busqueda-pill__titulo">Mapa del campo</span>
+            <span className="mapa-busqueda-pill__divisor" />
+            <BuscadorLocalidad onSelectLocalidad={handleSelectLocalidad} />
+          </div>
+
+          <KmzUploader onCargado={handleKmzCargado} />
         </div>
+      </div>
 
-        <BuscadorLocalidad onSelectLocalidad={handleSelectLocalidad} />
+      <div className="mapa-page__capas">
+        <button
+          type="button"
+          className={`mapa-page__capas-btn${tipoCapaBase === "satelite" ? " mapa-page__capas-btn--activo" : ""}`}
+          onClick={() => setTipoCapaBase("satelite")}>
+          Satélite
+        </button>
+        <button
+          type="button"
+          className={`mapa-page__capas-btn${tipoCapaBase === "calles" ? " mapa-page__capas-btn--activo" : ""}`}
+          onClick={() => setTipoCapaBase("calles")}>
+          Calles
+        </button>
+      </div>
+
+      <div className="mapa-page__controles-derecha">
+        <button
+          type="button"
+          className={`mapa-page__control-btn${toolsOpen || modo !== "ver" ? " mapa-page__control-btn--activo" : ""}`}
+          onClick={() => setToolsOpen((valor) => !valor)}
+          title="Lotes: dibujar y editar">
+          <IconPolygon size={20} stroke={1.75} />
+        </button>
+        <button
+          type="button"
+          className="mapa-page__control-btn"
+          onClick={centrarEnMiCampo}
+          title="Centrar en mi campo">
+          <IconFocusCentered size={20} stroke={1.75} />
+        </button>
+        <div className="mapa-page__zoom">
+          <button type="button" onClick={acercarZoom} title="Acercar">
+            +
+          </button>
+          <span className="mapa-page__zoom-divisor" />
+          <button type="button" onClick={alejarZoom} title="Alejar">
+            −
+          </button>
+        </div>
       </div>
 
       <DibujoToolbar
+        open={toolsOpen && modo === "ver"}
+        onClose={() => setToolsOpen(false)}
         modo={modo}
         lotesSinPoligono={lotesSinPoligono}
         loteParaDibujo={loteParaDibujo}
@@ -549,35 +598,21 @@ export function MapaLotes() {
         onCancelar={detenerInteracciones}
         onEliminarSeleccionado={eliminarPoligonoSeleccionado}
         puedeEliminarSeleccionado={loteSeleccionado !== null}
-        hayLotesConPoligono={features.length > 0}
       />
 
-      <div className="mapa-page__contenido">
-        <div ref={mapDivRef} className="mapa-page__mapa" />
+      <LeyendaCarga />
 
-        <button
-          type="button"
-          className="mapa-btn-micampo"
-          onClick={centrarEnMiCampo}
-          title="Centrar en mi campo">
-          <IconFocusCentered size={16} stroke={1.75} />
-          <span>Mi Campo</span>
-        </button>
+      {loteSeleccionado && (
+        <LoteDetallePanel lote={loteSeleccionado} onCerrar={() => setLoteSeleccionado(null)} />
+      )}
 
-        <LeyendaCarga />
-
-        {loteSeleccionado && (
-          <LoteDetallePanel lote={loteSeleccionado} onCerrar={() => setLoteSeleccionado(null)} />
-        )}
-
-        <RecomendacionesPanel
-          movimientos={movimientos}
-          loading={cargandoRecomendaciones}
-          visible={mostrarRecomendaciones}
-          onToggleVisible={() => setMostrarRecomendaciones((valor) => !valor)}
-          onRefrescar={refetchRecomendaciones}
-        />
-      </div>
+      <RecomendacionesPanel
+        movimientos={movimientos}
+        loading={cargandoRecomendaciones}
+        visible={mostrarRecomendaciones}
+        onToggleVisible={() => setMostrarRecomendaciones((valor) => !valor)}
+        onRefrescar={refetchRecomendaciones}
+      />
 
       <GuardarPoligonoDialog
         open={poligonoPendiente !== null}
