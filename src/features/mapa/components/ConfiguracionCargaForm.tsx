@@ -19,10 +19,14 @@ export function ConfiguracionCargaForm() {
     getConfiguracionCarga()
       .then((configuracion) => {
         setUmbralCcCritico(String(configuracion.umbral_cc_critico));
-        setUmbralSobrecargaPct(String(configuracion.umbral_carga_sobrecarga_pct));
+        setUmbralSobrecargaPct(
+          String(configuracion.umbral_carga_sobrecarga_pct),
+        );
         setUmbralHolguraPct(String(configuracion.umbral_carga_holgura_pct));
       })
-      .catch(() => toast.error("No se pudo cargar la configuración de carga animal."))
+      .catch(() =>
+        toast.error("No se pudo cargar la configuración de carga animal."),
+      )
       .finally(() => setCargando(false));
   }, []);
 
@@ -53,12 +57,14 @@ export function ConfiguracionCargaForm() {
   return (
     <div className="configuracion-carga">
       <p className="configuracion-carga__descripcion">
-        Definen cuándo un lote se marca como sobrecargado, al límite o subutilizado en el
-        mapa de carga animal.
+        Definen cuándo un lote se marca como sobrecargado, al límite o
+        subutilizado en el mapa de carga animal.
       </p>
 
       <Field.Root>
-        <Field.Label>Condición corporal crítica (por debajo de esto, aliviar)</Field.Label>
+        <Field.Label>
+          Condición corporal crítica (por debajo de esto, aliviar)
+        </Field.Label>
         <Input
           type="number"
           step="0.1"

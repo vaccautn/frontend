@@ -2,7 +2,6 @@ import "./layout.css";
 import { useState } from "react";
 import { Outlet } from "react-router-dom";
 import { Sidebar } from "./SideBar";
-import { Header } from "./Header";
 import { BottomNav } from "./BottomNav";
 import { ToastContainer } from "react-toastify";
 
@@ -11,12 +10,11 @@ export default function AppLayout() {
 
   return (
     <div className="app-shell">
-      <Sidebar isOpen={isSidebarOpen} onClose={() => setIsSidebarOpen(false)} />
+      <Sidebar
+        isOpen={isSidebarOpen}
+        onToggle={() => setIsSidebarOpen((open) => !open)}
+      />
       <div className="app-shell__main">
-        <Header
-          isSidebarOpen={isSidebarOpen}
-          onOpenSidebar={() => setIsSidebarOpen(true)}
-        />
         <main className="app-shell__content">
           <div className="app-shell__content-inner">
             <Outlet />

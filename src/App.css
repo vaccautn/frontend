@@ -137,6 +137,11 @@
   gap: 14px;
 }
 
+.configuracion-carga {
+  display: grid;
+  gap: 1rem;
+}
+
 @media (max-width: 800px) {
   .auth-shell {
     align-items: stretch;
