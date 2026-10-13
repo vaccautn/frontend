@@ -27,6 +27,16 @@ export type LotesPotreroFeatureCollection = {
   features: LotePotreroFeature[];
 };
 
+export type AnimalLoteDetalle = {
+  id: number;
+  caravana: string | null;
+  categoria: CategoriaAnimal;
+  valor_cc: number | null;
+  escala_min: number;
+  escala_max: number;
+  fecha_cc: string | null;
+};
+
 export type Movimiento = {
   origen_lote_id: number;
   origen_nombre: string;

@@ -28,3 +28,17 @@ export function nivelCC(valorCc: number, fecha: string): NivelCC {
   const mes = Number(fecha.slice(5, 7));
   return NIVEL_POR_MES[mes]?.[valorCc] ?? "normal";
 }
+
+// Hex constants — resolved values of the VACCA palette from index.css.
+// SVG/inline-style fill props no resuelven variables CSS de forma confiable.
+export const CC_COLORS: Record<number, string> = {
+  1: "#c94c4c", // --rojo-alerta
+  2: "#c08b3e", // --ocre-campo
+  3: "#4a9163", // --verde-confirmacion
+  4: "#e0a83e", // --ambar-aviso
+  5: "#c94c4c", // --rojo-alerta
+};
+
+export function colorPorValorCc(valorCc: number): string {
+  return CC_COLORS[Math.round(valorCc)] ?? "#a0aec0";
+}

@@ -9,20 +9,11 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { HistogramaBin } from "@/features/animales/types";
+import { CC_COLORS } from "@/features/animales/utils/ccColor";
 
 type Props = {
   histograma: HistogramaBin[];
   loading: boolean;
-};
-
-// Hex constants — resolved values of the VACCA palette from index.css.
-// Recharts SVG attribute props (fill) do not reliably resolve CSS variables.
-const CC_COLORS: Record<number, string> = {
-  1: "#c94c4c", // --rojo-alerta
-  2: "#c08b3e", // --ocre-campo
-  3: "#4a9163", // --verde-confirmacion
-  4: "#e0a83e", // --ambar-aviso
-  5: "#c94c4c", // --rojo-alerta
 };
 
 export function DashboardHistograma({ histograma, loading }: Props) {

@@ -171,7 +171,9 @@ export function MapaLotes() {
   const [vinculandoKmz, setVinculandoKmz] = useState(false);
 
   const lotesSinPoligono = useMemo(() => {
-    const idsConPoligono = new Set(features.map((f) => f.properties.id));
+    const idsConPoligono = new Set(
+      features.filter((f) => f.geometry !== null).map((f) => f.properties.id),
+    );
     return todosLosLotes.filter((lote) => !idsConPoligono.has(lote.id));
   }, [todosLosLotes, features]);
 
@@ -530,7 +532,8 @@ export function MapaLotes() {
   };
 
   return (
-    <div className="mapa-page">
+    <div
+      className={`mapa-page${loteSeleccionado ? " mapa-page--detalle-abierto" : ""}`}>
       <div ref={mapDivRef} className="mapa-page__mapa" />
 
       <div className="mapa-page__overlay-top">

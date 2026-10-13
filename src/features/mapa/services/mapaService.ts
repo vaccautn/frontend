@@ -1,6 +1,7 @@
 import { deleteRequest, getJson, putJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 import type {
+  AnimalLoteDetalle,
   GuardarGeometriaPayload,
   LotePotreroFeature,
   LotesPotreroFeatureCollection,
@@ -52,4 +53,9 @@ export function guardarGeometriaLote(
 export function eliminarGeometriaLote(loteId: number): Promise<void> {
   const token = getAccessToken();
   return deleteRequest(`/lotes/${loteId}/geometria`, token);
+}
+
+export function getAnimalesLote(loteId: number): Promise<AnimalLoteDetalle[]> {
+  const token = getAccessToken();
+  return getJson<AnimalLoteDetalle[]>(`/lotes/${loteId}/animales`, token);
 }
