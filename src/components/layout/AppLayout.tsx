@@ -8,7 +8,9 @@ import { ToastContainer } from "react-toastify";
 export default function AppLayout() {
   const [isSidebarOpen, setIsSidebarOpen] = useState(true);
   const { pathname } = useLocation();
-  const isFullBleed = pathname.startsWith("/mapa");
+  // Full-bleed solo para la pantalla de Rodeo en sí (y su drawer hijo "nuevo") — NO para
+  // /rodeo/:id (detalle de animal), que es una página hermana con layout normal.
+  const isFullBleed = pathname === "/rodeo" || pathname.startsWith("/rodeo/nuevo");
 
   return (
     <div className="app-shell">

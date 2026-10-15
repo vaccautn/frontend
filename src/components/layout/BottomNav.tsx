@@ -10,8 +10,8 @@ import {
 
 const navItems = [
   {
-    label: "Animales",
-    to: "/animales",
+    label: "Rodeo",
+    to: "/rodeo",
     icon: <IconList size={22} stroke={1.5} />,
   },
   {

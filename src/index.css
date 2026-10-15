@@ -1,4 +1,6 @@
 :root {
+  interpolate-size: allow-keywords;
+
   /* Primarios - Verde (marca) */
   --verde-bosque: #2e5339;
   --verde-vacca: #4a7856;

@@ -10,7 +10,6 @@ import {
 } from "@chakra-ui/react";
 import {
   // IconHome2,
-  IconList,
   IconChartBar,
   IconCalendarHeart,
   IconMap,
@@ -27,9 +26,9 @@ const navItems = [
   //   icon: <IconHome2 size={20} stroke={1} />,
   // },
   {
-    label: "Animales",
-    to: "/animales",
-    icon: <IconList size={20} stroke={1} />,
+    label: "Rodeo",
+    to: "/rodeo",
+    icon: <IconMap size={20} stroke={1} />,
   },
   {
     label: "Sesiones",
@@ -40,11 +39,6 @@ const navItems = [
     label: "Servicios",
     to: "/servicios",
     icon: <IconCalendarHeart size={20} stroke={1} />,
-  },
-  {
-    label: "Mapa",
-    to: "/mapa",
-    icon: <IconMap size={20} stroke={1} />,
   },
 ];
 

@@ -2,10 +2,6 @@ import { useEffect, useMemo, useRef, useState } from "react";
 import { IconFocusCentered, IconPolygon } from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import "ol/ol.css";
-import Map from "ol/Map";
-import View from "ol/View";
-import { defaults as defaultControls } from "ol/control";
-import TileLayer from "ol/layer/Tile";
 import OSM from "ol/source/OSM";
 import XYZ from "ol/source/XYZ";
 import VectorLayer from "ol/layer/Vector";
@@ -13,12 +9,12 @@ import VectorSource from "ol/source/Vector";
 import ImageLayer from "ol/layer/Image";
 import ImageStatic from "ol/source/ImageStatic";
 import KML from "ol/format/KML";
-import GeoJSON from "ol/format/GeoJSON";
 import Draw from "ol/interaction/Draw";
 import Modify from "ol/interaction/Modify";
 import Snap from "ol/interaction/Snap";
 import OlFeature from "ol/Feature";
 import type { FeatureLike } from "ol/Feature";
+import { unByKey } from "ol/Observable";
 import LineString from "ol/geom/LineString";
 import Point from "ol/geom/Point";
 import OlPolygon from "ol/geom/Polygon";
@@ -35,48 +31,26 @@ import { normalizeBackendDetail } from "@/features/auth";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import type { LoteOption } from "@/features/lotes/types";
 
-import { useMapaLotes } from "../hooks/useMapaLotes";
-import { useRecomendaciones } from "../hooks/useRecomendaciones";
+import {
+  useMapaCapas,
+  geoJsonFormat,
+  PROYECCION_MAPA,
+  PROYECCION_DATOS,
+  type TipoCapaBase,
+} from "../hooks/useMapaCapas";
 import { guardarGeometriaLote, eliminarGeometriaLote } from "../services/mapaService";
-import { colorPorEstadoLote, hexConAlpha } from "../utils/estadoLoteColor";
-import type { CapaKmz, LotePotreroPropiedades } from "../types";
+import type { CapaKmz, LotePotreroFeature, LotePotreroPropiedades, Movimiento } from "../types";
 
 import { KmzUploader } from "./KmzUploader";
 import { DibujoToolbar } from "./DibujoToolbar";
 import { LeyendaCarga } from "./LeyendaCarga";
-import { LoteDetallePanel } from "./LoteDetallePanel";
 import { RecomendacionesPanel } from "./RecomendacionesPanel";
 import { GuardarPoligonoDialog } from "./GuardarPoligonoDialog";
 import { VincularKmzDialog } from "./VincularKmzDialog";
 import { BuscadorLocalidad } from "./BuscadorLocalidad";
 import "./MapaLotes.css";
 
-const PROYECCION_MAPA = "EPSG:3857";
-const PROYECCION_DATOS = "EPSG:4326";
-const geoJsonFormat = new GeoJSON();
-
-const ESRI_WORLD_IMAGERY_URL =
-  "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
-const ESRI_ATTRIBUTIONS =
-  "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community";
-
 type Modo = "ver" | "dibujar" | "editar";
-type TipoCapaBase = "satelite" | "calles";
-
-function estiloLote(feature: FeatureLike): Style {
-  const propiedades = feature.get("propiedades") as LotePotreroPropiedades | undefined;
-  const color = propiedades ? colorPorEstadoLote(propiedades.estado) : "#a0aec0";
-  return new Style({
-    stroke: new Stroke({ color, width: 2 }),
-    fill: new Fill({ color: hexConAlpha(color, 0.28) }),
-    text: new Text({
-      text: propiedades?.nombre ?? "",
-      font: "12px sans-serif",
-      fill: new Fill({ color: "#1a202c" }),
-      stroke: new Stroke({ color: "#ffffff", width: 3 }),
-    }),
-  });
-}
 
 function estiloReferenciaKmz(feature: FeatureLike): Style {
   const nombre = feature.get("name") as string | undefined;
@@ -123,11 +97,30 @@ function estiloMovimiento(feature: FeatureLike): Style[] {
   ];
 }
 
-export function MapaLotes() {
+type Props = {
+  features: LotePotreroFeature[];
+  onLotesChanged: () => void;
+  movimientos: Movimiento[];
+  cargandoRecomendaciones: boolean;
+  onRecomendacionesChanged: () => void;
+  loteSeleccionadoId: number | null;
+  loteHoverId?: number | null;
+  onLoteClick: (loteId: number) => void;
+  onDeselect: () => void;
+};
+
+export function MapaLotes({
+  features,
+  onLotesChanged,
+  movimientos,
+  cargandoRecomendaciones,
+  onRecomendacionesChanged,
+  loteSeleccionadoId,
+  loteHoverId = null,
+  onLoteClick,
+  onDeselect,
+}: Props) {
   const mapDivRef = useRef<HTMLDivElement | null>(null);
-  const mapRef = useRef<Map | null>(null);
-  const baseTileLayerRef = useRef<TileLayer | null>(null);
-  const lotesSourceRef = useRef(new VectorSource());
   const kmzSourceRef = useRef(new VectorSource());
   const drawSourceRef = useRef(new VectorSource());
   const recomendacionesSourceRef = useRef(new VectorSource());
@@ -135,14 +128,16 @@ export function MapaLotes() {
   const drawInteractionRef = useRef<Draw | null>(null);
   const modifyInteractionRef = useRef<Modify | null>(null);
   const snapInteractionsRef = useRef<Snap[]>([]);
-  const huboAjusteInicialRef = useRef(false);
+  const onDeselectRef = useRef(onDeselect);
 
-  const { features, refetch: refetchLotes } = useMapaLotes();
-  const {
-    movimientos,
-    loading: cargandoRecomendaciones,
-    refetch: refetchRecomendaciones,
-  } = useRecomendaciones();
+  const { mapRef, lotesSourceRef, baseTileLayerRef } = useMapaCapas({
+    mapDivRef,
+    features,
+    interactivo: true,
+    onLoteClick,
+    loteSeleccionadoId,
+    loteHoverId,
+  });
 
   const [tipoCapaBase, setTipoCapaBase] = useState<TipoCapaBase>("satelite");
   const [modo, setModo] = useState<Modo>("ver");
@@ -151,7 +146,6 @@ export function MapaLotes() {
   const [loteParaDibujo, setLoteParaDibujo] = useState<number | "">("");
   const [poligonoPendiente, setPoligonoPendiente] = useState<GeoJSON.Polygon | null>(null);
   const [guardando, setGuardando] = useState(false);
-  const [loteSeleccionado, setLoteSeleccionado] = useState<LotePotreroPropiedades | null>(null);
   const [mostrarRecomendaciones, setMostrarRecomendaciones] = useState(true);
   const [poligonoKmzSeleccionado, setPoligonoKmzSeleccionado] = useState<{
     feature: OlFeature;
@@ -159,6 +153,11 @@ export function MapaLotes() {
     nombre: string;
   } | null>(null);
   const [vinculandoKmz, setVinculandoKmz] = useState(false);
+
+  const loteSeleccionado = useMemo(
+    () => features.find((f) => f.properties.id === loteSeleccionadoId)?.properties ?? null,
+    [features, loteSeleccionadoId],
+  );
 
   const lotesSinPoligono = useMemo(() => {
     const idsConPoligono = new Set(
@@ -173,45 +172,28 @@ export function MapaLotes() {
       .catch(() => toast.error("No se pudieron cargar los lotes existentes."));
   }, [features]);
 
-  // ── Inicialización del mapa (una sola vez) ──────────────────────────────────
   useEffect(() => {
-    if (!mapDivRef.current || mapRef.current) return;
+    onDeselectRef.current = onDeselect;
+  }, [onDeselect]);
 
-    const baseTileLayer = new TileLayer({
-      source: new XYZ({
-        url: ESRI_WORLD_IMAGERY_URL,
-        attributions: ESRI_ATTRIBUTIONS,
-        maxZoom: 19,
-      }),
+  // ── Agregar las capas propias del mapa grande (KMZ, dibujo, recomendaciones)
+  // sobre el `Map` que crea useMapaCapas, y el click para KMZ/deseleccionar. ──
+  useEffect(() => {
+    const map = mapRef.current;
+    if (!map) return;
+
+    const kmzLayer = new VectorLayer({ source: kmzSourceRef.current, style: estiloReferenciaKmz });
+    const drawLayer = new VectorLayer({ source: drawSourceRef.current, style: estiloDibujoEnCurso });
+    const recomendacionesLayer = new VectorLayer({
+      source: recomendacionesSourceRef.current,
+      style: estiloMovimiento,
     });
-    baseTileLayerRef.current = baseTileLayer;
+    // Mismo orden que antes: base, kmz, lotes, dibujo, recomendaciones.
+    map.getLayers().insertAt(1, kmzLayer);
+    map.addLayer(drawLayer);
+    map.addLayer(recomendacionesLayer);
 
-    const map = new Map({
-      target: mapDivRef.current,
-      controls: defaultControls({ zoom: false }),
-      layers: [
-        baseTileLayer,
-        new VectorLayer({ source: kmzSourceRef.current, style: estiloReferenciaKmz }),
-        new VectorLayer({ source: lotesSourceRef.current, style: estiloLote }),
-        new VectorLayer({ source: drawSourceRef.current, style: estiloDibujoEnCurso }),
-        new VectorLayer({ source: recomendacionesSourceRef.current, style: estiloMovimiento }),
-      ],
-      view: new View({ center: fromLonLat([-64, -34]), zoom: 6, minZoom: 6, maxZoom: 19 }),
-    });
-
-    map.on("click", (evento) => {
-      // 1. Clic en un lote de Vacca
-      const loteFeature = map.forEachFeatureAtPixel(
-        evento.pixel,
-        (f) => f as OlFeature,
-        { layerFilter: (layer) => layer.getSource() === lotesSourceRef.current },
-      );
-      if (loteFeature) {
-        setLoteSeleccionado((loteFeature.get("propiedades") as LotePotreroPropiedades) ?? null);
-        return;
-      }
-
-      // 2. Clic en un potrero importado de KMZ
+    const clickKey = map.on("click", (evento) => {
       const kmzFeature = map.forEachFeatureAtPixel(
         evento.pixel,
         (f) => f as OlFeature,
@@ -229,20 +211,26 @@ export function MapaLotes() {
             geom: geomGeoJSON,
             nombre: (kmzFeature.get("name") as string) || "",
           });
-          return;
         }
+        return;
       }
 
-      setLoteSeleccionado(null);
+      const loteFeature = map.forEachFeatureAtPixel(
+        evento.pixel,
+        (f) => f as OlFeature,
+        { layerFilter: (layer) => layer.getSource() === lotesSourceRef.current },
+      );
+      if (!loteFeature) onDeselectRef.current();
     });
 
-    mapRef.current = map;
     return () => {
-      map.setTarget(undefined);
-      mapRef.current = null;
-      baseTileLayerRef.current = null;
+      unByKey(clickKey);
+      map.removeLayer(kmzLayer);
+      map.removeLayer(drawLayer);
+      map.removeLayer(recomendacionesLayer);
     };
-  }, []);
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- se agrega una sola vez, junto con el mapa
+  }, [mapRef]);
 
   // ── Actualizar capa base (Satélite Esri / Calles OSM) ──────────────────────
   useEffect(() => {
@@ -250,38 +238,14 @@ export function MapaLotes() {
     const nuevoSource =
       tipoCapaBase === "satelite"
         ? new XYZ({
-            url: ESRI_WORLD_IMAGERY_URL,
-            attributions: ESRI_ATTRIBUTIONS,
+            url: "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}",
+            attributions:
+              "Tiles &copy; Esri &mdash; Source: Esri, i-cubed, USDA, USGS, AEX, GeoEye, Getmapping, Aerogrid, IGN, IGP, UPR-EGP, and the GIS User Community",
             maxZoom: 19,
           })
         : new OSM();
     baseTileLayerRef.current.setSource(nuevoSource);
-  }, [tipoCapaBase]);
-
-  // ── Sincronizar los lotes-potrero (backend) con la capa vectorial ───────────
-  useEffect(() => {
-    lotesSourceRef.current.clear();
-    const olFeatures = features
-      .filter((f) => f.geometry)
-      .map((f) => {
-        const feature = geoJsonFormat.readFeature(
-          { type: "Feature", geometry: f.geometry, properties: {} },
-          { dataProjection: PROYECCION_DATOS, featureProjection: PROYECCION_MAPA },
-        ) as OlFeature;
-        feature.set("propiedades", f.properties);
-        feature.setId(f.properties.id);
-        return feature;
-      });
-    lotesSourceRef.current.addFeatures(olFeatures);
-
-    if (!huboAjusteInicialRef.current && olFeatures.length > 0) {
-      const extent = lotesSourceRef.current.getExtent();
-      if (extent && !isEmpty(extent)) {
-        mapRef.current?.getView().fit(extent, { padding: [60, 60, 60, 60], maxZoom: 17 });
-        huboAjusteInicialRef.current = true;
-      }
-    }
-  }, [features]);
+  }, [tipoCapaBase, baseTileLayerRef]);
 
   // ── Sincronizar las recomendaciones con la capa de flechas ──────────────────
   useEffect(() => {
@@ -363,14 +327,14 @@ export function MapaLotes() {
       try {
         await guardarGeometriaLote(propiedades.id, { geom });
         toast.success(`Lote "${propiedades.nombre}" actualizado.`);
-        refetchLotes();
+        onLotesChanged();
       } catch (error) {
         toast.error(
           error instanceof ApiError
             ? normalizeBackendDetail(error.detail)
             : "No se pudo guardar la edición.",
         );
-        refetchLotes();
+        onLotesChanged();
       }
     });
     map.addInteraction(modify);
@@ -389,8 +353,8 @@ export function MapaLotes() {
       toast.success("Lote guardado en el mapa.");
       setPoligonoPendiente(null);
       setLoteParaDibujo("");
-      refetchLotes();
-      refetchRecomendaciones();
+      onLotesChanged();
+      onRecomendacionesChanged();
     } catch (error) {
       toast.error(
         error instanceof ApiError
@@ -407,9 +371,9 @@ export function MapaLotes() {
     try {
       await eliminarGeometriaLote(loteSeleccionado.id);
       toast.success(`Se quitó el polígono de "${loteSeleccionado.nombre}".`);
-      setLoteSeleccionado(null);
-      refetchLotes();
-      refetchRecomendaciones();
+      onDeselect();
+      onLotesChanged();
+      onRecomendacionesChanged();
     } catch (error) {
       toast.error(
         error instanceof ApiError
@@ -429,8 +393,8 @@ export function MapaLotes() {
       toast.success("Potrero vinculado exitosamente al lote.");
       kmzSourceRef.current.removeFeature(poligonoKmzSeleccionado.feature);
       setPoligonoKmzSeleccionado(null);
-      refetchLotes();
-      refetchRecomendaciones();
+      onLotesChanged();
+      onRecomendacionesChanged();
     } catch (error) {
       toast.error(
         error instanceof ApiError
@@ -514,13 +478,11 @@ export function MapaLotes() {
     const extent = kmzSourceRef.current.getExtent();
     if (extent && !isEmpty(extent)) {
       mapRef.current?.getView().fit(extent, { padding: [60, 60, 60, 60], maxZoom: 17 });
-      huboAjusteInicialRef.current = true;
     }
   };
 
   return (
-    <div
-      className={`mapa-page${loteSeleccionado ? " mapa-page--detalle-abierto" : ""}`}>
+    <div className="mapa-page">
       <div ref={mapDivRef} className="mapa-page__mapa" />
 
       <div className="mapa-page__overlay-top">
@@ -592,16 +554,12 @@ export function MapaLotes() {
 
       <LeyendaCarga />
 
-      {loteSeleccionado && (
-        <LoteDetallePanel lote={loteSeleccionado} onCerrar={() => setLoteSeleccionado(null)} />
-      )}
-
       <RecomendacionesPanel
         movimientos={movimientos}
         loading={cargandoRecomendaciones}
         visible={mostrarRecomendaciones}
         onToggleVisible={() => setMostrarRecomendaciones((valor) => !valor)}
-        onRefrescar={refetchRecomendaciones}
+        onRefrescar={onRecomendacionesChanged}
       />
 
       <GuardarPoligonoDialog
