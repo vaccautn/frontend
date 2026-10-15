@@ -23,7 +23,8 @@ export function RodeoLoteSelector({
   const [open, setOpen] = useState(false);
   const [query, setQuery] = useState("");
 
-  const loteSeleccionado = lotes.find((l) => l.id === loteSeleccionadoId) ?? null;
+  const loteSeleccionado =
+    lotes.find((l) => l.id === loteSeleccionadoId) ?? null;
 
   const lotesFiltrados = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -49,14 +50,18 @@ export function RodeoLoteSelector({
           <span
             className="rodeo-lote-selector__dot"
             style={{
-              background: loteSeleccionado ? colorPorEstadoLote(loteSeleccionado.estado) : "#1d2420",
+              background: loteSeleccionado
+                ? colorPorEstadoLote(loteSeleccionado.estado)
+                : "#1d2420",
             }}
           />
           <span className="rodeo-lote-selector__label">
             {loteSeleccionado ? loteSeleccionado.nombre : "Todos los lotes"}
           </span>
           <span className="rodeo-lote-selector__count">
-            {loteSeleccionado ? loteSeleccionado.cantidad_animales : totalAnimales}
+            {loteSeleccionado
+              ? loteSeleccionado.cantidad_animales
+              : totalAnimales}
           </span>
           <IconChevronDown size={14} stroke={1.75} />
         </button>
@@ -64,7 +69,7 @@ export function RodeoLoteSelector({
       <Portal>
         <Menu.Positioner>
           <Menu.Content className="rodeo-lote-selector__menu">
-            <div
+            {/* <div
               className="rodeo-lote-selector__buscar"
               onClick={(event) => event.stopPropagation()}>
               <Input
@@ -74,15 +79,22 @@ export function RodeoLoteSelector({
                 onChange={(event) => setQuery(event.target.value)}
                 aria-label="Buscar lote"
               />
-            </div>
+            </div> */}
 
             <div
               className="rodeo-lote-selector__item"
               data-activo={loteSeleccionadoId === null}
               onClick={() => handleSelect(null)}>
-              <span className="rodeo-lote-selector__dot" style={{ background: "#1d2420" }} />
-              <span className="rodeo-lote-selector__item-label">Todos los lotes</span>
-              <span className="rodeo-lote-selector__item-count">{totalAnimales}</span>
+              <span
+                className="rodeo-lote-selector__dot"
+                style={{ background: "#1d2420" }}
+              />
+              <span className="rodeo-lote-selector__item-label">
+                Todos los lotes
+              </span>
+              <span className="rodeo-lote-selector__item-count">
+                {totalAnimales}
+              </span>
               {loteSeleccionadoId === null && (
                 <span className="rodeo-lote-selector__check">✓</span>
               )}
@@ -98,7 +110,9 @@ export function RodeoLoteSelector({
                   className="rodeo-lote-selector__dot"
                   style={{ background: colorPorEstadoLote(lote.estado) }}
                 />
-                <span className="rodeo-lote-selector__item-label">{lote.nombre}</span>
+                <span className="rodeo-lote-selector__item-label">
+                  {lote.nombre}
+                </span>
                 <span
                   className="rodeo-lote-selector__item-estado"
                   style={{ color: colorPorEstadoLote(lote.estado) }}>
@@ -114,7 +128,9 @@ export function RodeoLoteSelector({
             ))}
 
             {lotesFiltrados.length === 0 && (
-              <div className="rodeo-lote-selector__vacio">Sin coincidencias.</div>
+              <div className="rodeo-lote-selector__vacio">
+                Sin coincidencias.
+              </div>
             )}
           </Menu.Content>
         </Menu.Positioner>

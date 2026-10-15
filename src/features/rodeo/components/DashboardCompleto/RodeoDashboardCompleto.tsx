@@ -238,6 +238,8 @@ export function RodeoDashboardCompleto({
                   <span className="rodeo-dashboard-full__tabla-titulo">
                     Animales
                   </span>
+                </div>
+                <div className="rodeo-dashboard-full__tabla-header-top">
                   <RodeoLoteSelector
                     lotes={lotes}
                     loteSeleccionadoId={loteSeleccionadoId}
@@ -254,13 +256,6 @@ export function RodeoDashboardCompleto({
                     camposVisibles={["caravana"]}
                   />
                 </div>
-                <Button
-                  colorPalette="brand"
-                  size="sm"
-                  onClick={onAgregarAnimal}>
-                  <IconPlus size={16} stroke={1.75} />
-                  Agregar
-                </Button>
               </div>
 
               <div className="rodeo-dashboard-full__tabla-filtros">

@@ -5,6 +5,7 @@ import {
   XAxis,
   YAxis,
   Tooltip,
+  CartesianGrid,
   Cell,
   ResponsiveContainer,
 } from "recharts";
@@ -29,10 +30,20 @@ const NIVEL_COLORS: Record<NivelCC, string> = {
   normal: "#4a9163", // --verde-confirmacion / --success
 };
 
+const GRID_COLOR = "#dfe4dc"; // --border
+const TICK_COLOR = "#59645c"; // --text
+
 export function DashboardHistograma({ histograma, loading, fecha }: Props) {
   const allZero = histograma.every((b) => b.cantidad === 0);
   const maxCantidad = Math.max(...histograma.map((b) => b.cantidad), 0);
-  const yTicks = Array.from({ length: maxCantidad + 1 }, (_, i) => i);
+  // Ticks enteros (no tiene sentido mostrar "2.5 animales"); con pocos
+  // animales se muestra cada entero, con muchos se agrupa de a varios para
+  // no saturar el eje.
+  const pasoTicks = maxCantidad <= 8 ? 1 : Math.ceil(maxCantidad / 6);
+  const yTicks = Array.from(
+    { length: Math.floor(maxCantidad / pasoTicks) + 1 },
+    (_, i) => i * pasoTicks,
+  );
 
   return (
     <Box>
@@ -42,8 +53,11 @@ export function DashboardHistograma({ histograma, loading, fecha }: Props) {
         textTransform="uppercase"
         letterSpacing="0.03em"
         color="var(--text)"
-        mb="3">
+        mb="1">
         Distribución por calificación
+      </Text>
+      <Text fontSize="0.74rem" color="var(--text)" mb="2">
+        Cantidad de animales evaluados por condición corporal (CC)
       </Text>
 
       {allZero || loading ? (
@@ -51,11 +65,17 @@ export function DashboardHistograma({ histograma, loading, fecha }: Props) {
           {loading ? "Cargando..." : "Sin evaluaciones para mostrar"}
         </Text>
       ) : (
-        <ResponsiveContainer width="100%" height={160}>
-          <BarChart data={histograma} barCategoryGap="24%">
+        <ResponsiveContainer width="100%" height={190}>
+          <BarChart
+            data={histograma}
+            barCategoryGap="24%"
+            margin={{ top: 20, right: 20, bottom: 4, left: 4 }}>
+            <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis
               dataKey="valor_cc"
-              tick={{ fontSize: 12, fill: "#59645c" }}
+              tickFormatter={(value) => `CC ${value}`}
+              interval={0}
+              tick={{ fontSize: 12, fill: TICK_COLOR }}
               axisLine={false}
               tickLine={false}
             />
@@ -63,13 +83,15 @@ export function DashboardHistograma({ histograma, loading, fecha }: Props) {
               allowDecimals={false}
               domain={[0, maxCantidad]}
               ticks={yTicks}
-              tick={{ fontSize: 12, fill: "#59645c" }}
+              interval={0}
+              tick={{ fontSize: 12, fill: TICK_COLOR }}
               axisLine={false}
               tickLine={false}
               width={28}
             />
             <Tooltip
               formatter={(value) => [`${value} animal(es)`, "Cantidad"]}
+              labelFormatter={(value) => `CC ${value}`}
               contentStyle={{
                 background: "var(--panel)",
                 border: "1px solid var(--border)",

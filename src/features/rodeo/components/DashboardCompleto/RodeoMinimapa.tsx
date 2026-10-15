@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { IconArrowsMaximize, IconFocusCentered } from "@tabler/icons-react";
+import { IconArrowsMaximize } from "@tabler/icons-react";
 import { useMapaCapas } from "@/features/mapa/hooks/useMapaCapas";
 import type { LotePotreroFeature } from "@/features/mapa/types";
 import { LeyendaCarga } from "@/features/mapa/components/LeyendaCarga";

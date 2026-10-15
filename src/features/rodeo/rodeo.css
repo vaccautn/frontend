@@ -350,7 +350,6 @@
 }
 
 .rodeo-dashboard-full__inner {
-  max-width: 1400px;
   margin: 0 auto;
   padding: 2.5rem;
   display: flex;
@@ -360,7 +359,7 @@
 
 .rodeo-dashboard-full__header {
   display: flex;
-  align-items: flex-start;
+  align-items: flex-end;
   justify-content: space-between;
   gap: 16px;
   margin-bottom: 1rem;
@@ -397,7 +396,7 @@
 
 .rodeo-dashboard-full__bento {
   display: grid;
-  grid-template-columns: 330px minmax(0, 1fr);
+  grid-template-columns: 400px minmax(0, 1fr);
   gap: 16px;
   align-items: start;
 }
