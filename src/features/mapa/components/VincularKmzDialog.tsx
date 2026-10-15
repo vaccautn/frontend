@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent } from "react";
-import { Button, Dialog, Field, Input, NativeSelect, Portal } from "@chakra-ui/react";
+import { Button, Dialog, Field, NativeSelect, Portal } from "@chakra-ui/react";
 import type { LoteOption } from "@/features/lotes/types";
 
 type Props = {
@@ -8,7 +8,7 @@ type Props = {
   lotesDisponibles: LoteOption[];
   saving: boolean;
   onCancelar: () => void;
-  onConfirmar: (loteId: number, receptividadEvHa?: number) => void;
+  onConfirmar: (loteId: number) => void;
 };
 
 export function VincularKmzDialog({
@@ -20,19 +20,15 @@ export function VincularKmzDialog({
   onConfirmar,
 }: Props) {
   const [loteId, setLoteId] = useState<number | "">("");
-  const [receptividad, setReceptividad] = useState("");
 
   const handleConfirmar = () => {
     if (!loteId) return;
-    const valorReceptividad = receptividad.trim();
-    onConfirmar(Number(loteId), valorReceptividad ? Number(valorReceptividad) : undefined);
+    onConfirmar(Number(loteId));
     setLoteId("");
-    setReceptividad("");
   };
 
   const handleCerrar = () => {
     setLoteId("");
-    setReceptividad("");
     onCancelar();
   };
 
@@ -85,18 +81,6 @@ export function VincularKmzDialog({
                   </NativeSelect.Root>
                 </Field.Root>
               )}
-
-              <Field.Root>
-                <Field.Label>Receptividad (EV/ha, opcional):</Field.Label>
-                <Input
-                  type="number"
-                  min={0}
-                  step="0.1"
-                  value={receptividad}
-                  onChange={(e: ChangeEvent<HTMLInputElement>) => setReceptividad(e.target.value)}
-                  placeholder="Ej: 1.2"
-                />
-              </Field.Root>
             </Dialog.Body>
             <Dialog.Footer>
               <Button variant="ghost" onClick={handleCerrar} disabled={saving}>

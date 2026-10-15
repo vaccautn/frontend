@@ -61,10 +61,6 @@ export function LoteDetallePanel({ lote, onCerrar }: Props) {
             <strong>{formatearNumero(lote.cc_promedio, 2)}</strong>
           </div>
         </div>
-
-        <div className="mapa-lote-sidebar__meta">
-          <span>Receptividad: {formatearNumero(lote.receptividad_ev_ha)} EV/ha</span>
-        </div>
       </div>
 
       <div className="mapa-lote-sidebar__lista-header">

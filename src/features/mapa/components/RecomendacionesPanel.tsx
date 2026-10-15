@@ -57,9 +57,6 @@ export function RecomendacionesPanel({
                 <li key={indice} className="mapa-recomendaciones__item">
                   <strong>{movimiento.origen_nombre}</strong> →{" "}
                   <strong>{movimiento.destino_nombre}</strong>
-                  <span className="mapa-recomendaciones__cantidad">
-                    {movimiento.cantidad_animales} animales
-                  </span>
                   <span className="mapa-recomendaciones__motivo">{movimiento.motivo}</span>
                 </li>
               ))}

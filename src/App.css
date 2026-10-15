@@ -137,11 +137,6 @@
   gap: 14px;
 }
 
-.configuracion-carga {
-  display: grid;
-  gap: 1rem;
-}
-
 .ol-attribution {
   display: none !important;
 }

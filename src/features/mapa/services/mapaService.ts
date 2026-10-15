@@ -8,10 +8,10 @@ import type {
   Movimiento,
 } from "../types";
 
-// FastAPI/Pydantic serializa los campos Decimal (superficie_ha, receptividad_ev_ha,
-// carga_animales_ha) como strings en el JSON para no perder precisión — nunca llegan
-// como number, aunque el resto de la app los use como tales. Se normalizan acá, en el
-// límite con el backend, para que el resto del frontend pueda confiar en el tipo real.
+// FastAPI/Pydantic serializa los campos Decimal (superficie_ha, carga_animales_ha) como
+// strings en el JSON para no perder precisión — nunca llegan como number, aunque el resto
+// de la app los use como tales. Se normalizan acá, en el límite con el backend, para que
+// el resto del frontend pueda confiar en el tipo real.
 function numeroONull(valor: unknown): number | null {
   if (valor === null || valor === undefined) return null;
   const numero = Number(valor);
@@ -24,7 +24,6 @@ function normalizarFeature(feature: LotePotreroFeature): LotePotreroFeature {
     properties: {
       ...feature.properties,
       superficie_ha: numeroONull(feature.properties.superficie_ha),
-      receptividad_ev_ha: numeroONull(feature.properties.receptividad_ev_ha),
       carga_animales_ha: numeroONull(feature.properties.carga_animales_ha),
       edad_promedio_meses: numeroONull(feature.properties.edad_promedio_meses),
     },

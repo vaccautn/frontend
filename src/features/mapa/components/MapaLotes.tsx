@@ -107,27 +107,17 @@ function estiloMovimiento(feature: FeatureLike): Style[] {
   if (!(geometry instanceof LineString)) return [];
   const [[x1, y1], [x2, y2]] = geometry.getCoordinates();
   const angulo = Math.atan2(y2 - y1, x2 - x1);
-  const cantidad = feature.get("cantidad");
 
   return [
-    new Style({ stroke: new Stroke({ color: "#2d3748", width: 2, lineDash: [6, 4] }) }),
+    new Style({ stroke: new Stroke({ color: "#FFD500", width: 3, lineDash: [6, 4] }) }),
     new Style({
       geometry: new Point([x2, y2]),
       image: new RegularShape({
         points: 3,
         radius: 8,
         rotation: Math.PI / 2 - angulo,
-        fill: new Fill({ color: "#2d3748" }),
-      }),
-    }),
-    new Style({
-      geometry: new Point([(x1 + x2) / 2, (y1 + y2) / 2]),
-      text: new Text({
-        text: `${cantidad}`,
-        font: "bold 12px sans-serif",
-        fill: new Fill({ color: "#ffffff" }),
-        backgroundFill: new Fill({ color: "#2d3748" }),
-        padding: [2, 4, 2, 4],
+        fill: new Fill({ color: "#FFD500" }),
+        stroke: new Stroke({ color: "#2d3748", width: 1 }),
       }),
     }),
   ];
@@ -302,7 +292,6 @@ export function MapaLotes() {
       const origen = fromLonLat(movimiento.origen_centroide.coordinates as [number, number]);
       const destino = fromLonLat(movimiento.destino_centroide.coordinates as [number, number]);
       const feature = new OlFeature({ geometry: new LineString([origen, destino]) });
-      feature.set("cantidad", movimiento.cantidad_animales);
       recomendacionesSourceRef.current.addFeature(feature);
     });
   }, [movimientos, mostrarRecomendaciones]);
@@ -390,13 +379,12 @@ export function MapaLotes() {
     setModo("editar");
   };
 
-  const confirmarGuardadoPoligono = async (receptividadEvHa?: number) => {
+  const confirmarGuardadoPoligono = async () => {
     if (!poligonoPendiente || !loteParaDibujo) return;
     setGuardando(true);
     try {
       await guardarGeometriaLote(Number(loteParaDibujo), {
         geom: poligonoPendiente,
-        receptividad_ev_ha: receptividadEvHa,
       });
       toast.success("Lote guardado en el mapa.");
       setPoligonoPendiente(null);
@@ -431,13 +419,12 @@ export function MapaLotes() {
     }
   };
 
-  const confirmarVinculacionKmz = async (loteId: number, receptividadEvHa?: number) => {
+  const confirmarVinculacionKmz = async (loteId: number) => {
     if (!poligonoKmzSeleccionado) return;
     setVinculandoKmz(true);
     try {
       await guardarGeometriaLote(loteId, {
         geom: poligonoKmzSeleccionado.geom,
-        receptividad_ev_ha: receptividadEvHa,
       });
       toast.success("Potrero vinculado exitosamente al lote.");
       kmzSourceRef.current.removeFeature(poligonoKmzSeleccionado.feature);

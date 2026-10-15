@@ -15,11 +15,9 @@ import {
   IconCalendarHeart,
   IconMap,
   IconMenu2,
-  IconSettings,
   IconChevronDown,
   IconLogout,
 } from "@tabler/icons-react";
-import { ConfiguracionCargaForm } from "@/features/mapa/components/ConfiguracionCargaForm";
 import { getStoredUser, useAuth } from "@/features/auth";
 
 const navItems = [
@@ -63,7 +61,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   const user = getStoredUser();
   const { pathname } = useLocation();
   const { logout } = useAuth();
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [isLogoutConfirmOpen, setIsLogoutConfirmOpen] = useState(false);
   const [isLoggingOut, setIsLoggingOut] = useState(false);
 
@@ -171,12 +168,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   <IconUserEdit stroke={1.5} size={18} />
                   Editar perfil
                 </Menu.Item> */}
-                <Menu.Item
-                  value="configuracion"
-                  onSelect={() => setIsSettingsOpen(true)}>
-                  <IconSettings stroke={1.5} size={18} />
-                  Configuración
-                </Menu.Item>
                 <Menu.Separator />
                 <Menu.Item
                   value="cerrar-sesion"
@@ -190,30 +181,6 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           </Portal>
         </Menu.Root>
       )}
-
-      <Dialog.Root
-        open={isSettingsOpen}
-        onOpenChange={(details) => setIsSettingsOpen(details.open)}>
-        <Dialog.Backdrop className="sidebar__settings-backdrop" />
-        <Dialog.Positioner>
-          <Dialog.Content className="sidebar__settings-dialog">
-            <Dialog.Header>
-              <Dialog.Title>Configuración</Dialog.Title>
-            </Dialog.Header>
-            <Dialog.Body>
-              <ConfiguracionCargaForm />
-            </Dialog.Body>
-            <Dialog.CloseTrigger asChild>
-              <button
-                type="button"
-                className="sidebar__settings-close"
-                aria-label="Cerrar">
-                x
-              </button>
-            </Dialog.CloseTrigger>
-          </Dialog.Content>
-        </Dialog.Positioner>
-      </Dialog.Root>
 
       <Dialog.Root
         open={isLogoutConfirmOpen}

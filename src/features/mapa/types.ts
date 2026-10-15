@@ -1,13 +1,12 @@
 import type { CategoriaAnimal } from "@/features/animales/types";
 
-export type EstadoLote = "ROJO" | "AMARILLO" | "VERDE" | "AZUL" | "SIN_DATOS";
+export type EstadoLote = "ROJO" | "AMARILLO" | "VERDE" | "SIN_DATOS";
 
 export type LotePotreroPropiedades = {
   id: number;
   nombre: string;
   categoria: CategoriaAnimal;
   superficie_ha: number | null;
-  receptividad_ev_ha: number | null;
   cantidad_animales: number;
   carga_animales_ha: number | null;
   cc_promedio: number | null;
@@ -44,30 +43,11 @@ export type Movimiento = {
   destino_lote_id: number;
   destino_nombre: string;
   destino_centroide: GeoJSON.Point | null;
-  cantidad_animales: number;
   motivo: string;
 };
 
-export type ConfiguracionCarga = {
-  id: number;
-  usuario_administrador_id: number;
-  umbral_cc_critico: number;
-  umbral_carga_sobrecarga_pct: number;
-  umbral_carga_holgura_pct: number;
-  creado_en: string;
-  actualizado_en: string;
-};
-
-export type ConfiguracionCargaUpdatePayload = Partial<
-  Pick<
-    ConfiguracionCarga,
-    "umbral_cc_critico" | "umbral_carga_sobrecarga_pct" | "umbral_carga_holgura_pct"
-  >
->;
-
 export type GuardarGeometriaPayload = {
   geom: GeoJSON.Polygon;
-  receptividad_ev_ha?: number;
 };
 
 // Un GroundOverlay de KML (imagen georreferenciada por una caja lat/lon), como las que

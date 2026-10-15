@@ -5,7 +5,6 @@ const COLOR_POR_ESTADO: Record<EstadoLote, string> = {
   ROJO: "#e53e3e",
   AMARILLO: "#d69e2e",
   VERDE: "#38a169",
-  AZUL: "#3182ce",
   SIN_DATOS: "#a0aec0",
 };
 
@@ -13,7 +12,6 @@ const LABEL_POR_ESTADO: Record<EstadoLote, string> = {
   ROJO: "Aliviar",
   AMARILLO: "Al límite",
   VERDE: "Ok",
-  AZUL: "Subutilizado",
   SIN_DATOS: "Sin datos",
 };
 
@@ -25,7 +23,7 @@ export function labelPorEstadoLote(estado: EstadoLote): string {
   return LABEL_POR_ESTADO[estado] ?? estado;
 }
 
-export const ESTADOS_LEYENDA: EstadoLote[] = ["ROJO", "AMARILLO", "VERDE", "AZUL"];
+export const ESTADOS_LEYENDA: EstadoLote[] = ["ROJO", "AMARILLO", "VERDE"];
 
 export function hexConAlpha(hex: string, alpha: number): string {
   const valor = hex.replace("#", "");
