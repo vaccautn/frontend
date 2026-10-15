@@ -230,6 +230,10 @@ export function getAnimalDashboard(
   return getJson<DashboardAnimalData>(`/animales/${animalId}/dashboard`, token);
 }
 
+/** La evaluación no se guardó porque su CC dependía de la foto y la IA la
+ * rechazó (p. ej. no detectó un bovino). */
+export class FotoRechazadaError extends Error {}
+
 export async function registrarEvaluacionCCCompleta(
   params: RegistrarEvaluacionCCParams,
 ): Promise<RegistrarEvaluacionCCResult> {
@@ -253,6 +257,23 @@ export async function registrarEvaluacionCCCompleta(
       await subirImagenesEvaluacion(evaluacion.id, params.files);
     } catch (error) {
       imagenesError = getImagenUploadErrorMessage(error, params.files.length);
+    }
+
+    // Sin CC manual, el valor con el que se creó es solo un provisorio. Si
+    // ninguna foto quedó guardada, la IA no calculó nada: se anula la
+    // evaluación para no dejar ese provisorio como si fuera una calificación.
+    if (imagenesError && params.valorCcInferido) {
+      const imagenes = await getImagenesEvaluacion(evaluacion.id).catch(() => []);
+      if (imagenes.length === 0) {
+        await anularEvaluacionCcEnSesion(evaluacion.id, sesionIdFinal).catch(
+          () => {
+            /* si falla la anulación, el error de la foto igual se informa */
+          },
+        );
+        throw new FotoRechazadaError(
+          `${imagenesError} No se guardó la evaluación: cargá la condición corporal a mano o probá con otra foto.`,
+        );
+      }
     }
 
     // La IA puede haber recalculado valor_cc aunque la subida termine en

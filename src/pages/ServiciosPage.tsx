@@ -3,12 +3,13 @@ import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button, Table } from "@chakra-ui/react";
 import { IconPlus } from "@tabler/icons-react";
 import { getServicios } from "@/features/servicios/services/serviciosService";
-import { sincronizarEstadosServicios } from "@/features/servicios/utils/servicioEstado";
 import type { ServicioRead } from "@/features/servicios/types";
 import { useServiciosFiltros } from "@/features/servicios/hooks/useServiciosFiltros";
 import { ServiciosFiltros } from "@/features/servicios/components/ServiciosFiltros";
 import { ESTADO_SERVICIO_LABELS } from "@/features/servicios/constants";
 import { ServiciosDashboard } from "@/features/servicios/components/dashboard/ServiciosDashboard";
+import { useServiciosDashboard } from "@/features/servicios/hooks/useServiciosDashboard";
+import { pendientesPorServicio } from "@/features/servicios/utils/servicioEstado";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
@@ -32,25 +33,20 @@ export function ServiciosPage() {
     clearFilters,
     params,
   } = useServiciosFiltros();
+  const dashboard = useServiciosDashboard();
+  // Sale de los datos del dashboard (servicios sin filtrar), así un filtro
+  // que deja afuera a los reservicios no cambia los indicadores.
+  const pendientes = pendientesPorServicio(
+    dashboard.servicios,
+    dashboard.resultados,
+    dashboard.animalActivoIds,
+  );
 
   const fetchServicios = useCallback(() => {
     setRefetching(true);
     setError("");
     getServicios(params)
-      .then(async (data) => {
-        const sincronizados = await sincronizarEstadosServicios(data);
-        const huboTransiciones = sincronizados.some(
-          (s, i) => s.estado !== data[i].estado,
-        );
-        // Si algún PLANIFICADO pasó a EN_CURSO y hay un filtro de estado
-        // activo, esa fila puede haber dejado de cumplir el filtro: se
-        // vuelve a pedir la lista filtrada en vez de mostrarla desalineada.
-        if (huboTransiciones && params.estado) {
-          setServicios(await getServicios(params));
-        } else {
-          setServicios(sincronizados);
-        }
-      })
+      .then(setServicios)
       .catch(() => setError("No se pudieron cargar los servicios."))
       .finally(() => {
         setRefetching(false);
@@ -65,8 +61,17 @@ export function ServiciosPage() {
   useEffect(() => {
     if (location.state?.refresh) {
       fetchServicios();
+      dashboard.refetch();
     }
+    // dashboard.refetch es estable (useCallback sin dependencias)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state, fetchServicios]);
+
+  // Para mostrar "Reservicio de <original>". Si un filtro deja afuera al
+  // servicio original, la etiqueta queda solo como "Reservicio".
+  const nombreServicioPorId = new Map(
+    servicios.map((s) => [s.id, s.nombre || `Servicio #${s.id}`]),
+  );
 
   const handleRowKeyDown = (
     event: KeyboardEvent<HTMLTableRowElement>,
@@ -90,7 +95,7 @@ export function ServiciosPage() {
         </Button>
       </div>
 
-      <ServiciosDashboard />
+      <ServiciosDashboard data={dashboard} />
 
       <ServiciosFiltros
         estado={estado}
@@ -107,7 +112,7 @@ export function ServiciosPage() {
 
       {!initialLoading && !error && (
         <div
-          className="animales-table__wrapper"
+          className="animales-table__wrapper servicios-table__wrapper"
           style={{
             opacity: refetching ? 0.6 : 1,
             transition: "opacity 0.15s",
@@ -116,9 +121,9 @@ export function ServiciosPage() {
             <Table.Header>
               <Table.Row>
                 <Table.ColumnHeader>Nombre</Table.ColumnHeader>
-                <Table.ColumnHeader>Inicio</Table.ColumnHeader>
-                <Table.ColumnHeader>Fin</Table.ColumnHeader>
+                <Table.ColumnHeader>Período</Table.ColumnHeader>
                 <Table.ColumnHeader>Estado</Table.ColumnHeader>
+                <Table.ColumnHeader>Pendientes</Table.ColumnHeader>
               </Table.Row>
             </Table.Header>
             <Table.Body>
@@ -138,9 +143,18 @@ export function ServiciosPage() {
                     aria-label={`Ver detalle del servicio ${servicio.nombre || `#${servicio.id}`}`}
                     onClick={() => navigate(`/servicios/${servicio.id}`)}
                     onKeyDown={(event) => handleRowKeyDown(event, servicio)}>
-                    <Table.Cell>{servicio.nombre || `Servicio #${servicio.id}`}</Table.Cell>
-                    <Table.Cell>{formatFecha(servicio.fecha_inicio)}</Table.Cell>
                     <Table.Cell>
+                      {servicio.nombre || `Servicio #${servicio.id}`}
+                      {servicio.servicio_origen_id !== null && (
+                        <span className="servicios-table__reservicio">
+                          {nombreServicioPorId.has(servicio.servicio_origen_id)
+                            ? `Reservicio de ${nombreServicioPorId.get(servicio.servicio_origen_id)}`
+                            : "Reservicio"}
+                        </span>
+                      )}
+                    </Table.Cell>
+                    <Table.Cell className="servicios-table__periodo">
+                      {formatFecha(servicio.fecha_inicio)} –{" "}
                       {servicio.fecha_fin ? formatFecha(servicio.fecha_fin) : "—"}
                     </Table.Cell>
                     <Table.Cell>
@@ -148,6 +162,26 @@ export function ServiciosPage() {
                         className={`servicio-badge servicio-badge--${servicio.estado}`}>
                         {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
                       </span>
+                    </Table.Cell>
+                    <Table.Cell>
+                      <div className="servicios-table__pendientes">
+                        {pendientes.get(servicio.id)?.resultados && (
+                          <span className="servicio-alerta">
+                            Resultados por cargar
+                          </span>
+                        )}
+                        {pendientes.get(servicio.id)?.reservicio && (
+                          <span className="servicio-alerta servicio-alerta--reservicio">
+                            Reservicio por iniciar
+                          </span>
+                        )}
+                        {!pendientes.get(servicio.id)?.resultados &&
+                          !pendientes.get(servicio.id)?.reservicio && (
+                            <span className="servicios-table__sin-pendientes">
+                              —
+                            </span>
+                          )}
+                      </div>
                     </Table.Cell>
                   </Table.Row>
                 ))

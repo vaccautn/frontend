@@ -1,9 +1,13 @@
 import { getAccessToken } from "@/features/auth";
 import { deleteRequest, getJson, patchJson, postJson } from "@/services/httpClient";
 import type {
+  CargaResultadosPayload,
+  ParticipanteServicio,
+  ReservicioCreatePayload,
   ResultadoServicioCreatePayload,
   ResultadoServicioListParams,
   ResultadoServicioRead,
+  ResultadoServicioUpdatePayload,
   ServicioCreatePayload,
   ServicioListParams,
   ServicioLoteAsociacion,
@@ -42,6 +46,56 @@ export function crearResultadoServicio(
   return postJson<ResultadoServicioRead, ResultadoServicioCreatePayload>(
     "/resultados-servicio/",
     payload,
+    token,
+  );
+}
+
+export function actualizarResultadoServicio(
+  id: number,
+  payload: ResultadoServicioUpdatePayload,
+): Promise<ResultadoServicioRead> {
+  const token = getAccessToken();
+  return patchJson<ResultadoServicioRead, ResultadoServicioUpdatePayload>(
+    `/resultados-servicio/${id}`,
+    payload,
+    token,
+  );
+}
+
+/** Crea un reservicio con vacas vacías del servicio `origenId`: servicio
+ * vinculado, lote nuevo con esas vacas y lote asociado, en una sola operación. */
+export function crearReservicio(
+  origenId: number,
+  payload: ReservicioCreatePayload,
+): Promise<ServicioRead> {
+  const token = getAccessToken();
+  return postJson<ServicioRead, ReservicioCreatePayload>(
+    `/servicios/${origenId}/reservicios`,
+    payload,
+    token,
+  );
+}
+
+/** Guarda el diagnóstico de varias vacas en una sola operación (todo o nada).
+ * Devuelve los participantes actualizados. */
+export function cargarResultadosServicio(
+  id: number,
+  payload: CargaResultadosPayload,
+): Promise<ParticipanteServicio[]> {
+  const token = getAccessToken();
+  return patchJson<ParticipanteServicio[], CargaResultadosPayload>(
+    `/servicios/${id}/resultados`,
+    payload,
+    token,
+  );
+}
+
+export function getParticipantesServicio(
+  id: number,
+): Promise<ParticipanteServicio[]> {
+  const token = getAccessToken();
+  return getJson<ParticipanteServicio[]>(
+    `/servicios/${id}/participantes`,
     token,
   );
 }
@@ -98,9 +152,16 @@ export function getServicios(
   if (params.fecha_inicio_hasta) {
     searchParams.set("fecha_inicio_hasta", params.fecha_inicio_hasta);
   }
+  if (params.servicio_origen_id !== undefined) {
+    searchParams.set("servicio_origen_id", params.servicio_origen_id.toString());
+  }
 
   const qs = searchParams.toString();
-  return getJson<ServicioRead[]>(`/servicios/${qs ? `?${qs}` : ""}`, token);
+  // Un servicio eliminado queda CANCELADO en el backend; para el usuario ya
+  // no existe, así que no se lista en ningún lado.
+  return getJson<ServicioRead[]>(`/servicios/${qs ? `?${qs}` : ""}`, token).then(
+    (servicios) => servicios.filter((s) => s.estado !== "CANCELADO"),
+  );
 }
 
 export function getServicio(id: number): Promise<ServicioRead> {
@@ -111,4 +172,11 @@ export function getServicio(id: number): Promise<ServicioRead> {
 export function getLotesServicio(id: number): Promise<ServicioLotesAgrupados> {
   const token = getAccessToken();
   return getJson<ServicioLotesAgrupados>(`/servicios/${id}/lotes`, token);
+}
+
+/** El backend no borra el servicio: lo pasa a CANCELADO. Se permite desde
+ * PLANIFICADO, EN_CURSO o FINALIZADO. */
+export function eliminarServicio(id: number): Promise<void> {
+  const token = getAccessToken();
+  return deleteRequest(`/servicios/${id}`, token);
 }

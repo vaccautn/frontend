@@ -50,7 +50,7 @@ export function SesionesPage() {
       if (error instanceof ApiError && error.status === 409 && error.data?.sesion_id) {
         setSesionAbierta(error.data.sesion_id);
       } else {
-      toast.error("No se pudo iniciar la sesion de evaluacion.");
+      toast.error("No se pudo iniciar la sesión de evaluación.");
       }
     } finally {
       setIsStarting(false);
@@ -65,7 +65,7 @@ export function SesionesPage() {
       const nuevaSesion = await crearSesion({ fecha_inicio: localNaiveNow() });
       navigate(`/sesiones/${nuevaSesion.id}/cargar`);
     } catch {
-      toast.error("No se pudo descartar la sesion abierta.");
+      toast.error("No se pudo descartar la sesión abierta.");
     } finally {
       setIsStarting(false);
       setSesionAbierta(null);
@@ -128,7 +128,7 @@ export function SesionesPage() {
         setHasMore(res.has_more);
         setNextOffset(res.next_offset);
       })
-      .catch(() => toast.error("No se pudieron cargar mas sesiones."))
+      .catch(() => toast.error("No se pudieron cargar más sesiones."))
       .finally(() => {
         setLoadingMore(false);
         loadingMoreRef.current = false;
@@ -156,14 +156,14 @@ export function SesionesPage() {
     <section>
       <div className="section-header">
         <div className="title-and-description">
-          <h1>Sesiones de evaluacion</h1>
+          <h1>Sesiones de evaluación</h1>
         </div>
         <Button
           colorPalette="brand"
           onClick={handleIniciarSesion}
           loading={isStarting}>
           <IconPlus size={18} stroke={1.5} />
-          Iniciar sesion de evaluacion
+          Iniciar sesión de evaluación
         </Button>
       </div>
 
@@ -238,7 +238,7 @@ export function SesionesPage() {
         </div>
       )}
       <Dialog.Root open={sesionAbierta !== null} onOpenChange={(details) => !details.open && setSesionAbierta(null)}>
-        <Portal><Dialog.Backdrop /><Dialog.Positioner><Dialog.Content><Dialog.Header><Dialog.Title>Hay una sesion abierta</Dialog.Title></Dialog.Header><Dialog.Body>Queres continuar editandola o descartarla para iniciar una nueva?</Dialog.Body><Dialog.Footer><Button onClick={() => sesionAbierta !== null && navigate(`/sesiones/${sesionAbierta}/cargar`)}>Continuar editando</Button><Button colorPalette="red" onClick={descartarEIniciar}>Descartar e iniciar nueva</Button></Dialog.Footer></Dialog.Content></Dialog.Positioner></Portal>
+        <Portal><Dialog.Backdrop /><Dialog.Positioner><Dialog.Content><Dialog.Header><Dialog.Title>Hay una sesión abierta</Dialog.Title></Dialog.Header><Dialog.Body>¿Querés continuar editándola o descartarla para iniciar una nueva?</Dialog.Body><Dialog.Footer><Button onClick={() => sesionAbierta !== null && navigate(`/sesiones/${sesionAbierta}/cargar`)}>Continuar editando</Button><Button colorPalette="red" onClick={descartarEIniciar}>Descartar e iniciar nueva</Button></Dialog.Footer></Dialog.Content></Dialog.Positioner></Portal>
       </Dialog.Root>
     </section>
   );

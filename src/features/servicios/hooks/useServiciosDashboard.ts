@@ -1,16 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import {
-  getLotesServicio,
   getResultadosServicio,
   getServicios,
 } from "@/features/servicios/services/serviciosService";
 import { getAnimales } from "@/features/animales/services/animalesService";
-import {
-  estaActivoHoy,
-  sincronizarEstadosServicios,
-} from "@/features/servicios/utils/servicioEstado";
 import type {
-  LoteEnServicio,
   ResultadoServicioRead,
   ServicioRead,
 } from "@/features/servicios/types";
@@ -18,8 +12,7 @@ import type {
 export type UseServiciosDashboardResult = {
   servicios: ServicioRead[];
   resultados: ResultadoServicioRead[];
-  lotesEnServicio: LoteEnServicio[];
-  animalCaravanaPorId: Map<number, string>;
+  animalActivoIds: Set<number>;
   loading: boolean;
   error: string;
   refetch: () => void;
@@ -28,10 +21,9 @@ export type UseServiciosDashboardResult = {
 export function useServiciosDashboard(): UseServiciosDashboardResult {
   const [servicios, setServicios] = useState<ServicioRead[]>([]);
   const [resultados, setResultados] = useState<ResultadoServicioRead[]>([]);
-  const [lotesEnServicio, setLotesEnServicio] = useState<LoteEnServicio[]>([]);
-  const [animalCaravanaPorId, setAnimalCaravanaPorId] = useState<
-    Map<number, string>
-  >(new Map());
+  const [animalActivoIds, setAnimalActivoIds] = useState<Set<number>>(
+    new Set(),
+  );
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
@@ -40,48 +32,17 @@ export function useServiciosDashboard(): UseServiciosDashboardResult {
     setError("");
 
     Promise.all([getServicios(), getResultadosServicio(), getAnimales()])
-      .then(async ([serviciosDataRaw, resultadosData, animalesData]) => {
-        // El backend no transiciona PLANIFICADO -> EN_CURSO solo al llegar
-        // la fecha de inicio: se sincroniza de verdad contra el backend acá.
-        const serviciosData = await sincronizarEstadosServicios(serviciosDataRaw);
+      .then(([serviciosData, resultadosData, animalesData]) => {
+        const servicioIds = new Set(serviciosData.map((s) => s.id));
         setServicios(serviciosData);
-        setResultados(resultadosData);
-        setAnimalCaravanaPorId(
-          new Map(
-            animalesData
-              .filter((a) => a.caravana)
-              .map((a) => [a.id, a.caravana as string]),
+        setResultados(
+          resultadosData.filter((r) => servicioIds.has(r.servicio_id)),
+        );
+        setAnimalActivoIds(
+          new Set(
+            animalesData.filter((a) => a.estado === "ACTIVO").map((a) => a.id),
           ),
         );
-
-        // Además del estado ya sincronizado, se filtra por rango de fechas
-        // (cubre fecha_fin / CANCELADO-FINALIZADO) para decidir qué
-        // servicios están efectivamente activos hoy (ver servicioEstado.ts).
-        const activosHoy = serviciosData.filter(estaActivoHoy);
-        const gruposPorServicio = await Promise.all(
-          activosHoy.map((servicio) =>
-            getLotesServicio(servicio.id).then((grupos) => ({
-              servicio,
-              grupos,
-            })),
-          ),
-        );
-
-        const lotes: LoteEnServicio[] = gruposPorServicio.flatMap(
-          ({ servicio, grupos }) => [
-            ...grupos.vientres.map((lote) => ({
-              lote,
-              servicio,
-              rol: "vientre" as const,
-            })),
-            ...grupos.toros.map((lote) => ({
-              lote,
-              servicio,
-              rol: "toro" as const,
-            })),
-          ],
-        );
-        setLotesEnServicio(lotes);
       })
       .catch(() => setError("No se pudieron cargar los datos del dashboard."))
       .finally(() => setLoading(false));
@@ -98,8 +59,7 @@ export function useServiciosDashboard(): UseServiciosDashboardResult {
   return {
     servicios,
     resultados,
-    lotesEnServicio,
-    animalCaravanaPorId,
+    animalActivoIds,
     loading,
     error,
     refetch: runFetch,

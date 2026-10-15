@@ -16,6 +16,7 @@ import type {
 import { eliminarSesion, getSesion } from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaRead } from "@/features/sesiones/types";
 import { SesionDashboard } from "@/features/sesiones/components/dashboard/SesionDashboard";
+import { RecomendacionesSesion } from "@/features/recomendaciones/components/RecomendacionesSesion";
 import { useSesionDashboard } from "@/features/sesiones/hooks/useSesionDashboard";
 import { ApiError } from "@/services/httpClient";
 import { formatEventDate, formatEventDateTime } from "@/utils/localDateTime";
@@ -306,7 +307,12 @@ export function SesionDetailPage() {
             data={dashboard.data}
             loading={dashboard.loading}
             error={dashboard.error}
+            fecha={sesion.fecha_inicio}
           />
+
+          {sesion.estado === "CERRADA" && (
+            <RecomendacionesSesion sesionId={sesion.id} version={evaluaciones} />
+          )}
 
           {evaluaciones.length === 0 ? (
             <div className="sesion-detail__empty" role="status">
@@ -317,10 +323,18 @@ export function SesionDetailPage() {
               </p>
             </div>
           ) : (
-            <SesionEvaluacionesTable
-              evaluaciones={evaluaciones}
-              onEdit={setEditingEvaluacion}
-            />
+            <section className="animal-detail__section">
+              <div className="animal-detail__section-header">
+                <div>
+                  <span className="animal-detail__section-eyebrow">Sesión</span>
+                  <h2>Evaluaciones</h2>
+                </div>
+              </div>
+              <SesionEvaluacionesTable
+                evaluaciones={evaluaciones}
+                onEdit={setEditingEvaluacion}
+              />
+            </section>
           )}
 
           <button

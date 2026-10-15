@@ -3,9 +3,21 @@ import { useAnimalesLote } from "@/features/mapa/hooks/useAnimalesLote";
 import { colorPorEstadoLote } from "@/features/mapa/utils/estadoLoteColor";
 import type { LotePotreroPropiedades } from "@/features/mapa/types";
 import { getAnimales } from "@/features/animales/services/animalesService";
-import { colorPorValorCc } from "@/features/animales/utils/ccColor";
+import { nivelCC, type NivelCC } from "@/features/animales/utils/ccColor";
 import type { Animal, CategoriaAnimal } from "@/features/animales/types";
 import { useCcPorAnimal } from "../../hooks/useCcPorAnimal";
+
+// Mismo criterio que DashboardHistograma/MiniHistogramaCC: color por nivel de
+// alerta mes-dependiente, no por el valor de CC en sí.
+const NIVEL_COLORS: Record<NivelCC, string> = {
+  critico: "#c94c4c",
+  atencion: "#e0a83e",
+  normal: "#4a9163",
+};
+
+function colorPorNivelCC(valorCc: number, fechaCc: string | null): string {
+  return NIVEL_COLORS[nivelCC(valorCc, fechaCc ?? new Date().toISOString())];
+}
 
 type Props = {
   lote: LotePotreroPropiedades | null;
@@ -65,7 +77,7 @@ function ListaDeLote({ loteId }: { loteId: number }) {
                     className="rodeo-panel__animal-barra-rellena"
                     style={{
                       width: `${((animal.valor_cc - animal.escala_min) / (animal.escala_max - animal.escala_min)) * 100}%`,
-                      background: colorPorValorCc(animal.valor_cc),
+                      background: colorPorNivelCC(animal.valor_cc, animal.fecha_cc),
                     }}
                   />
                 )}
@@ -167,7 +179,7 @@ function ListaGeneral({
                       className="rodeo-panel__animal-barra-rellena"
                       style={{
                         width: `${((cc.valor_cc - cc.escala_min) / (cc.escala_max - cc.escala_min)) * 100}%`,
-                        background: colorPorValorCc(cc.valor_cc),
+                        background: colorPorNivelCC(cc.valor_cc, cc.fecha_cc),
                       }}
                     />
                   )}

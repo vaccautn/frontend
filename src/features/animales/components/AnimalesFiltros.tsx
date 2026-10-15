@@ -106,7 +106,8 @@ export function AnimalesFiltros({
         </div>
       )}
 
-      {/* {mostrar("sexo") && (
+      {/* Esto no aporta nada, nos interesan solo las categorias 
+       {mostrar("sexo") && (
         <div
           className="animales-filtros__toggle"
           role="group"

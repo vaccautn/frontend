@@ -15,6 +15,7 @@ import { CargarEvaluacionesPage } from "@/pages/CargarEvaluacionPage";
 import { SesionDetailPage } from "@/pages/SesionDetailPage";
 import { ServiciosPage } from "@/pages/ServiciosPage";
 import { ServicioDetailPage } from "@/pages/ServicioDetailPage";
+import { CrearReservicioPage } from "@/pages/CrearReservicioPage";
 import ServicioNuevoPage from "@/pages/ServicioNuevoPage";
 import { RedirectAnimalDetail } from "./RedirectAnimalDetail";
 
@@ -60,6 +61,10 @@ export const router = createBrowserRouter([
             children: [{ path: "nuevo", element: <ServicioNuevoPage /> }],
           },
           { path: "/servicios/:id", element: <ServicioDetailPage /> },
+          {
+            path: "/servicios/:id/reservicio",
+            element: <CrearReservicioPage />,
+          },
         ],
       },
     ],

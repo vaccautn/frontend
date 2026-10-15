@@ -9,11 +9,11 @@ import { AnimalesFiltros } from "@/features/animales/components/AnimalesFiltros"
 import { AnimalesTabla } from "@/features/animales/components/AnimalesTabla";
 import { KpiCriticos } from "@/features/animales/components/dashboard/KpiCriticos";
 import { KpiEvaluados } from "@/features/animales/components/dashboard/KpiEvaluados";
-import { KpiTernerosPendientes } from "@/features/animales/components/dashboard/KpiTernerosPendientes";
+import { KpiVacasPrenadas } from "@/features/animales/components/dashboard/KpiVacasPrenadas";
 import { DashboardHistograma } from "@/features/animales/components/dashboard/DashboardHistograma";
 import { DashboardEvolucion } from "@/features/animales/components/dashboard/DashboardEvolucion";
 import { useAnimalesDashboard } from "@/features/animales/hooks/useAnimalesDashboard";
-import { useTernerosPendientes } from "@/features/animales/hooks/useTernerosPendientes";
+import { useVacasPrenadas } from "@/features/animales/hooks/useVacasPrenadas";
 import type {
   Animal,
   CategoriaAnimal,
@@ -123,7 +123,17 @@ export function RodeoDashboardCompleto({
 
   const { data: dashboard, loading: loadingDashboard } =
     useAnimalesDashboard(loteSeleccionadoId);
-  const { count: terneros, loading: loadingTerneros } = useTernerosPendientes();
+  const { count: vacasPrenadas, loading: loadingVacasPrenadas } =
+    useVacasPrenadas(loteSeleccionadoId);
+
+  // El histograma agrega evaluaciones de cualquier mes; se usa la fecha de la
+  // evaluación más reciente como referencia para resolver el nivel de alerta
+  // (mismo criterio "estado actual" que AnimalDashboard/SesionDashboard).
+  const evolucion = dashboard?.evolucion ?? [];
+  const fechaReferencia =
+    evolucion.length > 0
+      ? `${evolucion[evolucion.length - 1].periodo}-01`
+      : new Date().toISOString();
 
   const handleLoteNombreClick = (loteIdClickeado: number) => {
     onLoteClick(loteIdClickeado);
@@ -218,19 +228,20 @@ export function RodeoDashboardCompleto({
               evaluados={dashboard?.total_animales_evaluados ?? 0}
               loading={loadingDashboard}
             />
-            <KpiTernerosPendientes count={terneros} loading={loadingTerneros} />
+            <KpiVacasPrenadas count={vacasPrenadas} loading={loadingVacasPrenadas} />
             <div className="rodeo-dashboard-full__histograma">
               <DashboardHistograma
                 histograma={dashboard?.histograma ?? []}
                 loading={loadingDashboard}
+                fecha={fechaReferencia}
               />
             </div>
-            {/* TODO: corregir<div className="rodeo-dashboard-full__evolucion">
+            <div className="rodeo-dashboard-full__evolucion">
               <DashboardEvolucion
                 evolucion={dashboard?.evolucion ?? []}
                 loading={loadingDashboard}
               />
-            </div> */}
+            </div>
           </div>
         </Box>
 

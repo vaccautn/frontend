@@ -1,8 +1,8 @@
 import type { DashboardAnimalesData } from "@/features/animales/types";
-import { useTernerosPendientes } from "@/features/animales/hooks/useTernerosPendientes";
+import { useVacasPrenadas } from "@/features/animales/hooks/useVacasPrenadas";
 import { KpiCriticos } from "@/features/animales/components/dashboard/KpiCriticos";
 import { KpiEvaluados } from "@/features/animales/components/dashboard/KpiEvaluados";
-import { KpiTernerosPendientes } from "@/features/animales/components/dashboard/KpiTernerosPendientes";
+import { KpiVacasPrenadas } from "@/features/animales/components/dashboard/KpiVacasPrenadas";
 
 type Props = {
   totalLotes: number;
@@ -11,7 +11,7 @@ type Props = {
 };
 
 export function RodeoResumenGeneral({ totalLotes, data, loading }: Props) {
-  const { count: terneros, loading: loadingTerneros } = useTernerosPendientes();
+  const { count: vacasPrenadas, loading: loadingVacasPrenadas } = useVacasPrenadas(null);
 
   return (
     <div className="rodeo-panel__resumen">
@@ -26,7 +26,7 @@ export function RodeoResumenGeneral({ totalLotes, data, loading }: Props) {
           evaluados={data?.total_animales_evaluados ?? 0}
           loading={loading}
         />
-        <KpiTernerosPendientes count={terneros} loading={loadingTerneros} />
+        <KpiVacasPrenadas count={vacasPrenadas} loading={loadingVacasPrenadas} />
       </div>
     </div>
   );

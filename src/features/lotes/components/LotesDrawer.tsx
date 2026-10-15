@@ -5,7 +5,6 @@ import {
   Drawer,
   Field,
   Input,
-  NativeSelect,
   Portal,
 } from "@chakra-ui/react";
 import { IconCheck, IconPencil, IconTrash, IconX } from "@tabler/icons-react";
@@ -22,6 +21,7 @@ import {
 } from "@/features/animales/constants";
 import { normalizeBackendDetail, useAuth } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
+import { SelectOpciones } from "@/components/SelectOpciones";
 import "@/features/animales/components/animales.css";
 import "@/features/lotes/components/lotes-drawer.css";
 
@@ -192,22 +192,16 @@ export function LotesDrawer({ open, onClose, lotes, onChanged }: Props) {
 
                   <Field.Root>
                     <Field.Label>Categoría</Field.Label>
-                    <NativeSelect.Root>
-                      <NativeSelect.Field
-                        value={nuevoCategoria}
-                        onChange={(event) => {
-                          setNuevoCategoria(event.target.value);
-                          setNuevoError("");
-                        }}>
-                        <option value="">Seleccioná una categoría</option>
-                        {CATEGORIAS_ANIMAL.map(({ value, label }) => (
-                          <option key={value} value={value}>
-                            {label}
-                          </option>
-                        ))}
-                      </NativeSelect.Field>
-                      <NativeSelect.Indicator />
-                    </NativeSelect.Root>
+                    <SelectOpciones
+                      aria-label="Categoría"
+                      placeholder="Seleccioná una categoría"
+                      opciones={[...CATEGORIAS_ANIMAL]}
+                      value={nuevoCategoria}
+                      onChange={(categoria) => {
+                        setNuevoCategoria(categoria);
+                        setNuevoError("");
+                      }}
+                    />
                   </Field.Root>
 
                   <Button

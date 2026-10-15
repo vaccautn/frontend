@@ -9,14 +9,27 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { HistogramaBin } from "@/features/animales/types";
-import { CC_COLORS } from "@/features/animales/utils/ccColor";
+import { nivelCC, type NivelCC } from "@/features/animales/utils/ccColor";
 
 type Props = {
   histograma: HistogramaBin[];
   loading: boolean;
+  // Fecha de referencia para resolver el nivel de alerta (mes-dependiente),
+  // igual que en las tablas — ver ccColor.ts.
+  fecha: string;
 };
 
-export function DashboardHistograma({ histograma, loading }: Props) {
+// Hex constants — resolved values of the VACCA palette from index.css
+// (--danger / --warning / --success). Recharts SVG fill props do not
+// reliably resolve CSS variables, así que se repiten los mismos valores
+// que usan los badges de nivel en las tablas.
+const NIVEL_COLORS: Record<NivelCC, string> = {
+  critico: "#c94c4c", // --rojo-alerta / --danger
+  atencion: "#e0a83e", // --ambar-aviso / --warning
+  normal: "#4a9163", // --verde-confirmacion / --success
+};
+
+export function DashboardHistograma({ histograma, loading, fecha }: Props) {
   const allZero = histograma.every((b) => b.cantidad === 0);
   const maxCantidad = Math.max(...histograma.map((b) => b.cantidad), 0);
   const yTicks = Array.from({ length: maxCantidad + 1 }, (_, i) => i);
@@ -68,7 +81,7 @@ export function DashboardHistograma({ histograma, loading }: Props) {
               {histograma.map((entry) => (
                 <Cell
                   key={entry.valor_cc}
-                  fill={CC_COLORS[entry.valor_cc] ?? "#b8c4cc"}
+                  fill={NIVEL_COLORS[nivelCC(entry.valor_cc, fecha)]}
                 />
               ))}
             </Bar>

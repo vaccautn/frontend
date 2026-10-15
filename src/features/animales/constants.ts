@@ -39,6 +39,14 @@ export const CATEGORIAS_POR_SEXO: Record<"MACHO" | "HEMBRA", readonly string[]> 
   MACHO: ["TERNERO", "NOVILLITO", "NOVILLO", "TORITO", "TORO"],
 };
 
+export const ESTADO_ANIMAL_LABELS: Record<string, string> = {
+  ACTIVO: "Activo",
+  INACTIVO: "Inactivo",
+  VENDIDO: "Vendido",
+  MUERTO: "Muerto",
+  DESCARTADO: "Descartado",
+};
+
 export const ESTADOS_FILTRO = [
   { value: "ACTIVO", label: "Activo" },
   { value: "VENDIDO", label: "Vendido" },

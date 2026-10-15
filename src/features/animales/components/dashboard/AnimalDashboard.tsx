@@ -5,6 +5,7 @@ import { KpiEvaluaciones } from "./KpiEvaluaciones";
 import { AnimalEvolucion } from "./AnimalEvolucion";
 import { DashboardHistograma } from "./DashboardHistograma";
 import { HistorialCriticos } from "./HistorialCriticos";
+import { nivelCC } from "@/features/animales/utils/ccColor";
 
 type Props = {
   data: DashboardAnimalData | null;
@@ -13,6 +14,22 @@ type Props = {
 };
 
 export function AnimalDashboard({ data, loading, error }: Props) {
+  // El histograma agrega evaluaciones de distintos meses; se usa la fecha de
+  // la evaluación más reciente como referencia para resolver el nivel de
+  // alerta (mismo criterio "estado actual" que las tablas).
+  const evolucion = data?.evolucion ?? [];
+  const fechaReferencia =
+    evolucion.length > 0
+      ? evolucion[evolucion.length - 1].fecha
+      : new Date().toISOString();
+
+  // Críticas según el semáforo mes × CC (nivelCC), igual que los badges de
+  // las tablas. `historial_peores` del backend usa el criterio viejo (CC 1
+  // o 5), por eso no se usa.
+  const criticas = evolucion
+    .filter((punto) => nivelCC(punto.valor_cc, punto.fecha) === "critico")
+    .reverse();
+
   return (
     <Box
       my="7"
@@ -41,7 +58,7 @@ export function AnimalDashboard({ data, loading, error }: Props) {
 
       <SimpleGrid columns={{ base: 1, md: 2 }} gap="4">
         <KpiCriticos
-          count={data?.historial_peores.length ?? 0}
+          count={criticas.length}
           loading={loading}
           label={{
             singular: "evaluación crítica",
@@ -69,11 +86,15 @@ export function AnimalDashboard({ data, loading, error }: Props) {
           borderColor="var(--border)"
           borderRadius="8px"
           bg="var(--bg)">
-          <DashboardHistograma histograma={data?.histograma ?? []} loading={loading} />
+          <DashboardHistograma
+            histograma={data?.histograma ?? []}
+            loading={loading}
+            fecha={fechaReferencia}
+          />
         </Box>
       </SimpleGrid>
 
-      <HistorialCriticos historial={data?.historial_peores ?? []} loading={loading} />
+      <HistorialCriticos historial={criticas} loading={loading} />
     </Box>
   );
 }

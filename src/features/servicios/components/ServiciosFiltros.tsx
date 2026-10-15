@@ -1,4 +1,5 @@
-import { Input, Menu, Portal } from "@chakra-ui/react";
+import { Menu, Portal } from "@chakra-ui/react";
+import { FechaInput } from "@/components/FechaInput";
 import { IconChevronDown } from "@tabler/icons-react";
 import { ESTADOS_SERVICIO } from "@/features/servicios/constants";
 import type { EstadoServicio } from "@/features/servicios/types";
@@ -24,7 +25,8 @@ export function ServiciosFiltros({
   onFechaHastaChange,
   onClear,
 }: ServiciosFiltrosProps) {
-  const estadoLabel = ESTADOS_SERVICIO.find((e) => e.value === estado)?.label;
+  const estados = ESTADOS_SERVICIO.filter((e) => e.value !== "CANCELADO");
+  const estadoLabel = estados.find((e) => e.value === estado)?.label;
 
   return (
     <div
@@ -35,11 +37,10 @@ export function ServiciosFiltros({
         <label htmlFor="servicio-fecha-desde" className="sr-only">
           Filtrar desde
         </label>
-        <Input
+        <FechaInput
           id="servicio-fecha-desde"
-          type="date"
           value={fechaDesde}
-          onChange={(event) => onFechaDesdeChange(event.target.value)}
+          onChange={onFechaDesdeChange}
           aria-label="Filtrar servicios desde una fecha de inicio"
           className="animales-filtros__input"
         />
@@ -49,11 +50,10 @@ export function ServiciosFiltros({
         <label htmlFor="servicio-fecha-hasta" className="sr-only">
           Filtrar hasta
         </label>
-        <Input
+        <FechaInput
           id="servicio-fecha-hasta"
-          type="date"
           value={fechaHasta}
-          onChange={(event) => onFechaHastaChange(event.target.value)}
+          onChange={onFechaHastaChange}
           aria-label="Filtrar servicios hasta una fecha de inicio"
           className="animales-filtros__input"
         />
@@ -90,7 +90,7 @@ export function ServiciosFiltros({
                   Todos los estados
                 </Menu.RadioItem>
                 <Menu.Separator />
-                {ESTADOS_SERVICIO.map(({ value, label }) => (
+                {estados.map(({ value, label }) => (
                   <Menu.RadioItem key={value} value={value}>
                     {label}
                   </Menu.RadioItem>

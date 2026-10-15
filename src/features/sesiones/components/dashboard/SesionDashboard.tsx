@@ -9,9 +9,10 @@ type Props = {
   data: DashboardSesionData | null;
   loading: boolean;
   error: string;
+  fecha: string;
 };
 
-export function SesionDashboard({ data, loading, error }: Props) {
+export function SesionDashboard({ data, loading, error, fecha }: Props) {
   return (
     <Box
       my="7"
@@ -54,7 +55,11 @@ export function SesionDashboard({ data, loading, error }: Props) {
         borderColor="var(--border)"
         borderRadius="8px"
         bg="var(--bg)">
-        <DashboardHistograma histograma={data?.histograma ?? []} loading={loading} />
+        <DashboardHistograma
+          histograma={data?.histograma ?? []}
+          loading={loading}
+          fecha={fecha}
+        />
       </Box>
     </Box>
   );

@@ -1,5 +1,5 @@
 import { useAnimalesDashboard } from "@/features/animales/hooks/useAnimalesDashboard";
-import { MiniHistogramaCC } from "@/features/animales/components/dashboard/MiniHistogramaCC";
+
 import type { LotePotreroPropiedades } from "@/features/mapa/types";
 import type { CategoriaAnimal } from "@/features/animales/types";
 import { RodeoBreadcrumb } from "../RodeoBreadcrumb";
@@ -71,7 +71,6 @@ export function RodeoPanelLateral({
             loading={loading}
           />
         )}
-        {/* {data && <MiniHistogramaCC histograma={data.histograma} />} */}
       </div>
 
       <RodeoFiltrosPanel

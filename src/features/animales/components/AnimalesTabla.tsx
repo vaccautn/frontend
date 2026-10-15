@@ -4,8 +4,20 @@ import { Table } from "@chakra-ui/react";
 import type { Animal } from "../types";
 import type { LoteFiltroOption } from "./AnimalesFiltros";
 import { formatFecha } from "../utils/formatDate";
-import { colorPorValorCc } from "../utils/ccColor";
+import { nivelCC, type NivelCC } from "../utils/ccColor";
 import { CATEGORIA_ANIMAL_LABELS } from "../constants";
+
+// Mismo criterio que DashboardHistograma/MiniHistogramaCC/RodeoListaAnimales:
+// color por nivel de alerta mes-dependiente, no por el valor de CC en sí.
+const NIVEL_COLORS: Record<NivelCC, string> = {
+  critico: "#c94c4c",
+  atencion: "#e0a83e",
+  normal: "#4a9163",
+};
+
+function colorPorNivelCC(valorCc: number, fechaCc: string | null): string {
+  return NIVEL_COLORS[nivelCC(valorCc, fechaCc ?? new Date().toISOString())];
+}
 
 const COLUMNAS = [
   "Caravana",
@@ -22,6 +34,7 @@ export type CcAnimal = {
   valor_cc: number | null;
   escala_min: number;
   escala_max: number;
+  fecha_cc: string | null;
 };
 
 type Props = {
@@ -132,7 +145,7 @@ export function AnimalesTabla({
                   <Table.Cell>
                     {lote ? (CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? "—") : "—"}
                   </Table.Cell>
-                  <Table.Cell style={{ fontWeight: 700, color: cc?.valor_cc != null ? colorPorValorCc(cc.valor_cc) : undefined }}>
+                  <Table.Cell style={{ fontWeight: 700, color: cc?.valor_cc != null ? colorPorNivelCC(cc.valor_cc, cc.fecha_cc) : undefined }}>
                     {cc?.valor_cc != null ? cc.valor_cc.toFixed(1) : "—"}
                   </Table.Cell>
                   <Table.Cell>{animal.estado}</Table.Cell>

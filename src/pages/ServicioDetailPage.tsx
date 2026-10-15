@@ -1,31 +1,45 @@
-import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
-import { useNavigate, useParams } from "react-router-dom";
+import {
+  useEffect,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type ReactNode,
+} from "react";
+import { Link, useNavigate, useParams } from "react-router-dom";
 import {
   Badge,
   Button,
+  Dialog,
   Field,
   Input,
   NativeSelect,
+  Portal,
   Textarea,
 } from "@chakra-ui/react";
 import {
   IconArrowLeft,
   IconChevronDown,
+  IconChevronRight,
+  IconClipboardCheck,
   IconEdit,
+  IconRepeat,
+  IconTrash,
   IconX,
 } from "@tabler/icons-react";
 import {
   actualizarServicio,
   asociarLoteServicio,
-  crearResultadoServicio,
+  cargarResultadosServicio,
   desasociarLoteServicio,
+  eliminarServicio,
   getLotesServicio,
-  getResultadosServicio,
+  getParticipantesServicio,
   getServicio,
+  getServicios,
 } from "@/features/servicios/services/serviciosService";
 import type {
   EstadoServicio,
-  ResultadoServicioRead,
+  ParticipanteServicio,
   ServicioLoteRead,
   ServicioLotesAgrupados,
   ServicioRead,
@@ -33,15 +47,18 @@ import type {
 import {
   ESTADO_RESULTADO_SERVICIO_LABELS,
   ESTADO_SERVICIO_LABELS,
-  ESTADOS_SERVICIO,
+  opcionesEstadoServicio,
+  TIPO_PRENEZ_LABELS,
 } from "@/features/servicios/constants";
 import {
   validateServicioEditarForm,
   type ServicioEditarFieldErrors,
   type ServicioEditarValues,
 } from "@/features/servicios/utils/serviciosValidation";
-import { sincronizarEstadoServicio } from "@/features/servicios/utils/servicioEstado";
-import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
+import {
+  CATEGORIA_ANIMAL_LABELS,
+  ESTADO_ANIMAL_LABELS,
+} from "@/features/animales/constants";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
@@ -49,10 +66,20 @@ import { getLotes } from "@/features/lotes/services/lotesService";
 import type { LoteOption } from "@/features/lotes/types";
 import { getAnimales } from "@/features/animales/services/animalesService";
 import type { Animal } from "@/features/animales/types";
+import { ToroIcon, VacaIcon } from "@/utils/icons";
+import { FechaInput } from "@/components/FechaInput";
+import { ServicioDashboard } from "@/features/servicios/components/dashboard/ServicioDashboard";
+import { DiagnosticoControles } from "@/features/servicios/components/DiagnosticoControles";
+import {
+  esCargable,
+  faltaTipo,
+  type Diagnostico,
+} from "@/features/servicios/utils/diagnostico";
 import { localNaiveNow } from "@/utils/localDateTime";
 import { toast } from "react-toastify";
 import "@/features/animales/components/animales.css";
 import "@/features/servicios/components/servicios.css";
+import { RecomendacionesServicio } from "@/features/recomendaciones/components/RecomendacionesServicio";
 
 const CAMPOS: { label: string; render: (servicio: ServicioRead) => string }[] = [
   {
@@ -97,14 +124,31 @@ export function ServicioDetailPage() {
   const [isAgregandoLote, setIsAgregandoLote] = useState(false);
   const [loteIdQuitando, setLoteIdQuitando] = useState<number | null>(null);
 
-  const [resultados, setResultados] = useState<ResultadoServicioRead[]>([]);
+  const [reservicios, setReservicios] = useState<ServicioRead[]>([]);
+  const [origen, setOrigen] = useState<ServicioRead | null>(null);
+  const [participantes, setParticipantes] = useState<ParticipanteServicio[]>(
+    [],
+  );
+  // Animales que hoy están en cada lote: los toros siempre, y las vacas solo
+  // para la vista previa de un servicio PLANIFICADO (todavía sin
+  // participantes).
   const [animalesPorLoteId, setAnimalesPorLoteId] = useState<
     Map<number, Animal[]>
   >(new Map());
-  const [loadingVacas, setLoadingVacas] = useState(false);
-  const [animalIdRegistrando, setAnimalIdRegistrando] = useState<
-    number | null
-  >(null);
+  const [loadingAnimales, setLoadingAnimales] = useState(false);
+  // Modo "cargar resultados": null fuera del modo; si no, el diagnóstico en
+  // edición de cada resultado cargable (por id de resultado).
+  const [diagnosticos, setDiagnosticos] = useState<Map<
+    number,
+    Diagnostico
+  > | null>(null);
+  const [fechaDiagnostico, setFechaDiagnostico] = useState("");
+  const [mostrarErroresResultados, setMostrarErroresResultados] =
+    useState(false);
+  const [resultadosError, setResultadosError] = useState("");
+  const [isGuardandoResultados, setIsGuardandoResultados] = useState(false);
+  const [isEliminarOpen, setIsEliminarOpen] = useState(false);
+  const [isEliminando, setIsEliminando] = useState(false);
 
   useEffect(() => {
     getLotes()
@@ -115,15 +159,22 @@ export function ServicioDetailPage() {
       });
   }, []);
 
-  const fetchVacas = async (vientres: ServicioLoteRead[]) => {
-    if (vientres.length === 0) {
+  const fetchAnimalesDeLotes = async (
+    grupos: ServicioLotesAgrupados,
+    estado: EstadoServicio,
+  ) => {
+    const lotesAConsultar = [
+      ...(estado === "PLANIFICADO" ? grupos.vientres : []),
+      ...grupos.toros,
+    ];
+    if (lotesAConsultar.length === 0) {
       setAnimalesPorLoteId(new Map());
       return;
     }
-    setLoadingVacas(true);
+    setLoadingAnimales(true);
     try {
       const entradas = await Promise.all(
-        vientres.map((lote) =>
+        lotesAConsultar.map((lote) =>
           getAnimales({ lote_id: lote.id }).then(
             (animales) => [lote.id, animales] as const,
           ),
@@ -131,10 +182,10 @@ export function ServicioDetailPage() {
       );
       setAnimalesPorLoteId(new Map(entradas));
     } catch {
-      // si falla, esa sección simplemente no lista vacas: no bloquea el
-      // resto del detalle del servicio
+      // si falla, esas secciones simplemente no listan animales: no bloquea
+      // el resto del detalle del servicio
     } finally {
-      setLoadingVacas(false);
+      setLoadingAnimales(false);
     }
   };
 
@@ -150,19 +201,26 @@ export function ServicioDetailPage() {
       setStatus("loading");
 
       try {
-        const [servicioDataRaw, lotesData, resultadosData] = await Promise.all([
-          getServicio(servicioId),
-          getLotesServicio(servicioId),
-          getResultadosServicio({ servicioId }),
-        ]);
-        if (cancelled) return;
-        const servicioData = await sincronizarEstadoServicio(servicioDataRaw);
+        // El servicio primero: al consultarlo el backend aplica la transición
+        // por fecha y, si sale de PLANIFICADO, fija los participantes.
+        const servicioData = await getServicio(servicioId);
+        const [lotesData, participantesData, reserviciosData, origenData] =
+          await Promise.all([
+            getLotesServicio(servicioId),
+            getParticipantesServicio(servicioId),
+            getServicios({ servicio_origen_id: servicioId }),
+            servicioData.servicio_origen_id !== null
+              ? getServicio(servicioData.servicio_origen_id)
+              : Promise.resolve(null),
+          ]);
         if (cancelled) return;
         setServicio(servicioData);
         setLotes(lotesData);
-        setResultados(resultadosData);
+        setParticipantes(participantesData);
+        setReservicios(reserviciosData);
+        setOrigen(origenData);
         setStatus("ready");
-        void fetchVacas(lotesData.vientres);
+        void fetchAnimalesDeLotes(lotesData, servicioData.estado);
       } catch (error) {
         if (cancelled) return;
         if (error instanceof ApiError && error.status === 404) {
@@ -204,19 +262,22 @@ export function ServicioDetailPage() {
     setEditFormError("");
   };
 
+  const setEditField = (field: keyof ServicioEditarValues, value: string) => {
+    setEditValues((current) =>
+      current ? { ...current, [field]: value } : current,
+    );
+    setEditErrors((current) => ({ ...current, [field]: undefined }));
+    setEditFormError("");
+  };
+
   const updateEditField =
     (field: keyof ServicioEditarValues) =>
     (
       event: ChangeEvent<
         HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
       >,
-    ) => {
-      setEditValues((current) =>
-        current ? { ...current, [field]: event.target.value } : current,
-      );
-      setEditErrors((current) => ({ ...current, [field]: undefined }));
-      setEditFormError("");
-    };
+    ) =>
+      setEditField(field, event.target.value);
 
   const handleSave = async (event: FormEvent<HTMLFormElement>) => {
     event.preventDefault();
@@ -231,7 +292,7 @@ export function ServicioDetailPage() {
       const actualizado = await actualizarServicio(servicio.id, {
         nombre: editValues.nombre.trim(),
         fecha_inicio: editValues.fecha_inicio,
-        fecha_fin: editValues.fecha_fin ? editValues.fecha_fin : null,
+        fecha_fin: editValues.fecha_fin,
         estado: editValues.estado as EstadoServicio,
         observaciones: editValues.observaciones.trim(),
       });
@@ -262,37 +323,117 @@ export function ServicioDetailPage() {
 
   const refetchLotes = async () => {
     if (!servicio) return;
-    const nuevo = await getLotesServicio(servicio.id);
-    setLotes(nuevo);
-    void fetchVacas(nuevo.vientres);
+    const [nuevosLotes, nuevosParticipantes] = await Promise.all([
+      getLotesServicio(servicio.id),
+      getParticipantesServicio(servicio.id),
+    ]);
+    setLotes(nuevosLotes);
+    setParticipantes(nuevosParticipantes);
+    void fetchAnimalesDeLotes(nuevosLotes, servicio.estado);
   };
 
-  const handleAgregarResultado = async (animalId: number) => {
-    if (!servicio) return;
-    setAnimalIdRegistrando(animalId);
+  const iniciarCargaResultados = () => {
+    setDiagnosticos(
+      new Map(
+        participantes
+          // Una vaca vacía que ya está en un reservicio queda bloqueada.
+          .filter(
+            (p) => esCargable(p.resultado.estado) && p.reservicio_id === null,
+          )
+          .map((p) => [
+            p.resultado.id,
+            {
+              estado: p.resultado.estado as Diagnostico["estado"],
+              tipo: p.resultado.tipo_prenez ?? "",
+            },
+          ]),
+      ),
+    );
+    setFechaDiagnostico(localNaiveNow().slice(0, 10));
+    setMostrarErroresResultados(false);
+    setResultadosError("");
+  };
+
+  const cancelarCargaResultados = () => {
+    setDiagnosticos(null);
+    setResultadosError("");
+  };
+
+  const actualizarDiagnostico = (
+    resultadoId: number,
+    cambio: Partial<Diagnostico>,
+  ) => {
+    setDiagnosticos((current) => {
+      const actual = current?.get(resultadoId);
+      if (!current || !actual) return current;
+      const siguiente = { ...actual, ...cambio };
+      if (siguiente.estado !== "PRENADA") siguiente.tipo = "";
+      return new Map(current).set(resultadoId, siguiente);
+    });
+    setResultadosError("");
+  };
+
+  const handleGuardarResultados = async () => {
+    if (!servicio || !diagnosticos || isGuardandoResultados) return;
+    setMostrarErroresResultados(true);
+
+    if (!fechaDiagnostico) {
+      setResultadosError("La fecha de diagnóstico es obligatoria.");
+      return;
+    }
+    const sinTipo = [...diagnosticos.values()].filter(faltaTipo).length;
+    if (sinTipo > 0) {
+      setResultadosError(
+        sinTipo === 1
+          ? "Falta elegir el tipo de preñez de 1 vaca."
+          : `Falta elegir el tipo de preñez de ${sinTipo} vacas.`,
+      );
+      return;
+    }
+
+    setIsGuardandoResultados(true);
     try {
-      const nuevoResultado = await crearResultadoServicio({
-        servicio_id: servicio.id,
-        animal_id: animalId,
-        estado: "PARIDA",
-        fecha_diagnostico: localNaiveNow().slice(0, 10),
+      const actualizados = await cargarResultadosServicio(servicio.id, {
+        fecha_diagnostico: fechaDiagnostico,
+        resultados: [...diagnosticos.entries()].map(
+          ([resultadoId, { estado, tipo }]) => ({
+            resultado_id: resultadoId,
+            estado,
+            ...(tipo ? { tipo_prenez: tipo } : {}),
+          }),
+        ),
       });
-      setResultados((current) => [...current, nuevoResultado]);
-      toast.success("Se registró que tuvo un ternero.");
+      setParticipantes(actualizados);
+      setDiagnosticos(null);
+      toast.success("Resultados guardados correctamente.");
+    } catch (error) {
+      setResultadosError(
+        error instanceof ApiError
+          ? (normalizeBackendDetail(error.detail) ??
+              "No se pudieron guardar los resultados.")
+          : "No se pudieron guardar los resultados. Probá nuevamente.",
+      );
+    } finally {
+      setIsGuardandoResultados(false);
+    }
+  };
+
+  const handleEliminar = async () => {
+    if (!servicio) return;
+    setIsEliminando(true);
+    try {
+      await eliminarServicio(servicio.id);
+      toast.success("Servicio eliminado correctamente.");
+      navigate("/servicios", { state: { refresh: true } });
     } catch (error) {
       toast.error(
         error instanceof ApiError
           ? normalizeBackendDetail(error.detail)
-          : "No se pudo registrar el resultado.",
+          : "No se pudo eliminar el servicio.",
       );
-    } finally {
-      setAnimalIdRegistrando(null);
+      setIsEliminando(false);
     }
   };
-
-  const resultadosPorAnimalId = new Map(
-    resultados.map((r) => [r.animal_id, r]),
-  );
 
   const handleAgregarLote = async () => {
     if (!servicio || !loteIdParaAgregar) return;
@@ -331,6 +472,36 @@ export function ServicioDetailPage() {
     }
   };
 
+  const puedeEliminar =
+    servicio?.estado === "PLANIFICADO" ||
+    servicio?.estado === "EN_CURSO" ||
+    servicio?.estado === "FINALIZADO";
+  // Mismo criterio que la pantalla de carga: solo cuentan las vacas que no
+  // pasaron a un reservicio.
+  const hayResultadosPendientes = participantes.some(
+    (p) => p.resultado.estado === "PENDIENTE" && p.reservicio_id === null,
+  );
+
+  const cantidadVacas =
+    servicio?.estado === "PLANIFICADO"
+      ? (lotes?.vientres ?? []).reduce(
+          (total, lote) =>
+            total +
+            (animalesPorLoteId.get(lote.id) ?? []).filter(
+              (animal) => animal.estado === "ACTIVO",
+            ).length,
+          0,
+        )
+      : participantes.length;
+  // La efectividad solo tiene sentido con el servicio terminado y todos los
+  // diagnósticos cargados.
+  const cantidadTerneros =
+    (servicio?.estado === "FINALIZADO" || servicio?.estado === "CERRADO") &&
+    participantes.length > 0 &&
+    !hayResultadosPendientes
+      ? participantes.filter((p) => p.resultado.estado === "PARIDA").length
+      : null;
+
   return (
     <section className="animal-page">
       <div className="animal-page__topbar">
@@ -366,13 +537,55 @@ export function ServicioDetailPage() {
         <>
           <div className="animal-page__hero">
             <div>
-              <span className="animal-page__eyebrow">Servicio</span>
+              <span className="animal-page__eyebrow">
+                {origen ? (
+                  <>
+                    Reservicio de{" "}
+                    <Link
+                      to={`/servicios/${origen.id}`}
+                      className="servicio-detail__link">
+                      {origen.nombre || `Servicio #${origen.id}`}
+                    </Link>
+                  </>
+                ) : (
+                  "Servicio"
+                )}
+              </span>
               <h1>{servicio.nombre || `#${servicio.id}`}</h1>
             </div>
-            <span
-              className={`servicio-badge servicio-badge--${servicio.estado}`}>
-              {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
-            </span>
+            <div className="servicio-detail__hero-acciones">
+              {servicio.estado === "FINALIZADO" &&
+                hayResultadosPendientes &&
+                !diagnosticos && (
+                <Button
+                  colorPalette="brand"
+                  size="sm"
+                  disabled={isEditing}
+                  onClick={iniciarCargaResultados}>
+                  <IconClipboardCheck size={16} stroke={1.5} />
+                  Cargar resultados
+                </Button>
+              )}
+              {servicio.estado === "FINALIZADO" &&
+                servicio.servicio_origen_id === null &&
+                participantes.some((p) => p.resultado.estado === "VACIA") && (
+                  <Button
+                    colorPalette="brand"
+                    variant="outline"
+                    bg="var(--panel)"
+                    size="sm"
+                    onClick={() =>
+                      navigate(`/servicios/${servicio.id}/reservicio`)
+                    }>
+                    <IconRepeat size={16} stroke={1.5} />
+                    Iniciar reservicio
+                  </Button>
+                )}
+              <span
+                className={`servicio-badge servicio-badge--${servicio.estado}`}>
+                {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
+              </span>
+            </div>
           </div>
 
           <Button
@@ -427,11 +640,13 @@ export function ServicioDetailPage() {
                         <NativeSelect.Field
                           value={editValues.estado}
                           onChange={updateEditField("estado")}>
-                          {ESTADOS_SERVICIO.map(({ value, label }) => (
-                            <option key={value} value={value}>
-                              {label}
-                            </option>
-                          ))}
+                          {opcionesEstadoServicio(servicio.estado).map(
+                            ({ value, label }) => (
+                              <option key={value} value={value}>
+                                {label}
+                              </option>
+                            ),
+                          )}
                         </NativeSelect.Field>
                         <NativeSelect.Indicator />
                       </NativeSelect.Root>
@@ -440,10 +655,9 @@ export function ServicioDetailPage() {
 
                     <Field.Root invalid={!!editErrors.fecha_inicio}>
                       <Field.Label>Fecha de inicio</Field.Label>
-                      <Input
-                        type="date"
+                      <FechaInput
                         value={editValues.fecha_inicio}
-                        onChange={updateEditField("fecha_inicio")}
+                        onChange={(value) => setEditField("fecha_inicio", value)}
                       />
                       <Field.ErrorText>
                         {editErrors.fecha_inicio}
@@ -452,10 +666,9 @@ export function ServicioDetailPage() {
 
                     <Field.Root invalid={!!editErrors.fecha_fin}>
                       <Field.Label>Fecha de fin</Field.Label>
-                      <Input
-                        type="date"
+                      <FechaInput
                         value={editValues.fecha_fin}
-                        onChange={updateEditField("fecha_fin")}
+                        onChange={(value) => setEditField("fecha_fin", value)}
                       />
                       <Field.ErrorText>{editErrors.fecha_fin}</Field.ErrorText>
                     </Field.Root>
@@ -510,6 +723,26 @@ export function ServicioDetailPage() {
                         <IconEdit size={16} stroke={1.5} />
                         Editar
                       </button>
+                      <span
+                        className={`animal-detail__action-tooltip-target${
+                          puedeEliminar
+                            ? ""
+                            : " animal-detail__action-tooltip-target--disabled"
+                        }`}
+                        title={
+                          puedeEliminar
+                            ? undefined
+                            : "No se puede eliminar un servicio cerrado."
+                        }>
+                        <button
+                          type="button"
+                          className="animal-detail__action animal-detail__action--danger"
+                          onClick={() => setIsEliminarOpen(true)}
+                          disabled={!puedeEliminar}>
+                          <IconTrash size={16} stroke={1.5} />
+                          Eliminar
+                        </button>
+                      </span>
                     </div>
                   </>
                 )}
@@ -518,6 +751,59 @@ export function ServicioDetailPage() {
           </div>
 
           <div className="animal-page__details-divider" />
+
+          {(servicio.estado === "PLANIFICADO" ||
+            servicio.estado === "EN_CURSO") && (
+            <RecomendacionesServicio
+              key={servicio.id}
+              servicioId={servicio.id}
+            />
+          )}
+
+          <ServicioDashboard
+            vacas={cantidadVacas}
+            toros={contarToros(lotes?.toros ?? [], animalesPorLoteId)}
+            terneros={cantidadTerneros}
+            loading={loadingAnimales}
+          />
+
+          {reservicios.length > 0 && (
+            <section className="animal-detail__section servicio-detail__reservicios">
+              <div className="animal-detail__section-header">
+                <h2>Reservicios</h2>
+              </div>
+              <ul className="servicio-detail__lotes-lista">
+                {reservicios.map((reservicio) => (
+                  <li key={reservicio.id}>
+                    <Link
+                      to={`/servicios/${reservicio.id}`}
+                      className="servicio-detail__reservicio">
+                      <IconRepeat size={18} stroke={1.5} />
+                      <span className="servicio-detail__reservicio-nombre">
+                        {reservicio.nombre || `Servicio #${reservicio.id}`}
+                      </span>
+                      <span className="servicio-detail__lote-categoria">
+                        {formatFecha(reservicio.fecha_inicio)} –{" "}
+                        {reservicio.fecha_fin
+                          ? formatFecha(reservicio.fecha_fin)
+                          : "—"}
+                      </span>
+                      <span
+                        className={`servicio-badge servicio-badge--${reservicio.estado}`}>
+                        {ESTADO_SERVICIO_LABELS[reservicio.estado] ??
+                          reservicio.estado}
+                      </span>
+                      <IconChevronRight
+                        size={18}
+                        stroke={1.5}
+                        className="servicio-detail__reservicio-flecha"
+                      />
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            </section>
+          )}
 
           <section className="animal-detail__section">
             <div className="animal-detail__section-header">
@@ -528,7 +814,9 @@ export function ServicioDetailPage() {
                 <h2>Vientres y toros</h2>
               </div>
               <Badge colorPalette="brand">
-                {resultados.length} resultado{resultados.length === 1 ? "" : "s"}
+                {participantes.length === 1
+                  ? "1 vaca participante"
+                  : `${participantes.length} vacas participantes`}
               </Badge>
             </div>
 
@@ -565,21 +853,69 @@ export function ServicioDetailPage() {
               </div>
             )}
 
+            {diagnosticos && (
+              <div className="servicio-resultados__barra">
+                <div className="servicio-resultados__barra-datos">
+                  <label className="cargar-resultados__fecha">
+                    <span>Fecha de diagnóstico</span>
+                    <FechaInput
+                      max={localNaiveNow().slice(0, 10)}
+                      value={fechaDiagnostico}
+                      onChange={(value) => {
+                        setFechaDiagnostico(value);
+                        setResultadosError("");
+                      }}
+                    />
+                  </label>
+                  <ResumenDiagnosticos diagnosticos={diagnosticos} />
+                </div>
+                {resultadosError && (
+                  <p className="status-message error" role="alert">
+                    {resultadosError}
+                  </p>
+                )}
+                <div className="servicio-resultados__barra-acciones">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="animal-form__cancel"
+                    size="sm"
+                    onClick={cancelarCargaResultados}
+                    disabled={isGuardandoResultados}>
+                    Cancelar
+                  </Button>
+                  <Button
+                    colorPalette="brand"
+                    size="sm"
+                    onClick={handleGuardarResultados}
+                    loading={isGuardandoResultados}
+                    loadingText="Guardando..."
+                    disabled={diagnosticos.size === 0}>
+                    Guardar resultados
+                  </Button>
+                </div>
+              </div>
+            )}
+
             <div className="servicio-detail__lotes">
               <VientresGrupo
                 lotes={lotes?.vientres ?? []}
                 isEditing={isEditing}
                 loteIdQuitando={loteIdQuitando}
                 onQuitar={handleQuitarLote}
+                esVistaPrevia={servicio.estado === "PLANIFICADO"}
                 animalesPorLoteId={animalesPorLoteId}
-                loadingVacas={loadingVacas}
-                resultadosPorAnimalId={resultadosPorAnimalId}
-                animalIdRegistrando={animalIdRegistrando}
-                onAgregarResultado={handleAgregarResultado}
+                loadingVacas={loadingAnimales}
+                participantes={participantes}
+                reservicioPorId={new Map(reservicios.map((r) => [r.id, r]))}
+                diagnosticos={diagnosticos}
+                mostrarErroresTipo={mostrarErroresResultados}
+                onDiagnosticoChange={actualizarDiagnostico}
               />
-              <LotesGrupo
-                titulo="Toros"
+              <TorosGrupo
                 lotes={lotes?.toros ?? []}
+                animalesPorLoteId={animalesPorLoteId}
+                loading={loadingAnimales}
                 isEditing={isEditing}
                 loteIdQuitando={loteIdQuitando}
                 onQuitar={handleQuitarLote}
@@ -588,99 +924,99 @@ export function ServicioDetailPage() {
           </section>
         </>
       )}
+
+      <Dialog.Root
+        open={isEliminarOpen}
+        onOpenChange={(details) => !details.open && setIsEliminarOpen(false)}>
+        <Portal>
+          <Dialog.Backdrop className="animal-evaluacion__backdrop" />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>Eliminar servicio</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                Se eliminará el servicio "
+                {servicio?.nombre || `#${servicio?.id}`}". Queda registrado
+                como cancelado y no se puede deshacer.
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Button
+                  variant="ghost"
+                  onClick={() => setIsEliminarOpen(false)}
+                  disabled={isEliminando}>
+                  Cancelar
+                </Button>
+                <Button
+                  colorPalette="red"
+                  onClick={handleEliminar}
+                  loading={isEliminando}>
+                  Eliminar
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
     </section>
   );
 }
 
-type LotesGrupoProps = {
-  titulo: string;
-  lotes: ServicioLotesAgrupados["vientres"];
-  isEditing: boolean;
-  loteIdQuitando: number | null;
-  onQuitar: (loteId: number) => void;
-};
-
-function LotesGrupo({
-  titulo,
-  lotes,
-  isEditing,
-  loteIdQuitando,
-  onQuitar,
-}: LotesGrupoProps) {
-  return (
-    <div className="servicio-detail__lotes-grupo">
-      <div className="servicio-detail__lotes-grupo-header">
-        <h2>{titulo}</h2>
-        <Badge colorPalette="brand">{lotes.length}</Badge>
-      </div>
-      {lotes.length === 0 ? (
-        <p className="servicio-detail__lotes-vacio">
-          No hay lotes de {titulo.toLowerCase()} asociados a este servicio.
-        </p>
-      ) : (
-        <ul className="servicio-detail__lotes-lista">
-          {lotes.map((lote) => (
-            <li key={lote.id} className="servicio-detail__lote-item">
-              <span>{lote.nombre}</span>
-              <span className="servicio-detail__lote-categoria">
-                {CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? lote.categoria}
-              </span>
-              {isEditing && (
-                <button
-                  type="button"
-                  className="servicio-detail__lote-quitar"
-                  aria-label={`Quitar ${lote.nombre} del servicio`}
-                  disabled={loteIdQuitando === lote.id}
-                  onClick={() => onQuitar(lote.id)}>
-                  <IconX size={14} stroke={2} />
-                </button>
-              )}
-            </li>
-          ))}
-        </ul>
-      )}
-    </div>
-  );
-}
-
-type VientresGrupoProps = {
-  lotes: ServicioLotesAgrupados["vientres"];
-  isEditing: boolean;
-  loteIdQuitando: number | null;
-  onQuitar: (loteId: number) => void;
+type TorosGrupoProps = {
+  lotes: ServicioLoteRead[];
   animalesPorLoteId: Map<number, Animal[]>;
-  loadingVacas: boolean;
-  resultadosPorAnimalId: Map<number, ResultadoServicioRead>;
-  animalIdRegistrando: number | null;
-  onAgregarResultado: (animalId: number) => void;
+  loading: boolean;
+  isEditing: boolean;
+  loteIdQuitando: number | null;
+  onQuitar: (loteId: number) => void;
 };
 
-function VientresGrupo({
+/** Toros del servicio: plegado muestra solo cuántos hay; desplegado, los
+ * lotes de toros con sus animales. */
+function TorosGrupo({
   lotes,
+  animalesPorLoteId,
+  loading,
   isEditing,
   loteIdQuitando,
   onQuitar,
-  animalesPorLoteId,
-  loadingVacas,
-  resultadosPorAnimalId,
-  animalIdRegistrando,
-  onAgregarResultado,
-}: VientresGrupoProps) {
+}: TorosGrupoProps) {
+  const [abierto, setAbierto] = useState(false);
+  const cantidad = contarToros(lotes, animalesPorLoteId);
+
   return (
     <div className="servicio-detail__lotes-grupo">
-      <div className="servicio-detail__lotes-grupo-header">
-        <h2>Vientres</h2>
-        <Badge colorPalette="brand">{lotes.length}</Badge>
-      </div>
-      {lotes.length === 0 ? (
-        <p className="servicio-detail__lotes-vacio">
-          No hay lotes de vientres asociados a este servicio.
-        </p>
-      ) : (
-        <ul className="servicio-detail__lotes-lista">
-          {lotes.map((lote) => {
-            const vacas = animalesPorLoteId.get(lote.id) ?? [];
-            return (
+      <button
+        type="button"
+        className="servicio-detail__lotes-grupo-header servicio-detail__toros-toggle"
+        aria-expanded={abierto}
+        onClick={() => setAbierto((actual) => !actual)}>
+        <h2 className="servicio-detail__lotes-grupo-titulo">
+          <ToroIcon />
+          Toros
+        </h2>
+        <span className="servicio-detail__toros-resumen">
+          <Badge colorPalette="brand">
+            {loading ? "…" : cantidad === 1 ? "1 toro" : `${cantidad} toros`}
+          </Badge>
+          <IconChevronDown
+            size={16}
+            stroke={1.75}
+            className={`animal-page__details-toggle-icon${
+              abierto ? " animal-page__details-toggle-icon--open" : ""
+            }`}
+          />
+        </span>
+      </button>
+
+      {abierto &&
+        (lotes.length === 0 ? (
+          <p className="servicio-detail__lotes-vacio">
+            No hay lotes de toros asociados a este servicio.
+          </p>
+        ) : (
+          <ul className="servicio-detail__lotes-lista">
+            {lotes.map((lote) => (
               <li key={lote.id} className="servicio-detail__vientre-lote">
                 <div className="servicio-detail__lote-item">
                   <span>{lote.nombre}</span>
@@ -698,48 +1034,320 @@ function VientresGrupo({
                     </button>
                   )}
                 </div>
-
-                {loadingVacas ? (
-                  <p className="servicio-detail__vacas-vacio">
-                    Cargando vacas...
-                  </p>
-                ) : vacas.length === 0 ? (
-                  <p className="servicio-detail__vacas-vacio">
-                    Este lote no tiene animales.
-                  </p>
-                ) : (
-                  <ul className="servicio-detail__vacas-lista">
-                    {vacas.map((vaca) => {
-                      const resultado = resultadosPorAnimalId.get(vaca.id);
-                      return (
-                        <li key={vaca.id} className="servicio-detail__vaca-item">
-                          <span>{vaca.caravana ?? `#${vaca.id}`}</span>
-                          {resultado ? (
-                            <span
-                              className={`resultado-badge resultado-badge--${resultado.estado}`}>
-                              {ESTADO_RESULTADO_SERVICIO_LABELS[
-                                resultado.estado
-                              ] ?? resultado.estado}
-                            </span>
-                          ) : (
-                            <button
-                              type="button"
-                              className="servicio-detail__agregar-resultado-btn"
-                              disabled={animalIdRegistrando === vaca.id}
-                              onClick={() => onAgregarResultado(vaca.id)}>
-                              Agregar resultado
-                            </button>
-                          )}
-                        </li>
-                      );
-                    })}
-                  </ul>
-                )}
+                <VacasVistaPrevia
+                  vacas={animalesPorLoteId.get(lote.id) ?? []}
+                  loading={loading}
+                />
               </li>
-            );
-          })}
+            ))}
+          </ul>
+        ))}
+    </div>
+  );
+}
+
+function contarToros(
+  lotes: ServicioLoteRead[],
+  animalesPorLoteId: Map<number, Animal[]>,
+): number {
+  return lotes.reduce(
+    (total, lote) =>
+      total +
+      (animalesPorLoteId.get(lote.id) ?? []).filter(
+        (animal) => animal.estado === "ACTIVO",
+      ).length,
+    0,
+  );
+}
+
+type GrupoVientre = {
+  key: string;
+  /** null: participantes sin lote de participación (datos anteriores). */
+  lote: ServicioLoteRead | null;
+  /** false si el lote ya no está asociado pero conserva resultados. */
+  asociado: boolean;
+  participantes: ParticipanteServicio[];
+};
+
+/** Agrupa los participantes por el lote con el que participaron. Incluye los
+ * lotes asociados sin participantes y los lotes ya desasociados que todavía
+ * tienen resultados con diagnóstico. */
+function agruparPorLoteDeParticipacion(
+  lotes: ServicioLoteRead[],
+  participantes: ParticipanteServicio[],
+): GrupoVientre[] {
+  const grupos = new Map<string, GrupoVientre>(
+    lotes.map((lote) => [
+      String(lote.id),
+      { key: String(lote.id), lote, asociado: true, participantes: [] },
+    ]),
+  );
+  for (const participante of participantes) {
+    const lote = participante.lote_participacion;
+    const key = lote ? String(lote.id) : "sin-lote";
+    const grupo = grupos.get(key) ?? {
+      key,
+      lote,
+      asociado: false,
+      participantes: [],
+    };
+    grupo.participantes.push(participante);
+    grupos.set(key, grupo);
+  }
+  return [...grupos.values()];
+}
+
+type VientresGrupoProps = {
+  lotes: ServicioLotesAgrupados["vientres"];
+  isEditing: boolean;
+  loteIdQuitando: number | null;
+  onQuitar: (loteId: number) => void;
+  /** PLANIFICADO: todavía no hay participantes, se muestran las vacas que
+   * hoy están en cada lote, sin acciones. */
+  esVistaPrevia: boolean;
+  animalesPorLoteId: Map<number, Animal[]>;
+  loadingVacas: boolean;
+  participantes: ParticipanteServicio[];
+  reservicioPorId: Map<number, ServicioRead>;
+  /** null fuera del modo de carga de resultados. */
+  diagnosticos: Map<number, Diagnostico> | null;
+  mostrarErroresTipo: boolean;
+  onDiagnosticoChange: (resultadoId: number, cambio: Partial<Diagnostico>) => void;
+};
+
+function VientresGrupo({
+  lotes,
+  isEditing,
+  loteIdQuitando,
+  onQuitar,
+  esVistaPrevia,
+  animalesPorLoteId,
+  loadingVacas,
+  participantes,
+  reservicioPorId,
+  diagnosticos,
+  mostrarErroresTipo,
+  onDiagnosticoChange,
+}: VientresGrupoProps) {
+  const grupos = esVistaPrevia
+    ? lotes.map((lote) => ({
+        key: String(lote.id),
+        lote,
+        asociado: true,
+        participantes: [],
+      }))
+    : agruparPorLoteDeParticipacion(lotes, participantes);
+
+  return (
+    <div className="servicio-detail__lotes-grupo">
+      <div className="servicio-detail__lotes-grupo-header">
+        <h2 className="servicio-detail__lotes-grupo-titulo">
+          <VacaIcon />
+          Vientres
+        </h2>
+        <Badge colorPalette="brand">{lotes.length}</Badge>
+      </div>
+      {esVistaPrevia && lotes.length > 0 && (
+        <p className="servicio-detail__vacas-vacio">
+          Vista previa: las vacas participantes se fijan cuando empieza el
+          servicio.
+        </p>
+      )}
+      {grupos.length === 0 ? (
+        <p className="servicio-detail__lotes-vacio">
+          No hay lotes de vientres asociados a este servicio.
+        </p>
+      ) : (
+        <ul className="servicio-detail__lotes-lista">
+          {grupos.map((grupo) => (
+            <li key={grupo.key} className="servicio-detail__vientre-lote">
+              <div className="servicio-detail__lote-item">
+                <span>{grupo.lote?.nombre ?? "Sin lote"}</span>
+                {grupo.lote && (
+                  <span className="servicio-detail__lote-categoria">
+                    {grupo.asociado
+                      ? (CATEGORIA_ANIMAL_LABELS[grupo.lote.categoria] ??
+                        grupo.lote.categoria)
+                      : "Ya no asociado"}
+                  </span>
+                )}
+                {isEditing && grupo.lote && grupo.asociado && (
+                  <button
+                    type="button"
+                    className="servicio-detail__lote-quitar"
+                    aria-label={`Quitar ${grupo.lote.nombre} del servicio`}
+                    disabled={loteIdQuitando === grupo.lote.id}
+                    onClick={() => grupo.lote && onQuitar(grupo.lote.id)}>
+                    <IconX size={14} stroke={2} />
+                  </button>
+                )}
+              </div>
+
+              {esVistaPrevia ? (
+                <VacasVistaPrevia
+                  vacas={
+                    grupo.lote ? (animalesPorLoteId.get(grupo.lote.id) ?? []) : []
+                  }
+                  loading={loadingVacas}
+                />
+              ) : grupo.participantes.length === 0 ? (
+                <p className="servicio-detail__vacas-vacio">
+                  Este lote no aporta vacas al servicio.
+                </p>
+              ) : (
+                <ul className="servicio-detail__vacas-lista">
+                  {grupo.participantes.map((participante) => (
+                    <VacaParticipante
+                      key={participante.resultado.id}
+                      participante={participante}
+                      reservicio={
+                        participante.reservicio_id !== null
+                          ? reservicioPorId.get(participante.reservicio_id)
+                          : undefined
+                      }
+                      diagnostico={diagnosticos?.get(participante.resultado.id)}
+                      mostrarErrorTipo={
+                        mostrarErroresTipo &&
+                        faltaTipo(diagnosticos?.get(participante.resultado.id))
+                      }
+                      onDiagnosticoChange={(cambio) =>
+                        onDiagnosticoChange(participante.resultado.id, cambio)
+                      }
+                    />
+                  ))}
+                </ul>
+              )}
+            </li>
+          ))}
         </ul>
       )}
     </div>
+  );
+}
+
+function VacasVistaPrevia({
+  vacas,
+  loading,
+}: {
+  vacas: Animal[];
+  loading: boolean;
+}) {
+  if (loading) {
+    return <p className="servicio-detail__vacas-vacio">Cargando vacas...</p>;
+  }
+  if (vacas.length === 0) {
+    return (
+      <p className="servicio-detail__vacas-vacio">Este lote no tiene animales.</p>
+    );
+  }
+  return (
+    <ul className="servicio-detail__vacas-lista">
+      {vacas.map((vaca) => (
+        <li key={vaca.id} className="servicio-detail__vaca-item">
+          <span>{vaca.caravana ?? `#${vaca.id}`}</span>
+        </li>
+      ))}
+    </ul>
+  );
+}
+
+type VacaParticipanteProps = {
+  participante: ParticipanteServicio;
+  /** Reservicio en el que está la vaca, si está en uno. */
+  reservicio: ServicioRead | undefined;
+  /** Presente solo en modo de carga de resultados y si la vaca se puede
+   * diagnosticar. */
+  diagnostico: Diagnostico | undefined;
+  mostrarErrorTipo: boolean;
+  onDiagnosticoChange: (cambio: Partial<Diagnostico>) => void;
+};
+
+/** Una vaca del servicio. Se muestra deshabilitada si fue
+ * dada de baja, si está en un reservicio o si hoy está en un lote distinto
+ * al de participación. */
+function VacaParticipante({
+  participante,
+  reservicio,
+  diagnostico,
+  mostrarErrorTipo,
+  onDiagnosticoChange,
+}: VacaParticipanteProps) {
+  const { animal, resultado, lote_actual } = participante;
+  const loteActualTexto = lote_actual
+    ? `lote ${lote_actual.nombre}`
+    : "sin lote";
+
+  let motivoDeshabilitada: ReactNode = null;
+  if (animal.estado !== "ACTIVO") {
+    motivoDeshabilitada =
+      ESTADO_ANIMAL_LABELS[animal.estado] ?? animal.estado;
+  } else if (participante.reservicio_id !== null) {
+    motivoDeshabilitada = (
+      <>
+        En reservicio{" "}
+        <Link
+          to={`/servicios/${participante.reservicio_id}`}
+          className="servicio-detail__link">
+          {reservicio?.nombre || `Servicio #${participante.reservicio_id}`}
+        </Link>{" "}
+        ({loteActualTexto})
+      </>
+    );
+  } else if (animal.lote_id !== resultado.lote_id) {
+    motivoDeshabilitada = `Actualmente en ${loteActualTexto}`;
+  }
+  const caravana = animal.caravana ?? `#${animal.id}`;
+  // En modo resultados una vaca diagnosticable no se atenúa aunque tenga
+  // aclaración (dada de baja o en otro lote): igual se le carga el resultado.
+  const deshabilitada = !!motivoDeshabilitada && !diagnostico;
+
+  return (
+    <li
+      className={`servicio-detail__vaca-item${
+        deshabilitada ? " servicio-detail__vaca-item--deshabilitada" : ""
+      }`}
+      aria-disabled={deshabilitada ? true : undefined}>
+      <span>{caravana}</span>
+      <span className="servicio-detail__vaca-acciones">
+        {motivoDeshabilitada && (
+          <span className="servicio-detail__vaca-motivo">
+            {motivoDeshabilitada}
+          </span>
+        )}
+        {diagnostico ? (
+          <DiagnosticoControles
+            resultadoId={resultado.id}
+            caravana={caravana}
+            diagnostico={diagnostico}
+            mostrarErrorTipo={mostrarErrorTipo}
+            onChange={onDiagnosticoChange}
+          />
+        ) : (
+          <span
+            className={`resultado-badge resultado-badge--${resultado.estado}`}>
+            {ESTADO_RESULTADO_SERVICIO_LABELS[resultado.estado] ??
+              resultado.estado}
+            {resultado.tipo_prenez &&
+              ` · ${TIPO_PRENEZ_LABELS[resultado.tipo_prenez]}`}
+          </span>
+        )}
+      </span>
+    </li>
+  );
+}
+
+function ResumenDiagnosticos({
+  diagnosticos,
+}: {
+  diagnosticos: Map<number, Diagnostico>;
+}) {
+  const conteo = { PRENADA: 0, VACIA: 0, PENDIENTE: 0 };
+  for (const { estado } of diagnosticos.values()) conteo[estado] += 1;
+  return (
+    <p className="cargar-resultados__resumen">
+      {conteo.PRENADA} preñada{conteo.PRENADA === 1 ? "" : "s"} ·{" "}
+      {conteo.VACIA} vacía{conteo.VACIA === 1 ? "" : "s"} · {conteo.PENDIENTE}{" "}
+      pendiente{conteo.PENDIENTE === 1 ? "" : "s"}
+    </p>
   );
 }
