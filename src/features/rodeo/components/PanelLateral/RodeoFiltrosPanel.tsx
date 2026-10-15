@@ -3,14 +3,12 @@ import type { CategoriaAnimal } from "@/features/animales/types";
 
 type Props = {
   caravanaInput: string;
-  sexo: "MACHO" | "HEMBRA" | null;
   categoriaLote: CategoriaAnimal | null;
   onCaravanaChange: (value: string) => void;
-  onSexoChange: (value: "MACHO" | "HEMBRA" | null) => void;
   onCategoriaLoteChange: (value: CategoriaAnimal | null) => void;
 };
 
-const CAMPOS_VISIBLES_PANEL = ["caravana", "sexo", "categoria"] as const;
+const CAMPOS_VISIBLES_PANEL = ["caravana", "categoria"] as const;
 
 export function RodeoFiltrosPanel(props: Props) {
   return (

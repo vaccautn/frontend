@@ -18,17 +18,10 @@ const TODOS_ESTADOS_VALUE = "__TODOS__";
 const TODOS_LOTES_VALUE = "__TODOS__";
 const TODAS_CATEGORIAS_VALUE = "__TODAS__";
 
-export type CampoFiltroAnimales =
-  | "caravana"
-  | "sexo"
-  | "categoria"
-  | "lote"
-  | "raza"
-  | "estado";
+export type CampoFiltroAnimales = "caravana" | "categoria" | "lote" | "raza" | "estado";
 
 const TODOS_LOS_CAMPOS: CampoFiltroAnimales[] = [
   "caravana",
-  "sexo",
   "categoria",
   "lote",
   "raza",
@@ -39,7 +32,6 @@ const NOOP = () => {};
 
 interface AnimalesFiltrosProps {
   caravanaInput: string;
-  sexo: "MACHO" | "HEMBRA" | null;
   raza?: string | null;
   estado?: EstadoFiltro | null;
   loteId?: number | null;
@@ -47,7 +39,6 @@ interface AnimalesFiltrosProps {
   lotes?: LoteFiltroOption[];
   loadingLotes?: boolean;
   onCaravanaChange: (value: string) => void;
-  onSexoChange: (value: "MACHO" | "HEMBRA" | null) => void;
   onRazaChange?: (value: string | null) => void;
   onEstadoChange?: (value: EstadoFiltro | null) => void;
   onLoteChange?: (value: number | null) => void;
@@ -58,7 +49,6 @@ interface AnimalesFiltrosProps {
 
 export function AnimalesFiltros({
   caravanaInput,
-  sexo,
   raza = null,
   estado = null,
   loteId = null,
@@ -66,7 +56,6 @@ export function AnimalesFiltros({
   lotes = [],
   loadingLotes = false,
   onCaravanaChange,
-  onSexoChange,
   onRazaChange = NOOP,
   onEstadoChange = NOOP,
   onLoteChange = NOOP,
@@ -105,37 +94,6 @@ export function AnimalesFiltros({
           />
         </div>
       )}
-
-      {/* Esto no aporta nada, nos interesan solo las categorias 
-       {mostrar("sexo") && (
-        <div
-          className="animales-filtros__toggle"
-          role="group"
-          aria-label="Filtrar por sexo">
-          <button
-            type="button"
-            className={`animales-filtros__toggle-btn animales-filtros__toggle-btn--macho${
-              sexo === "MACHO" ? " animales-filtros__toggle-btn--activo" : ""
-            }`}
-            aria-pressed={sexo === "MACHO"}
-            aria-label="Filtrar por macho"
-            title="Macho"
-            onClick={() => onSexoChange(sexo === "MACHO" ? null : "MACHO")}>
-            ♂
-          </button>
-          <button
-            type="button"
-            className={`animales-filtros__toggle-btn animales-filtros__toggle-btn--hembra${
-              sexo === "HEMBRA" ? " animales-filtros__toggle-btn--activo" : ""
-            }`}
-            aria-pressed={sexo === "HEMBRA"}
-            aria-label="Filtrar por hembra"
-            title="Hembra"
-            onClick={() => onSexoChange(sexo === "HEMBRA" ? null : "HEMBRA")}>
-            ♀
-          </button>
-        </div>
-      )} */}
 
       {mostrar("categoria") && (
         <Menu.Root>

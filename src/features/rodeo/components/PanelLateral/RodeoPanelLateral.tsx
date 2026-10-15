@@ -15,10 +15,8 @@ type Props = {
   lotes: LotePotreroPropiedades[];
   busquedaCaravana: string;
   busquedaCaravanaDebounced: string;
-  sexo: "MACHO" | "HEMBRA" | null;
   categoriaLote: CategoriaAnimal | null;
   onCaravanaChange: (value: string) => void;
-  onSexoChange: (value: "MACHO" | "HEMBRA" | null) => void;
   onCategoriaLoteChange: (value: CategoriaAnimal | null) => void;
   onExpand: () => void;
   onClose: () => void;
@@ -32,10 +30,8 @@ export function RodeoPanelLateral({
   lotes,
   busquedaCaravana,
   busquedaCaravanaDebounced,
-  sexo,
   categoriaLote,
   onCaravanaChange,
-  onSexoChange,
   onCategoriaLoteChange,
   onExpand,
   onClose,
@@ -75,10 +71,8 @@ export function RodeoPanelLateral({
 
       <RodeoFiltrosPanel
         caravanaInput={busquedaCaravana}
-        sexo={sexo}
         categoriaLote={categoriaLote}
         onCaravanaChange={onCaravanaChange}
-        onSexoChange={onSexoChange}
         onCategoriaLoteChange={onCategoriaLoteChange}
       />
 
@@ -86,7 +80,6 @@ export function RodeoPanelLateral({
         lote={lote}
         lotes={lotes}
         busquedaCaravana={busquedaCaravanaDebounced}
-        sexo={sexo}
         categoriaLote={categoriaLote}
         onLoteHover={onLoteHover}
       />

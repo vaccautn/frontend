@@ -28,7 +28,6 @@ export function RodeoPage() {
 
   const [busquedaCaravana, setBusquedaCaravana] = useState("");
   const [busquedaCaravanaDebounced, setBusquedaCaravanaDebounced] = useState("");
-  const [sexo, setSexo] = useState<"MACHO" | "HEMBRA" | null>(null);
   const [categoriaLote, setCategoriaLote] = useState<CategoriaAnimal | null>(null);
 
   useEffect(() => {
@@ -82,10 +81,8 @@ export function RodeoPage() {
             onLoteHover={setLoteHoverId}
             busquedaCaravana={busquedaCaravana}
             busquedaCaravanaDebounced={busquedaCaravanaDebounced}
-            sexo={sexo}
             categoriaLote={categoriaLote}
             onCaravanaChange={setBusquedaCaravana}
-            onSexoChange={setSexo}
             onCategoriaLoteChange={setCategoriaLote}
             onExpand={() => setMode("full")}
             onClose={() => setMode("closed")}
@@ -105,13 +102,14 @@ export function RodeoPage() {
             onClearSeleccion={handleDeselect}
             busquedaCaravana={busquedaCaravana}
             busquedaCaravanaDebounced={busquedaCaravanaDebounced}
-            sexo={sexo}
             categoriaLote={categoriaLote}
             onCaravanaChange={setBusquedaCaravana}
-            onSexoChange={setSexo}
             onCategoriaLoteChange={setCategoriaLote}
             onVolverAlMapa={() => setMode("docked")}
             onAgregarAnimal={() => navigate("/rodeo/nuevo")}
+            movimientos={movimientos}
+            cargandoRecomendaciones={cargandoRecomendaciones}
+            onRefrescarRecomendaciones={refetchRecomendaciones}
           />
         )}
       </div>

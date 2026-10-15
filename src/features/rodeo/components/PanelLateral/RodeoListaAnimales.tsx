@@ -23,7 +23,6 @@ type Props = {
   lote: LotePotreroPropiedades | null;
   lotes: LotePotreroPropiedades[];
   busquedaCaravana: string;
-  sexo: "MACHO" | "HEMBRA" | null;
   categoriaLote: CategoriaAnimal | null;
   onLoteHover?: (loteId: number | null) => void;
 };
@@ -32,7 +31,6 @@ export function RodeoListaAnimales({
   lote,
   lotes,
   busquedaCaravana,
-  sexo,
   categoriaLote,
   onLoteHover,
 }: Props) {
@@ -41,7 +39,6 @@ export function RodeoListaAnimales({
     <ListaGeneral
       lotes={lotes}
       busquedaCaravana={busquedaCaravana}
-      sexo={sexo}
       categoriaLote={categoriaLote}
       onLoteHover={onLoteHover}
     />
@@ -95,13 +92,11 @@ function ListaDeLote({ loteId }: { loteId: number }) {
 function ListaGeneral({
   lotes,
   busquedaCaravana,
-  sexo,
   categoriaLote,
   onLoteHover,
 }: {
   lotes: LotePotreroPropiedades[];
   busquedaCaravana: string;
-  sexo: "MACHO" | "HEMBRA" | null;
   categoriaLote: CategoriaAnimal | null;
   onLoteHover?: (loteId: number | null) => void;
 }) {
@@ -113,13 +108,12 @@ function ListaGeneral({
     setLoading(true);
     getAnimales({
       estado: "ACTIVO",
-      ...(sexo ? { sexo } : {}),
       ...(busquedaCaravana ? { caravana: busquedaCaravana } : {}),
     })
       .then(setAnimales)
       .catch(() => setAnimales([]))
       .finally(() => setLoading(false));
-  }, [sexo, busquedaCaravana]);
+  }, [busquedaCaravana]);
 
   const animalesFiltrados = useMemo(() => {
     if (!categoriaLote) return animales;

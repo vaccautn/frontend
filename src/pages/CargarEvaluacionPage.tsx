@@ -62,13 +62,11 @@ export function CargarEvaluacionesPage() {
 
   const {
     caravanaInput,
-    sexo,
     raza,
     estado,
     loteId,
     categoriaLote,
     setCaravanaInput,
-    setSexo,
     setRaza,
     setEstado,
     setLoteId,
@@ -96,8 +94,8 @@ export function CargarEvaluacionesPage() {
       .finally(() => setLoading(false));
   }, [sesionId]);
 
-  // Los mismos filtros que la página de animales (caravana, sexo, raza,
-  // estado, lote), para encontrar rápido a quién falta evaluar en la sesión.
+  // Los mismos filtros que la página de animales (caravana, raza, estado,
+  // lote), para encontrar rápido a quién falta evaluar en la sesión.
   useEffect(() => {
     setRefetchingGrupos(true);
     getAnimalesAgrupadosPorLote(filtrosParams)
@@ -330,7 +328,6 @@ export function CargarEvaluacionesPage() {
 
       <AnimalesFiltros
         caravanaInput={caravanaInput}
-        sexo={sexo}
         raza={raza}
         estado={estado}
         loteId={loteId}
@@ -338,7 +335,6 @@ export function CargarEvaluacionesPage() {
         lotes={lotes}
         loadingLotes={loadingLotes}
         onCaravanaChange={setCaravanaInput}
-        onSexoChange={setSexo}
         onRazaChange={setRaza}
         onEstadoChange={setEstado}
         onLoteChange={setLoteId}

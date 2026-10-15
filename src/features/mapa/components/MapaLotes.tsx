@@ -559,7 +559,6 @@ export function MapaLotes({
         loading={cargandoRecomendaciones}
         visible={mostrarRecomendaciones}
         onToggleVisible={() => setMostrarRecomendaciones((valor) => !valor)}
-        onRefrescar={onRecomendacionesChanged}
       />
 
       <GuardarPoligonoDialog

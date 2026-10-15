@@ -15,7 +15,6 @@ export function useAnimalesFiltros() {
 
   const [caravanaInput, setCaravanaInput] = useState("");
   const [debouncedCaravana, setDebouncedCaravana] = useState("");
-  const [sexo, setSexo] = useState<"MACHO" | "HEMBRA" | null>(null);
   const [raza, setRaza] = useState<string | null>(null);
   const [estado, setEstado] = useState<EstadoFiltro | null>("ACTIVO");
   const [loteId, setLoteId] = useState<number | null>(initialLoteId);
@@ -41,22 +40,19 @@ export function useAnimalesFiltros() {
     const trimmedCaravana = debouncedCaravana.trim();
     return {
       ...(estado ? { estado } : {}),
-      ...(sexo ? { sexo } : {}),
       ...(raza ? { raza } : {}),
       ...(trimmedCaravana ? { caravana: trimmedCaravana } : {}),
       ...(loteId !== null ? { lote_id: loteId } : {}),
     };
-  }, [estado, sexo, raza, debouncedCaravana, loteId]);
+  }, [estado, raza, debouncedCaravana, loteId]);
 
   return {
     caravanaInput,
-    sexo,
     raza,
     estado,
     loteId,
     categoriaLote,
     setCaravanaInput,
-    setSexo,
     setRaza,
     setEstado,
     setLoteId,

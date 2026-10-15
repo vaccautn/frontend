@@ -7,9 +7,6 @@ import type { LoteOption } from "@/features/lotes/types";
 import { getAnimales } from "@/features/animales/services/animalesService";
 import { AnimalesFiltros } from "@/features/animales/components/AnimalesFiltros";
 import { AnimalesTabla } from "@/features/animales/components/AnimalesTabla";
-import { KpiCriticos } from "@/features/animales/components/dashboard/KpiCriticos";
-import { KpiEvaluados } from "@/features/animales/components/dashboard/KpiEvaluados";
-import { KpiVacasPrenadas } from "@/features/animales/components/dashboard/KpiVacasPrenadas";
 import { DashboardHistograma } from "@/features/animales/components/dashboard/DashboardHistograma";
 import { DashboardEvolucion } from "@/features/animales/components/dashboard/DashboardEvolucion";
 import { useAnimalesDashboard } from "@/features/animales/hooks/useAnimalesDashboard";
@@ -22,10 +19,14 @@ import type {
 import type {
   LotePotreroFeature,
   LotePotreroPropiedades,
+  Movimiento,
 } from "@/features/mapa/types";
 import { useCcPorAnimal } from "../../hooks/useCcPorAnimal";
 import { RodeoBreadcrumb } from "../RodeoBreadcrumb";
 import { RodeoMinimapa } from "./RodeoMinimapa";
+import { RodeoResumenCompacto } from "./RodeoResumenCompacto";
+import { RodeoLoteSelector } from "./RodeoLoteSelector";
+import { RodeoMovimientosCard } from "./RodeoMovimientosCard";
 
 type Props = {
   features: LotePotreroFeature[];
@@ -35,13 +36,14 @@ type Props = {
   onClearSeleccion: () => void;
   busquedaCaravana: string;
   busquedaCaravanaDebounced: string;
-  sexo: "MACHO" | "HEMBRA" | null;
   categoriaLote: CategoriaAnimal | null;
   onCaravanaChange: (value: string) => void;
-  onSexoChange: (value: "MACHO" | "HEMBRA" | null) => void;
   onCategoriaLoteChange: (value: CategoriaAnimal | null) => void;
   onVolverAlMapa: () => void;
   onAgregarAnimal: () => void;
+  movimientos: Movimiento[];
+  cargandoRecomendaciones: boolean;
+  onRefrescarRecomendaciones: () => void;
 };
 
 export function RodeoDashboardCompleto({
@@ -52,13 +54,14 @@ export function RodeoDashboardCompleto({
   onClearSeleccion,
   busquedaCaravana,
   busquedaCaravanaDebounced,
-  sexo,
   categoriaLote,
   onCaravanaChange,
-  onSexoChange,
   onCategoriaLoteChange,
   onVolverAlMapa,
   onAgregarAnimal,
+  movimientos,
+  cargandoRecomendaciones,
+  onRefrescarRecomendaciones,
 }: Props) {
   const [raza, setRaza] = useState<string | null>(null);
   const [estado, setEstado] = useState<EstadoFiltro | null>("ACTIVO");
@@ -82,13 +85,22 @@ export function RodeoDashboardCompleto({
     return map;
   }, [lotesOptions]);
 
+  const lotes = useMemo(() => features.map((f) => f.properties), [features]);
+  const totalHa = useMemo(
+    () => lotes.reduce((suma, l) => suma + (l.superficie_ha ?? 0), 0),
+    [lotes],
+  );
+  const totalAnimalesRodeo = useMemo(
+    () => lotes.reduce((suma, l) => suma + l.cantidad_animales, 0),
+    [lotes],
+  );
+
   const [animales, setAnimales] = useState<Animal[]>([]);
   const [loadingAnimales, setLoadingAnimales] = useState(true);
   useEffect(() => {
     setLoadingAnimales(true);
     getAnimales({
       ...(estado ? { estado } : {}),
-      ...(sexo ? { sexo } : {}),
       ...(raza ? { raza } : {}),
       ...(busquedaCaravanaDebounced
         ? { caravana: busquedaCaravanaDebounced }
@@ -98,7 +110,7 @@ export function RodeoDashboardCompleto({
       .then(setAnimales)
       .catch(() => setAnimales([]))
       .finally(() => setLoadingAnimales(false));
-  }, [estado, sexo, raza, busquedaCaravanaDebounced, loteSeleccionadoId]);
+  }, [estado, raza, busquedaCaravanaDebounced, loteSeleccionadoId]);
 
   const animalesFiltrados = useMemo(() => {
     if (!categoriaLote) return animales;
@@ -180,101 +192,103 @@ export function RodeoDashboardCompleto({
           onChanged={fetchLotesOptions}
         />
 
-        <Box
-          bg="var(--panel)"
-          border="1px solid"
-          borderColor="var(--border)"
-          borderRadius="10px"
-          p="4"
-          display="flex"
-          flexDirection="column"
-          gap="4">
-          <div className="rodeo-dashboard-full__card-header">
-            <span>DASHBOARD DEL RODEO</span>
-            <AnimalesFiltros
-              caravanaInput={busquedaCaravana}
-              sexo={sexo}
-              categoriaLote={categoriaLote}
-              loteId={loteSeleccionadoId}
-              lotes={lotesOptions}
-              loadingLotes={loadingLotes}
-              onCaravanaChange={onCaravanaChange}
-              onSexoChange={onSexoChange}
-              onCategoriaLoteChange={onCategoriaLoteChange}
-              onLoteChange={(value) => {
-                if (value === null) {
-                  onClearSeleccion();
-                } else {
-                  onLoteClick(value);
-                }
-              }}
-              camposVisibles={["categoria", "lote"]}
+        <div className="rodeo-dashboard-full__bento">
+          <div className="rodeo-dashboard-full__sidebar">
+            <RodeoResumenCompacto
+              lote={lote}
+              totalLotes={lotes.length}
+              totalHa={totalHa}
+              dashboard={dashboard}
+              loadingDashboard={loadingDashboard}
+              vacasPrenadas={vacasPrenadas}
+              loadingVacasPrenadas={loadingVacasPrenadas}
+            />
+
+            <Box className="rodeo-dashboard-full__card">
+              <DashboardHistograma
+                histograma={dashboard?.histograma ?? []}
+                loading={loadingDashboard}
+                fecha={fechaReferencia}
+              />
+            </Box>
+
+            <Box className="rodeo-dashboard-full__card">
+              <DashboardEvolucion
+                evolucion={dashboard?.evolucion ?? []}
+                loading={loadingDashboard}
+              />
+            </Box>
+
+            <RodeoMovimientosCard
+              movimientos={movimientos}
+              loading={cargandoRecomendaciones}
+              onRefrescar={onRefrescarRecomendaciones}
             />
           </div>
-
-          <div className="rodeo-dashboard-full__grid">
+          <div className="right-col">
             <RodeoMinimapa
               features={features}
               loteSeleccionadoId={loteSeleccionadoId}
               onLoteClick={onLoteClick}
               onAbrirMapa={onVolverAlMapa}
             />
-            <KpiCriticos
-              count={dashboard?.alertas.length ?? 0}
-              loading={loadingDashboard}
-            />
-            <KpiEvaluados
-              total={dashboard?.total_animales_activos ?? 0}
-              evaluados={dashboard?.total_animales_evaluados ?? 0}
-              loading={loadingDashboard}
-            />
-            <KpiVacasPrenadas count={vacasPrenadas} loading={loadingVacasPrenadas} />
-            <div className="rodeo-dashboard-full__histograma">
-              <DashboardHistograma
-                histograma={dashboard?.histograma ?? []}
-                loading={loadingDashboard}
-                fecha={fechaReferencia}
-              />
-            </div>
-            <div className="rodeo-dashboard-full__evolucion">
-              <DashboardEvolucion
-                evolucion={dashboard?.evolucion ?? []}
-                loading={loadingDashboard}
+            <div className="rodeo-dashboard-full__tabla-card">
+              <div className="rodeo-dashboard-full__tabla-header">
+                <div className="rodeo-dashboard-full__tabla-header-top">
+                  <span className="rodeo-dashboard-full__tabla-titulo">
+                    Animales
+                  </span>
+                  <RodeoLoteSelector
+                    lotes={lotes}
+                    loteSeleccionadoId={loteSeleccionadoId}
+                    totalAnimales={totalAnimalesRodeo}
+                    onSelect={(id) =>
+                      id === null ? onClearSeleccion() : onLoteClick(id)
+                    }
+                  />
+                  <AnimalesFiltros
+                    caravanaInput={busquedaCaravana}
+                    categoriaLote={categoriaLote}
+                    onCaravanaChange={onCaravanaChange}
+                    onCategoriaLoteChange={onCategoriaLoteChange}
+                    camposVisibles={["caravana"]}
+                  />
+                </div>
+                <Button
+                  colorPalette="brand"
+                  size="sm"
+                  onClick={onAgregarAnimal}>
+                  <IconPlus size={16} stroke={1.75} />
+                  Agregar
+                </Button>
+              </div>
+
+              <div className="rodeo-dashboard-full__tabla-filtros">
+                <AnimalesFiltros
+                  caravanaInput={busquedaCaravana}
+                  raza={raza}
+                  estado={estado}
+                  categoriaLote={categoriaLote}
+                  lotes={lotesOptions}
+                  loadingLotes={loadingLotes}
+                  onCaravanaChange={onCaravanaChange}
+                  onRazaChange={setRaza}
+                  onEstadoChange={setEstado}
+                  onCategoriaLoteChange={onCategoriaLoteChange}
+                  camposVisibles={["categoria", "raza", "estado"]}
+                />
+              </div>
+
+              <AnimalesTabla
+                animales={animalesFiltrados}
+                lotePorId={lotePorId}
+                ccPorAnimal={ccPorAnimal}
+                onLoteNombreClick={handleLoteNombreClick}
+                loading={loadingAnimales}
               />
             </div>
           </div>
-        </Box>
-
-        <AnimalesFiltros
-          caravanaInput={busquedaCaravana}
-          sexo={sexo}
-          raza={raza}
-          estado={estado}
-          loteId={loteSeleccionadoId}
-          categoriaLote={categoriaLote}
-          lotes={lotesOptions}
-          loadingLotes={loadingLotes}
-          onCaravanaChange={onCaravanaChange}
-          onSexoChange={onSexoChange}
-          onRazaChange={setRaza}
-          onEstadoChange={setEstado}
-          onCategoriaLoteChange={onCategoriaLoteChange}
-          onLoteChange={(value) => {
-            if (value === null) {
-              onClearSeleccion();
-            } else {
-              onLoteClick(value);
-            }
-          }}
-        />
-
-        <AnimalesTabla
-          animales={animalesFiltrados}
-          lotePorId={lotePorId}
-          ccPorAnimal={ccPorAnimal}
-          onLoteNombreClick={handleLoteNombreClick}
-          loading={loadingAnimales}
-        />
+        </div>
       </div>
     </div>
   );

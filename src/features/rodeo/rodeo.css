@@ -392,39 +392,249 @@
   letter-spacing: 0.04em;
   color: var(--text-h);
 }
-/* 
-.rodeo-dashboard-full__card-header .animales-filtros {
-  flex-wrap: wrap;
-} */
 
-.rodeo-dashboard-full__grid {
+/* ── Bento: columna angosta de KPIs/gráficos + tabla ─────────────────────── */
+
+.rodeo-dashboard-full__bento {
   display: grid;
-  grid-template-columns: 300px repeat(3, minmax(0, 1fr));
-  grid-template-rows: auto 200px;
-  gap: 14px;
+  grid-template-columns: 330px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
 }
 
-.rodeo-dashboard-full__histograma,
-.rodeo-dashboard-full__evolucion {
-  background: var(--bg);
+.rodeo-dashboard-full__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rodeo-dashboard-full__card {
+  background: var(--panel);
   border: 1px solid var(--border);
   border-radius: 10px;
   padding: 14px 16px;
 }
 
-.rodeo-dashboard-full__histograma {
-  grid-column: 2 / 5;
+.rodeo-dashboard-full__card-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
 }
 
-/* ── Minimapa de solo lectura (dentro del grid del dashboard) ────────────── */
+/* ── Resumen compacto (título + estado + mini-stats) ─────────────────────── */
+
+.rodeo-dashboard-full__resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rodeo-dashboard-full__resumen-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rodeo-dashboard-full__resumen-titulo {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.rodeo-dashboard-full__resumen-subtitulo {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.rodeo-dashboard-full__resumen-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.rodeo-dashboard-full__resumen-footer {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.rodeo-dashboard-full__resumen-footer b {
+  color: var(--text-h);
+}
+
+/* ── Tabla: tarjeta derecha del bento ─────────────────────────────────────── */
+
+.rodeo-dashboard-full__tabla-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rodeo-dashboard-full__tabla-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.rodeo-dashboard-full__tabla-header-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.rodeo-dashboard-full__tabla-titulo {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.rodeo-dashboard-full__tabla-filtros {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Selector de lote enriquecido (dropdown con estado y cantidad) ───────── */
+
+.rodeo-lote-selector__trigger {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 190px;
+  background: var(--panel);
+  color: var(--text-h);
+}
+
+.rodeo-lote-selector__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rodeo-lote-selector__label {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rodeo-lote-selector__count {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.rodeo-lote-selector__menu {
+  width: 290px;
+  max-height: 320px;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.rodeo-lote-selector__buscar {
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.rodeo-lote-selector__item {
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 10px 1fr auto auto 14px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.rodeo-lote-selector__item:hover {
+  background: var(--bg);
+}
+
+.rodeo-lote-selector__item[data-activo="true"] {
+  background: var(--verde-pastel, #eef4ee);
+}
+
+.rodeo-lote-selector__item-label {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-h);
+}
+
+.rodeo-lote-selector__item-estado {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rodeo-lote-selector__item-count {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.rodeo-lote-selector__check {
+  color: var(--verde-vacca, #3f6d4c);
+  font-weight: 800;
+}
+
+.rodeo-lote-selector__vacio {
+  padding: 10px;
+  font-size: 12px;
+  color: var(--text);
+  text-align: center;
+}
+
+@media (max-width: 1200px) {
+  .rodeo-dashboard-full__bento {
+    grid-template-columns: 1fr;
+  }
+
+  .rodeo-minimapa {
+    height: 260px;
+  }
+}
+
+/* ── Minimapa de solo lectura (dentro del bento del dashboard) ───────────── */
 
 .rodeo-minimapa {
   position: relative;
-  grid-row: 1 / 3;
   border-radius: 10px;
   overflow: hidden;
-  min-height: 220px;
+  height: 400px;
   background: #1f2a20;
+  flex-shrink: 0;
 }
 
 .rodeo-minimapa__mapa {
@@ -459,20 +669,4 @@
   gap: 5px;
   cursor: pointer;
   z-index: 10;
-}
-
-@media (max-width: 1200px) {
-  .rodeo-dashboard-full__grid {
-    grid-template-columns: 1fr;
-    grid-template-rows: none;
-  }
-
-  .rodeo-minimapa {
-    grid-row: auto;
-    height: 260px;
-  }
-
-  .rodeo-dashboard-full__histograma {
-    grid-column: auto;
-  }
 }
