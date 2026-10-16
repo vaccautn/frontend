@@ -11,7 +11,8 @@
   --marron-cuero: #8a5a2b;
 
   /* Terciarios - Azul grisáceo (datos/UI neutro) */
-  --azul-acero: #3e5c76;
+  --azul-acero: #356188;
+  --azul-acero-bg: #bbcedf;
   --gris-niebla: #b8c4cc;
   --gris-oscuro: #8a948c;
 
@@ -25,7 +26,7 @@
 
   --text: #59645c;
   --text-h: #264632;
-  --bg: #f7f8f4;
+  --bg: #f6f5f4;
   --panel: #ffffff;
   --border: #dfe4dc;
   --input-bg: #ffffff;
@@ -50,6 +51,7 @@
 
   /* Timeline genérico (src/components/ui/Timeline) */
   --timeline-planned: var(--azul-acero);
+
   --timeline-in-progress: var(--ambar-aviso);
   --timeline-completed: var(--verde-confirmacion);
   --timeline-closed: var(--gris-oscuro);

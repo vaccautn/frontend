@@ -10,12 +10,9 @@ export interface TimelinePeriod {
 
 export interface TimelineProps {
   periods: TimelinePeriod[];
-  /** Fecha usada para el indicador "HOY". Por defecto, la fecha actual. */
+  /** Fecha usada para el indicador "HOY" y para elegir el año inicial que se
+   * muestra. Por defecto, la fecha actual. */
   currentDate?: Date;
-  /** Límite inferior de la escala. Si no viene, se calcula a partir de `periods`. */
-  startDate?: Date;
-  /** Límite superior de la escala. Si no viene, se calcula a partir de `periods`. */
-  endDate?: Date;
   showToday?: boolean;
   showLegend?: boolean;
   className?: string;

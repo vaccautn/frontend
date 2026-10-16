@@ -1,4 +1,4 @@
-import { useEffect, useMemo } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@chakra-ui/react";
 import { IconPlus } from "@tabler/icons-react";
@@ -7,6 +7,7 @@ import { useServiciosDashboard } from "@/features/servicios/hooks/useServiciosDa
 import { pendientesPorServicio } from "@/features/servicios/utils/servicioEstado";
 import { ServiciosTimeline } from "@/features/servicios/components/timeline/ServiciosTimeline";
 import { ServiciosListaPanel } from "@/features/servicios/components/list/ServiciosListaPanel";
+import { ServicioResumenPanel } from "@/features/servicios/components/resumen/ServicioResumenPanel";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
 import "@/features/servicios/components/servicios.css";
@@ -18,6 +19,7 @@ export function ServiciosPage() {
   const { estado, fechaDesde, fechaHasta, setEstado, setFechaDesde, setFechaHasta } =
     useServiciosFiltros();
   const dashboard = useServiciosDashboard();
+  const [seleccionadoId, setSeleccionadoId] = useState<number | null>(null);
 
   useEffect(() => {
     if (location.state?.refresh) dashboard.refetch();
@@ -32,6 +34,26 @@ export function ServiciosPage() {
     [dashboard.servicios],
   );
 
+  // Selección por defecto: el servicio en curso (el que empezó primero, si
+  // hay más de uno) o, si no hay ninguno, el planificado más próximo.
+  const servicioPorDefectoId = useMemo(() => {
+    const masProximo = (candidatos: typeof servicios) =>
+      candidatos.reduce((a, b) => (a.fecha_inicio <= b.fecha_inicio ? a : b)).id;
+
+    const enCurso = servicios.filter((s) => s.estado === "EN_CURSO");
+    if (enCurso.length > 0) return masProximo(enCurso);
+
+    const planificados = servicios.filter((s) => s.estado === "PLANIFICADO");
+    if (planificados.length > 0) return masProximo(planificados);
+
+    return null;
+  }, [servicios]);
+
+  useEffect(() => {
+    if (seleccionadoId !== null || servicioPorDefectoId === null) return;
+    setSeleccionadoId(servicioPorDefectoId);
+  }, [servicioPorDefectoId, seleccionadoId]);
+
   const pendientes = pendientesPorServicio(
     dashboard.servicios,
     dashboard.resultados,
@@ -39,6 +61,11 @@ export function ServiciosPage() {
   );
 
   const irAlDetalle = (id: number) => navigate(`/servicios/${id}`);
+
+  const seleccionarDesdeTimeline = (id: number) => {
+    setSeleccionadoId(id);
+    irAlDetalle(id);
+  };
 
   return (
     <section>
@@ -56,21 +83,28 @@ export function ServiciosPage() {
 
       {!dashboard.loading && !dashboard.error && (
         <>
-          <ServiciosTimeline servicios={servicios} seleccionadoId={null} onSelect={irAlDetalle} />
-
-          <ServiciosListaPanel
+          <ServiciosTimeline
             servicios={servicios}
-            resultados={dashboard.resultados}
-            pendientesPorServicioId={pendientes}
-            seleccionadoId={null}
-            onSelect={irAlDetalle}
-            estado={estado}
-            fechaDesde={fechaDesde}
-            fechaHasta={fechaHasta}
-            onEstadoChange={setEstado}
-            onFechaDesdeChange={setFechaDesde}
-            onFechaHastaChange={setFechaHasta}
+            seleccionadoId={seleccionadoId}
+            onSelect={seleccionarDesdeTimeline}
           />
+
+          <div className="servicios-cuerpo">
+            <ServiciosListaPanel
+              servicios={servicios}
+              resultados={dashboard.resultados}
+              pendientesPorServicioId={pendientes}
+              seleccionadoId={seleccionadoId}
+              onSelect={setSeleccionadoId}
+              estado={estado}
+              fechaDesde={fechaDesde}
+              fechaHasta={fechaHasta}
+              onEstadoChange={setEstado}
+              onFechaDesdeChange={setFechaDesde}
+              onFechaHastaChange={setFechaHasta}
+            />
+            <ServicioResumenPanel servicioId={seleccionadoId} onVerDetalle={irAlDetalle} />
+          </div>
         </>
       )}
 

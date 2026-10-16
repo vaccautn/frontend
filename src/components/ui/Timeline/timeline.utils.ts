@@ -4,15 +4,6 @@ export const MESES_ABREVIADOS: readonly string[] = [
   "Ene", "Feb", "Mar", "Abr", "May", "Jun", "Jul", "Ago", "Sep", "Oct", "Nov", "Dic",
 ];
 
-/** Ancho mínimo (px) por mes visible, para que la escala no se comprima ilegible. */
-export const ANCHO_MIN_POR_MES_PX = 64;
-
-/** Ventana automática mínima: N meses antes y después de "hoy". */
-export const MESES_MARGEN_MINIMO = 12;
-
-/** Alto (px) de cada carril de barras. */
-export const ALTO_LANE_PX = 36;
-
 /** Ancho mínimo visible (%) de una barra, para que no desaparezca si queda recortada. */
 const ANCHO_MINIMO_VISIBLE_PCT = 0.5;
 
@@ -33,29 +24,8 @@ export interface PosicionPeriodo {
   width: number;
 }
 
-export interface PeriodoConLane {
-  period: TimelinePeriod;
-  lane: number;
-}
-
 export function esFechaValida(fecha: Date): boolean {
   return !Number.isNaN(fecha.getTime());
-}
-
-/**
- * Valida un rango inicio/fin: ambas fechas deben ser válidas y `fin` debe ser
- * estrictamente posterior a `inicio`. No aplica la regla de "fin inclusivo"
- * (eso es responsabilidad de `finEfectivo`): esta función solo descarta
- * rangos invertidos, degenerados o con fechas corruptas.
- */
-export function normalizarRango(inicio: Date, fin: Date): LimitesEscala | null {
-  if (!esFechaValida(inicio) || !esFechaValida(fin)) return null;
-  if (fin.getTime() <= inicio.getTime()) return null;
-  return { inicio, fin };
-}
-
-function inicioDeMes(fecha: Date): Date {
-  return new Date(fecha.getFullYear(), fecha.getMonth(), 1);
 }
 
 function sumarMeses(fecha: Date, meses: number): Date {
@@ -78,41 +48,23 @@ export function finEfectivo(endDate: Date): Date {
   return new Date(endDate.getFullYear(), endDate.getMonth(), endDate.getDate() + 1);
 }
 
-/**
- * Calcula los límites de la escala temporal. Si `startDateProp`/`endDateProp`
- * forman un rango válido, se respetan tal cual (truncados a inicio de mes
- * para alinear la grilla). Si no, se calcula una ventana automática de
- * `MESES_MARGEN_MINIMO` meses antes/después de `today`, extendida para
- * contener todos los períodos válidos recibidos.
- */
-export function calcularLimitesEscala(
-  periods: TimelinePeriod[],
-  today: Date,
-  startDateProp?: Date,
-  endDateProp?: Date,
-): LimitesEscala {
-  if (startDateProp && endDateProp) {
-    const rango = normalizarRango(startDateProp, endDateProp);
-    if (rango) {
-      return { inicio: inicioDeMes(rango.inicio), fin: sumarMeses(inicioDeMes(rango.fin), 1) };
-    }
-  }
+/** Límites de la escala para un año calendario completo: siempre exactamente
+ * 12 meses (de enero a diciembre), sin scroll — la paginación entre años la
+ * maneja `Timeline` con su propio estado de año visible. */
+export function limitesDelAnio(anio: number): LimitesEscala {
+  return { inicio: new Date(anio, 0, 1), fin: new Date(anio + 1, 0, 1) };
+}
 
-  const hoy = esFechaValida(today) ? today : new Date();
-  const hoyMes = inicioDeMes(hoy);
-  let inicio = sumarMeses(hoyMes, -MESES_MARGEN_MINIMO);
-  let fin = sumarMeses(hoyMes, MESES_MARGEN_MINIMO);
-
-  for (const period of periods) {
-    if (!esFechaValida(period.startDate) || !esFechaValida(period.endDate)) continue;
-
-    const inicioPeriodo = inicioDeMes(period.startDate);
-    const finPeriodo = sumarMeses(inicioDeMes(finEfectivo(period.endDate)), 1);
-    if (inicioPeriodo < inicio) inicio = inicioPeriodo;
-    if (finPeriodo > fin) fin = finPeriodo;
-  }
-
-  return { inicio, fin };
+/** Un período es visible en la página actual si se solapa con los límites de
+ * la escala, aunque sea parcialmente (se recorta visualmente en los bordes).
+ * Fechas inválidas o invertidas se consideran fuera de rango. */
+export function periodoEnRango(period: TimelinePeriod, limites: LimitesEscala): boolean {
+  if (!esFechaValida(period.startDate) || !esFechaValida(period.endDate)) return false;
+  if (period.endDate.getTime() < period.startDate.getTime()) return false;
+  return (
+    period.startDate.getTime() < limites.fin.getTime() &&
+    finEfectivo(period.endDate).getTime() > limites.inicio.getTime()
+  );
 }
 
 /** Genera las columnas mes/año visibles dentro de los límites de escala. */
@@ -168,59 +120,4 @@ export function calcularPosicionHoy(today: Date, limites: LimitesEscala): number
     return null;
   }
   return posicionDeFecha(today, limites);
-}
-
-/**
- * Distribuye períodos solapados en carriles: cada período se asigna al
- * primer carril cuyo último período ya haya terminado antes de que este
- * empiece (interval scheduling greedy, mínimo de carriles necesarios).
- * Períodos con fechas inválidas o invertidas se excluyen del resultado.
- */
-export function asignarLanes(periods: TimelinePeriod[]): PeriodoConLane[] {
-  const validos = periods.filter(
-    (p) =>
-      esFechaValida(p.startDate) &&
-      esFechaValida(p.endDate) &&
-      p.endDate.getTime() >= p.startDate.getTime(),
-  );
-
-  const ordenados = [...validos].sort((a, b) => {
-    const porInicio = a.startDate.getTime() - b.startDate.getTime();
-    if (porInicio !== 0) return porInicio;
-    return a.endDate.getTime() - b.endDate.getTime();
-  });
-
-  const finDeCadaLane: number[] = [];
-  const resultado: PeriodoConLane[] = [];
-
-  for (const period of ordenados) {
-    const inicio = period.startDate.getTime();
-    const fin = finEfectivo(period.endDate).getTime();
-
-    let lane = finDeCadaLane.findIndex((finLane) => finLane <= inicio);
-    if (lane === -1) {
-      lane = finDeCadaLane.length;
-      finDeCadaLane.push(fin);
-    } else {
-      finDeCadaLane[lane] = fin;
-    }
-
-    resultado.push({ period, lane });
-  }
-
-  return resultado;
-}
-
-export function contarLanes(periodosConLane: PeriodoConLane[]): number {
-  if (periodosConLane.length === 0) return 0;
-  return Math.max(...periodosConLane.map((p) => p.lane)) + 1;
-}
-
-/** Ancho total (px) del área de escala, usado como referencia única de scroll. */
-export function calcularAnchoTotalPx(
-  limites: LimitesEscala,
-  anchoMinPorMesPx: number = ANCHO_MIN_POR_MES_PX,
-): number {
-  const meses = diferenciaMeses(limites.inicio, limites.fin);
-  return Math.max(0, meses) * anchoMinPorMesPx;
 }

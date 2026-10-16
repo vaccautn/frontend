@@ -239,9 +239,8 @@
 }
 
 .app-shell__content-inner {
-  max-width: 1400px;
   margin: 0 auto;
-  padding: 4rem 2.5rem;
+  padding: 2.5rem;
 }
 
 .app-shell__content-inner--full {

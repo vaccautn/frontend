@@ -12,9 +12,9 @@
 }
 
 .servicio-badge--PLANIFICADO {
-  border-color: var(--success-border);
-  background: var(--verde-pastel);
-  color: var(--accent-strong);
+  border-color: var(--azul-acero);
+  background: var(--azul-acero-bg);
+  color: var(--azul-acero);
 }
 
 .servicio-badge--EN_CURSO {
@@ -607,6 +607,74 @@
 /* ── Página de servicios: timeline + cuerpo (lista + detalle) ────────────── */
 /* La línea de tiempo en sí vive en src/components/ui/Timeline (timeline.css);
  * ServiciosTimeline es un adaptador delgado sobre ese componente genérico. */
+
+.servicios-cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .servicios-cuerpo {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* ── Panel de resumen (columna del medio) ─────────────────────────────────── */
+
+.servicio-resumen-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.servicio-resumen-panel__vacio {
+  font-size: 13px;
+  color: var(--text);
+  padding: 10px 0;
+}
+
+.servicio-resumen-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.servicio-resumen-panel__titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.servicio-resumen-panel__nombre {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.servicio-resumen-panel__reservicio-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.servicio-resumen-panel__meta {
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 4px;
+}
 
 /* ── Panel de lista (filtros + tarjetas) ──────────────────────────────────── */
 

@@ -11,9 +11,15 @@ type Props = {
   onChange: (estado: EstadoServicio | null) => void;
 };
 
-const ESTADOS_FILTRABLES = ESTADOS_SERVICIO.filter((e) => e.value !== "CANCELADO");
+const ESTADOS_FILTRABLES = ESTADOS_SERVICIO.filter(
+  (e) => e.value !== "CANCELADO",
+);
 
-export function ServiciosEstadoSelector({ servicios, estado, onChange }: Props) {
+export function ServiciosEstadoSelector({
+  servicios,
+  estado,
+  onChange,
+}: Props) {
   const [open, setOpen] = useState(false);
 
   const total = servicios.length;
@@ -32,13 +38,24 @@ export function ServiciosEstadoSelector({ servicios, estado, onChange }: Props) 
   return (
     <Menu.Root open={open} onOpenChange={(details) => setOpen(details.open)}>
       <Menu.Trigger asChild>
-        <button type="button" className="rodeo-lote-selector__trigger" aria-label="Filtrar por estado del servicio">
+        <button
+          type="button"
+          className="rodeo-lote-selector__trigger"
+          aria-label="Filtrar por estado del servicio">
           <span
             className="rodeo-lote-selector__dot"
-            style={{ background: actual ? colorPorEstadoServicio(actual.value) : "#1d2420" }}
+            style={{
+              background: actual
+                ? colorPorEstadoServicio(actual.value)
+                : "#1d2420",
+            }}
           />
-          <span className="rodeo-lote-selector__label">{actual?.label ?? "Todos los estados"}</span>
-          <span className="rodeo-lote-selector__count">{estado ? (conteoPorEstado.get(estado) ?? 0) : total}</span>
+          <span className="rodeo-lote-selector__label">
+            {actual?.label ?? "Todos los estados"}
+          </span>
+          <span className="rodeo-lote-selector__count">
+            {estado ? (conteoPorEstado.get(estado) ?? 0) : total}
+          </span>
           <IconChevronDown size={14} stroke={1.75} />
         </button>
       </Menu.Trigger>
@@ -49,10 +66,17 @@ export function ServiciosEstadoSelector({ servicios, estado, onChange }: Props) 
               className="rodeo-lote-selector__item"
               data-activo={estado === null}
               onClick={() => handleSelect(null)}>
-              <span className="rodeo-lote-selector__dot" style={{ background: "#1d2420" }} />
-              <span className="rodeo-lote-selector__item-label">Todos los estados</span>
+              <span
+                className="rodeo-lote-selector__dot"
+                style={{ background: "#1d2420" }}
+              />
+              <span className="rodeo-lote-selector__item-label">
+                Todos los estados
+              </span>
               <span className="rodeo-lote-selector__item-count">{total}</span>
-              {estado === null && <span className="rodeo-lote-selector__check">✓</span>}
+              {estado === null && (
+                <span className="rodeo-lote-selector__check">✓</span>
+              )}
             </div>
 
             {ESTADOS_FILTRABLES.map((e) => (
@@ -61,10 +85,16 @@ export function ServiciosEstadoSelector({ servicios, estado, onChange }: Props) 
                 className="rodeo-lote-selector__item"
                 data-activo={estado === e.value}
                 onClick={() => handleSelect(e.value)}>
-                <span className="rodeo-lote-selector__dot" style={{ background: colorPorEstadoServicio(e.value) }} />
-                <span className="rodeo-lote-selector__item-label">{e.label}</span>
-                <span className="rodeo-lote-selector__item-count">{conteoPorEstado.get(e.value) ?? 0}</span>
-                {estado === e.value && <span className="rodeo-lote-selector__check">✓</span>}
+                <span
+                  className="rodeo-lote-selector__dot"
+                  style={{ background: colorPorEstadoServicio(e.value) }}
+                />
+                <span className="rodeo-lote-selector__item-label">
+                  {e.label}
+                </span>
+                <span className="rodeo-lote-selector__item-count">
+                  {conteoPorEstado.get(e.value) ?? 0}
+                </span>
               </div>
             ))}
           </Menu.Content>
