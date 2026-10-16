@@ -12,6 +12,12 @@ import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
 import "@/features/servicios/components/servicios.css";
 
+type NavigationState = {
+  refresh?: boolean;
+  seleccionarId?: number | null;
+  expandir?: boolean;
+};
+
 export function ServiciosPage() {
   const navigate = useNavigate();
   const location = useLocation();
@@ -20,9 +26,15 @@ export function ServiciosPage() {
     useServiciosFiltros();
   const dashboard = useServiciosDashboard();
   const [seleccionadoId, setSeleccionadoId] = useState<number | null>(null);
+  const [detalleExpandido, setDetalleExpandido] = useState(false);
 
   useEffect(() => {
-    if (location.state?.refresh) dashboard.refetch();
+    const state = location.state as NavigationState | null;
+    if (state?.refresh) dashboard.refetch();
+    if (state?.seleccionarId != null) {
+      setSeleccionadoId(state.seleccionarId);
+      setDetalleExpandido(!!state.expandir);
+    }
     // dashboard.refetch es estable (useCallback sin dependencias)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [location.state]);
@@ -60,11 +72,25 @@ export function ServiciosPage() {
     dashboard.animalActivoIds,
   );
 
-  const irAlDetalle = (id: number) => navigate(`/servicios/${id}`);
-
-  const seleccionarDesdeTimeline = (id: number) => {
+  // Desde la lista: solo selecciona (el panel queda colapsado, para hojear
+  // varios servicios rápido).
+  const seleccionarDesdeLista = (id: number) => {
     setSeleccionadoId(id);
-    irAlDetalle(id);
+    setDetalleExpandido(false);
+  };
+
+  // Desde el timeline, desde "ver otro servicio" dentro del detalle
+  // expandido (origen/reservicio), o al volver de /servicios/:id: seleccionar
+  // y abrir directo el detalle completo.
+  const seleccionarYExpandir = (id: number) => {
+    setSeleccionadoId(id);
+    setDetalleExpandido(true);
+  };
+
+  const onEliminado = () => {
+    setSeleccionadoId(null);
+    setDetalleExpandido(false);
+    dashboard.refetch();
   };
 
   return (
@@ -83,27 +109,38 @@ export function ServiciosPage() {
 
       {!dashboard.loading && !dashboard.error && (
         <>
-          <ServiciosTimeline
-            servicios={servicios}
-            seleccionadoId={seleccionadoId}
-            onSelect={seleccionarDesdeTimeline}
-          />
-
-          <div className="servicios-cuerpo">
-            <ServiciosListaPanel
+          {!detalleExpandido && (
+            <ServiciosTimeline
               servicios={servicios}
-              resultados={dashboard.resultados}
-              pendientesPorServicioId={pendientes}
               seleccionadoId={seleccionadoId}
-              onSelect={setSeleccionadoId}
-              estado={estado}
-              fechaDesde={fechaDesde}
-              fechaHasta={fechaHasta}
-              onEstadoChange={setEstado}
-              onFechaDesdeChange={setFechaDesde}
-              onFechaHastaChange={setFechaHasta}
+              onSelect={seleccionarYExpandir}
             />
-            <ServicioResumenPanel servicioId={seleccionadoId} onVerDetalle={irAlDetalle} />
+          )}
+
+          <div
+            className={`servicios-cuerpo${detalleExpandido ? " servicios-cuerpo--expandido" : ""}`}>
+            {!detalleExpandido && (
+              <ServiciosListaPanel
+                servicios={servicios}
+                resultados={dashboard.resultados}
+                pendientesPorServicioId={pendientes}
+                seleccionadoId={seleccionadoId}
+                onSelect={seleccionarDesdeLista}
+                estado={estado}
+                fechaDesde={fechaDesde}
+                fechaHasta={fechaHasta}
+                onEstadoChange={setEstado}
+                onFechaDesdeChange={setFechaDesde}
+                onFechaHastaChange={setFechaHasta}
+              />
+            )}
+            <ServicioResumenPanel
+              servicioId={seleccionadoId}
+              expandido={detalleExpandido}
+              onToggleExpandido={() => setDetalleExpandido((v) => !v)}
+              onEliminado={onEliminado}
+              onVerServicio={seleccionarYExpandir}
+            />
           </div>
         </>
       )}

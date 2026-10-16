@@ -2,14 +2,24 @@ import { Button } from "@chakra-ui/react";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { useServicioResumen } from "../../hooks/useServicioResumen";
 import { ServicioResumenEstado } from "../detail/ServicioResumenEstado";
+import { ServicioDetalleCompleto } from "./ServicioDetalleCompleto";
 import { ESTADO_SERVICIO_LABELS } from "../../constants";
 
 type Props = {
   servicioId: number | null;
-  onVerDetalle: (id: number) => void;
+  expandido: boolean;
+  onToggleExpandido: () => void;
+  onEliminado: () => void;
+  onVerServicio: (id: number) => void;
 };
 
-export function ServicioResumenPanel({ servicioId, onVerDetalle }: Props) {
+export function ServicioResumenPanel({
+  servicioId,
+  expandido,
+  onToggleExpandido,
+  onEliminado,
+  onVerServicio,
+}: Props) {
   const resumen = useServicioResumen(servicioId);
 
   if (servicioId === null || resumen.status === "idle") {
@@ -44,7 +54,8 @@ export function ServicioResumenPanel({ servicioId, onVerDetalle }: Props) {
   if (!servicio) return null;
 
   return (
-    <div className="servicio-resumen-panel">
+    <div
+      className={`servicio-resumen-panel${expandido ? " servicio-resumen-panel--expandido" : ""}`}>
       <div className="servicio-resumen-panel__header">
         <div>
           <div className="servicio-resumen-panel__titulo">
@@ -69,8 +80,8 @@ export function ServicioResumenPanel({ servicioId, onVerDetalle }: Props) {
           variant="outline"
           bg="var(--panel)"
           size="sm"
-          onClick={() => onVerDetalle(servicio.id)}>
-          Ver detalle completo
+          onClick={onToggleExpandido}>
+          {expandido ? "← Volver a servicios" : "Ver detalle completo ⤢"}
         </Button>
       </div>
 
@@ -83,8 +94,26 @@ export function ServicioResumenPanel({ servicioId, onVerDetalle }: Props) {
         cantidadVacas={resumen.cantidadVacas}
         loading={false}
         hayResultadosPendientes={resumen.hayResultadosPendientes}
-        onCargarResultados={() => onVerDetalle(servicio.id)}
+        onCargarResultados={onToggleExpandido}
       />
+
+      {expandido && (
+        <ServicioDetalleCompleto
+          servicioId={servicio.id}
+          servicio={servicio}
+          lotes={resumen.lotes}
+          participantes={resumen.participantes}
+          toros={resumen.toros}
+          animalesPorLoteId={resumen.animalesPorLoteId}
+          hayResultadosPendientes={resumen.hayResultadosPendientes}
+          onRefetch={resumen.refetch}
+          onServicioActualizado={resumen.setServicio}
+          onParticipantesActualizados={resumen.setParticipantes}
+          onTorosActualizados={resumen.setToros}
+          onEliminado={onEliminado}
+          onVerServicio={onVerServicio}
+        />
+      )}
     </div>
   );
 }

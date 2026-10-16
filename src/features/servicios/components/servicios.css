@@ -373,6 +373,20 @@
   text-underline-offset: 2px;
 }
 
+/* Mismo look que .servicio-detail__link, pero sobre un <button> (en vez de
+ * un <Link>) para navegar sin salir de ServiciosPage. */
+.servicio-detail__link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--accent-strong);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
 /* Reservicios del servicio: toda la fila es el link. */
 .servicio-detail__reservicios {
   margin-bottom: 1.5rem;
@@ -382,11 +396,15 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  width: 100%;
   padding: 0.7rem 1rem;
   border: 1px solid var(--border);
   border-radius: 8px;
   background: var(--panel);
   color: var(--accent-strong);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
   text-decoration: none;
   transition:
     border-color 0.15s,
@@ -621,6 +639,13 @@
   }
 }
 
+/* Detalle expandido ("Ver detalle completo ⤢"): la columna de lista
+ * desaparece (ServiciosPage deja de renderizarla) y el panel de resumen pasa
+ * a ocupar todo el ancho disponible. */
+.servicios-cuerpo--expandido {
+  grid-template-columns: minmax(0, 1fr);
+}
+
 /* ── Panel de resumen (columna del medio) ─────────────────────────────────── */
 
 .servicio-resumen-panel {
@@ -674,6 +699,25 @@
   font-size: 13px;
   color: var(--text);
   margin-top: 4px;
+}
+
+/* ── Detalle completo (dentro del panel expandido) ────────────────────────── */
+/* Mismo contenido que antes vivía en ServicioDetailPage.tsx como pantalla
+ * aparte: edición, eliminar, lotes, carga de resultados, toros, historial.
+ * Reusa las clases animal-page, animal-detail y servicio-detail que ya
+ * existen (compartidas con animales.css) — acá solo se define el wrapper y
+ * lo puntual que no tenía equivalente. */
+
+.servicio-detalle-completo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.servicio-detalle-completo__origen {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text);
 }
 
 /* ── Panel de lista (filtros + tarjetas) ──────────────────────────────────── */
@@ -1122,6 +1166,88 @@
 .servicio-historial__chips button[data-activo="true"] {
   background: var(--text-h);
   color: #fff;
+}
+
+.servicio-historial__controles {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.servicio-historial__agrupar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.servicio-historial__agrupar-knob {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--border);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.servicio-historial__agrupar-knob::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.15s;
+}
+
+.servicio-historial__agrupar[data-activo="true"] .servicio-historial__agrupar-knob {
+  background: var(--accent-strong);
+}
+
+.servicio-historial__agrupar[data-activo="true"] .servicio-historial__agrupar-knob::after {
+  left: 14px;
+}
+
+.servicio-historial__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.servicio-historial__grupo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  margin-top: 6px;
+  background: var(--bg);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.servicio-historial__grupo-nombre {
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.servicio-historial__grupo-cantidad {
+  font-weight: 400;
+  color: var(--text);
+}
+
+.servicio-historial__grupo-resumen {
+  color: var(--text);
 }
 
 .servicio-historial__tabla {
