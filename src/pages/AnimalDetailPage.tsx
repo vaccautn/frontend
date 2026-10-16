@@ -159,7 +159,7 @@ export function AnimalDetailPage() {
   }, [animal, fetchEvaluaciones]);
 
   const handleBajaSuccess = () => {
-    navigate("/animales", { state: { refresh: true } });
+    navigate("/rodeo", { state: { refresh: true } });
   };
 
   const startEditingDetails = () => {
@@ -266,7 +266,7 @@ export function AnimalDetailPage() {
           paddingInlineEnd="0.75rem"
           marginInlineStart="-0.75rem"
           className="animal-page__back-link"
-          onClick={() => navigate("/animales")}>
+          onClick={() => navigate("/rodeo")}>
           <IconArrowLeft size={16} stroke={1.5} />
           Volver
         </Button>

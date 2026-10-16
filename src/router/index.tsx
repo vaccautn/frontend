@@ -6,7 +6,7 @@ import LoginPage from "@/pages/LoginPage";
 // import RegisterPage from "@/pages/RegisterPage";
 
 import { DashboardPage } from "@/pages/Dashboard";
-import { AnimalesPage } from "@/pages/AnimalesPage";
+import { RodeoPage } from "@/pages/RodeoPage";
 import { AnimalDetailPage } from "@/pages/AnimalDetailPage";
 import { SesionesPage } from "@/pages/SesionesPage";
 
@@ -17,6 +17,7 @@ import { ServiciosPage } from "@/pages/ServiciosPage";
 import { ServicioDetailPage } from "@/pages/ServicioDetailPage";
 import { CrearReservicioPage } from "@/pages/CrearReservicioPage";
 import ServicioNuevoPage from "@/pages/ServicioNuevoPage";
+import { RedirectAnimalDetail } from "./RedirectAnimalDetail";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard
@@ -36,11 +37,15 @@ export const router = createBrowserRouter([
         children: [
           { path: "/dashboard", element: <DashboardPage /> },
           {
-            path: "/animales",
-            element: <AnimalesPage />,
+            path: "/rodeo",
+            element: <RodeoPage />,
             children: [{ path: "nuevo", element: <AnimalesNuevoPage /> }],
           },
-          { path: "/animales/:id", element: <AnimalDetailPage /> },
+          { path: "/rodeo/:id", element: <AnimalDetailPage /> },
+          { path: "/animales", element: <Navigate to="/rodeo" replace /> },
+          { path: "/animales/nuevo", element: <Navigate to="/rodeo/nuevo" replace /> },
+          { path: "/animales/:id", element: <RedirectAnimalDetail /> },
+          { path: "/mapa", element: <Navigate to="/rodeo" replace /> },
           {
             path: "/sesiones",
             element: <SesionesPage />,
@@ -65,7 +70,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  { path: "/", element: <Navigate to="/animales" replace /> },
-  // 404 -> Deberia haber una pag de 404 en vez de animales
-  { path: "*", element: <Navigate to="/animales" replace /> },
+  { path: "/", element: <Navigate to="/rodeo" replace /> },
+  // 404 -> Deberia haber una pag de 404 en vez de rodeo
+  { path: "*", element: <Navigate to="/rodeo" replace /> },
 ]);

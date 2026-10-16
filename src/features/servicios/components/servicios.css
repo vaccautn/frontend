@@ -12,9 +12,9 @@
 }
 
 .servicio-badge--PLANIFICADO {
-  border-color: var(--success-border);
-  background: var(--verde-pastel);
-  color: var(--accent-strong);
+  border-color: var(--azul-acero);
+  background: var(--azul-acero-bg);
+  color: var(--azul-acero);
 }
 
 .servicio-badge--EN_CURSO {
@@ -305,126 +305,6 @@
   font-size: 0.85rem;
 }
 
-/* ── Calendario navegable del dashboard de servicios ── */
-/* Tamaño estándar de date-picker (un poco más grande que uno nativo), no
- * a lo ancho del panel: el mes queda en una columna fija y el detalle del
- * día seleccionado ocupa el resto del espacio. */
-
-.servicios-calendario__mes {
-  flex: 0 0 auto;
-  width: min(300px, 100%);
-}
-
-.servicios-calendario__seleccion {
-  flex: 1 1 220px;
-  min-width: 220px;
-  padding-top: 0;
-}
-
-.servicios-calendario__hoy {
-  height: 26px;
-  padding: 0 0.6rem;
-  font-size: 0.74rem;
-}
-
-.servicios-calendario__grid {
-  display: grid;
-  grid-template-columns: repeat(7, minmax(0, 1fr));
-  gap: 0.2rem;
-}
-
-.servicios-calendario__weekday {
-  padding: 0.2rem 0;
-  color: var(--text);
-  font-size: 0.68rem;
-  font-weight: 700;
-  text-align: center;
-  text-transform: uppercase;
-  opacity: 0.7;
-}
-
-.servicios-calendario__dia {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.15rem;
-  aspect-ratio: 1;
-  padding: 0.15rem;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--panel);
-  color: var(--text-h);
-  cursor: pointer;
-  font: inherit;
-  font-size: 0.76rem;
-  transition:
-    background 0.15s,
-    border-color 0.15s;
-}
-
-.servicios-calendario__dia:hover {
-  background: var(--verde-pastel);
-  border-color: var(--accent);
-}
-
-.servicios-calendario__dia--fuera-de-mes {
-  color: var(--text);
-  opacity: 0.4;
-}
-
-.servicios-calendario__dia--hoy {
-  color: var(--accent-strong);
-  font-weight: 700;
-}
-
-.servicios-calendario__dia--seleccionado {
-  border-color: var(--accent-strong);
-  background: var(--verde-pastel);
-}
-
-.servicios-calendario__dots {
-  display: flex;
-  align-items: center;
-  gap: 2px;
-}
-
-.servicios-calendario__dot {
-  width: 5px;
-  height: 5px;
-  border-radius: 50%;
-}
-
-.servicios-calendario__dot--PLANIFICADO {
-  background: var(--accent-strong);
-}
-
-.servicios-calendario__dot--EN_CURSO {
-  background: var(--warning);
-}
-
-.servicios-calendario__dot--FINALIZADO {
-  background: var(--success);
-}
-
-.servicios-calendario__dot--CERRADO {
-  background: var(--text-h);
-}
-
-.servicios-calendario__dot--CANCELADO {
-  background: var(--danger);
-}
-
-.servicios-calendario__servicio-item {
-  background: var(--panel);
-  cursor: pointer;
-}
-
-.servicios-calendario__servicio-item:hover {
-  border-color: var(--accent);
-  background: var(--panel);
-}
-
 /* ── Carga de resultados del servicio ─────────────────────────────────── */
 
 .cargar-resultados__fecha {
@@ -493,6 +373,76 @@
   text-underline-offset: 2px;
 }
 
+/* Mismo look que .servicio-detail__link, pero sobre un <button> (en vez de
+ * un <Link>) para navegar sin salir de ServiciosPage. */
+.servicio-detail__link-btn {
+  padding: 0;
+  border: none;
+  background: none;
+  font: inherit;
+  color: var(--accent-strong);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+  cursor: pointer;
+}
+
+/* Reservicios del servicio: toda la fila es el link. */
+.servicio-detail__reservicios {
+  margin-bottom: 1.5rem;
+}
+
+.servicio-detail__reservicio {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  width: 100%;
+  padding: 0.7rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  background: var(--panel);
+  color: var(--accent-strong);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+  text-decoration: none;
+  transition:
+    border-color 0.15s,
+    background 0.15s,
+    box-shadow 0.15s;
+}
+
+.servicio-detail__reservicio:hover {
+  border-color: var(--accent);
+  background: var(--verde-pastel);
+}
+
+.servicio-detail__reservicio:focus-visible {
+  outline: 3px solid var(--focus);
+  outline-offset: 2px;
+}
+
+.servicio-detail__reservicio-nombre {
+  flex: 1;
+  min-width: 0;
+  color: var(--text-h);
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.servicio-detail__reservicio-flecha {
+  flex-shrink: 0;
+  color: var(--text);
+  transition: transform 0.15s;
+}
+
+.servicio-detail__reservicio:hover .servicio-detail__reservicio-flecha {
+  transform: translateX(2px);
+  color: var(--accent-strong);
+}
+
 .reservicio__vaca {
   display: flex;
   align-items: center;
@@ -506,32 +456,6 @@
   width: 1.1rem;
   height: 1.1rem;
   accent-color: var(--accent-strong);
-}
-
-.servicios-table__wrapper {
-  max-height: 32rem;
-  overflow-y: auto;
-}
-
-.servicios-table__wrapper thead th {
-  position: sticky;
-  top: 0;
-  z-index: 1;
-}
-
-.servicios-table__periodo {
-  white-space: nowrap;
-}
-
-.servicios-table__pendientes {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 0.4rem;
-}
-
-.servicios-table__sin-pendientes {
-  color: var(--text);
-  opacity: 0.6;
 }
 
 .servicio-alerta {
@@ -551,13 +475,6 @@
   border-color: var(--orange-border);
   background: var(--orange-bg);
   color: var(--orange);
-}
-
-.servicios-table__reservicio {
-  display: block;
-  margin-top: 0.15rem;
-  font-size: 0.75rem;
-  color: var(--accent-strong);
 }
 
 /* ── Iniciar reservicio: formulario de detalles ── */
@@ -702,5 +619,720 @@
 
   .diagnostico__tipo:empty {
     display: none;
+  }
+}
+
+/* ── Página de servicios: timeline + cuerpo (lista + detalle) ────────────── */
+/* La línea de tiempo en sí vive en src/components/ui/Timeline (timeline.css);
+ * ServiciosTimeline es un adaptador delgado sobre ese componente genérico. */
+
+.servicios-cuerpo {
+  display: grid;
+  grid-template-columns: minmax(0, 520px) minmax(0, 1fr);
+  gap: 12px;
+  align-items: start;
+}
+
+@media (max-width: 900px) {
+  .servicios-cuerpo {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Detalle expandido ("Ver detalle completo ⤢"): la columna de lista
+ * desaparece (ServiciosPage deja de renderizarla) y el panel de resumen pasa
+ * a ocupar todo el ancho disponible. */
+.servicios-cuerpo--expandido {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+/* ── Panel de resumen (columna del medio) ─────────────────────────────────── */
+
+.servicio-resumen-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  min-height: 0;
+}
+
+.servicio-resumen-panel__vacio {
+  font-size: 13px;
+  color: var(--text);
+  padding: 10px 0;
+}
+
+.servicio-resumen-panel__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.servicio-resumen-panel__titulo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.servicio-resumen-panel__nombre {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.servicio-resumen-panel__reservicio-tag {
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  border: 1px solid var(--border);
+  color: var(--text);
+}
+
+.servicio-resumen-panel__meta {
+  font-size: 13px;
+  color: var(--text);
+  margin-top: 4px;
+}
+
+/* ── Detalle completo (dentro del panel expandido) ────────────────────────── */
+/* Mismo contenido que antes vivía en ServicioDetailPage.tsx como pantalla
+ * aparte: edición, eliminar, lotes, carga de resultados, toros, historial.
+ * Reusa las clases animal-page, animal-detail y servicio-detail que ya
+ * existen (compartidas con animales.css) — acá solo se define el wrapper y
+ * lo puntual que no tenía equivalente. */
+
+.servicio-detalle-completo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.servicio-detalle-completo__origen {
+  margin: 0;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+/* ── Panel de lista (filtros + tarjetas) ──────────────────────────────────── */
+
+.servicios-lista-panel {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  max-width: 520px;
+}
+
+.servicios-lista-panel__scroll {
+  max-height: 60vh;
+}
+
+.servicios-lista-panel__filtros {
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  border-bottom: 1px solid var(--border);
+}
+
+.servicios-lista-panel__fechas {
+  display: flex;
+  gap: 8px;
+}
+
+.servicios-lista-panel__fechas > * {
+  flex: 1;
+  min-width: 0;
+}
+
+.servicios-lista-panel__scroll {
+  flex: 1;
+  overflow: auto;
+  padding: 8px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.servicios-lista-panel__scroll > .status-message {
+  padding: 12px 8px;
+}
+
+.servicio-lista-card {
+  cursor: pointer;
+  border: 1.5px solid var(--border);
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.servicio-lista-card[data-seleccionado="true"] {
+  border-color: var(--text-h);
+  background: var(--bg);
+}
+
+.servicio-lista-card__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.servicio-lista-card__nombre {
+  font-size: 14px;
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.servicio-lista-card__fechas {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.servicio-lista-card__sub {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  color: var(--text-h);
+  flex-wrap: wrap;
+}
+
+.servicio-lista-card__progreso {
+  flex: 0 0 70px;
+  height: 5px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.servicio-lista-card__progreso-rellena {
+  height: 100%;
+  background: var(--ambar-aviso);
+}
+
+/* ── Resumen por estado (KPIs, fase, preñez) ──────────────────────────────── */
+
+.servicio-resumen-estado {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.servicio-kpis {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 10px;
+}
+
+.servicio-kpi-tile {
+  background: var(--bg);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 12px 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.servicio-kpi-tile__label {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text);
+}
+
+.servicio-kpi-tile__valor {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--text-h);
+  line-height: 1.1;
+}
+
+.servicio-kpi-tile__sub {
+  font-size: 0.75rem;
+  color: var(--text);
+}
+
+.servicio-falta-tacto {
+  background: var(--bg);
+  border-radius: 10px;
+  padding: 18px 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 10px;
+}
+
+.servicio-preñez-total {
+  display: grid;
+  grid-template-columns: 180px minmax(0, 1fr);
+  gap: 20px;
+  align-items: center;
+}
+
+.servicio-vacias-nota {
+  font-size: 0.85rem;
+  color: var(--text-h);
+  background: var(--danger-bg);
+  border-radius: 8px;
+  padding: 10px 14px;
+}
+
+.servicio-vacias-nota b {
+  color: var(--danger);
+}
+
+/* ── Barra de fase (en curso: progreso / con resultados: breakdown) ──────── */
+
+.servicio-fase-bar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.servicio-fase-bar__top {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  font-size: 0.85rem;
+  color: var(--text);
+}
+
+.servicio-fase-bar__fase-actual b {
+  color: var(--verde-confirmacion);
+}
+
+.servicio-fase-bar__dia {
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.servicio-fase-bar__contenedor {
+  position: relative;
+  padding-top: 4px;
+}
+
+.servicio-fase-bar__segmentos {
+  display: flex;
+  height: 36px;
+  border-radius: 8px;
+  overflow: hidden;
+  font-size: 0.78rem;
+  font-weight: 700;
+}
+
+.servicio-fase-bar__segmentos--breakdown {
+  height: 32px;
+}
+
+.servicio-fase-bar__segmento {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+  overflow: hidden;
+  white-space: nowrap;
+  border-right: 2px solid var(--panel);
+  color: #fff;
+}
+
+.servicio-fase-bar__segmento:last-child {
+  border-right: none;
+}
+
+.servicio-fase-bar__segmento--cabeza {
+  background: #d6ebdc;
+  color: #1f5a35;
+}
+
+.servicio-fase-bar__segmento--cuerpo {
+  background: #e6efd9;
+  color: #3e5a22;
+}
+
+.servicio-fase-bar__segmento--cola {
+  background: #f7ecd2;
+  color: #7a560b;
+}
+
+.servicio-fase-bar__marcador {
+  position: absolute;
+  top: 0;
+  height: 44px;
+  width: 2px;
+  background: var(--text-h);
+}
+
+.servicio-fase-bar__fechas {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.72rem;
+  color: var(--text);
+}
+
+.servicio-fase-bar__caption {
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.servicio-fase-bar__leyenda {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 0.8rem;
+  color: var(--text);
+}
+
+.servicio-fase-bar__leyenda-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.servicio-fase-bar__leyenda-item b {
+  color: var(--text-h);
+}
+
+.servicio-fase-bar__leyenda-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 3px;
+  flex-shrink: 0;
+}
+
+/* ── Tabla de toros (rol, toggle, reemplazo) ──────────────────────────────── */
+
+.toros-tabla {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin-top: 8px;
+}
+
+.toros-tabla__header,
+.toros-tabla__fila {
+  display: grid;
+  grid-template-columns: 90px 1fr 1fr 220px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+}
+
+.toros-tabla__header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+
+.toros-tabla__fila {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.85rem;
+}
+
+.toros-tabla__fila[data-baja="true"] {
+  opacity: 0.6;
+}
+
+.toros-tabla__caravana {
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.toros-tabla__lote {
+  color: var(--text);
+}
+
+.toros-tabla__rol {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.toros-tabla__reemplazar {
+  cursor: pointer;
+  border: 1px solid var(--border);
+  background: var(--panel);
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.toros-tabla__reemplazar:hover {
+  background: var(--bg);
+}
+
+.toro-rol-toggle {
+  display: flex;
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 2px;
+}
+
+.toro-rol-toggle button {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 4px 10px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.toro-rol-toggle button[data-activo="true"] {
+  background: var(--verde-vacca);
+  color: #fff;
+}
+
+.toro-rol-badge {
+  display: inline-flex;
+  align-items: center;
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.toro-rol-badge--EN_SERVICIO {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.toro-rol-badge--REPUESTO {
+  background: var(--border);
+  color: var(--text-h);
+}
+
+.toro-rol-badge--BAJA {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.toro-cambio-log {
+  margin-top: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.toro-cambio-log__item {
+  font-size: 0.78rem;
+  color: var(--marron-cuero, #9a6a0c);
+  font-weight: 600;
+}
+
+/* ── Historial por vaca ───────────────────────────────────────────────────── */
+
+.servicio-historial__chips {
+  display: flex;
+  background: var(--bg);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+}
+
+.servicio-historial__chips button {
+  cursor: pointer;
+  border: none;
+  background: transparent;
+  border-radius: 999px;
+  padding: 5px 12px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-h);
+}
+
+.servicio-historial__chips button[data-activo="true"] {
+  background: var(--text-h);
+  color: #fff;
+}
+
+.servicio-historial__controles {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.servicio-historial__agrupar {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  border: none;
+  background: none;
+  padding: 0;
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text-h);
+  cursor: pointer;
+}
+
+.servicio-historial__agrupar-knob {
+  position: relative;
+  width: 28px;
+  height: 16px;
+  border-radius: 999px;
+  background: var(--border);
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.servicio-historial__agrupar-knob::after {
+  content: "";
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+  background: #fff;
+  transition: left 0.15s;
+}
+
+.servicio-historial__agrupar[data-activo="true"] .servicio-historial__agrupar-knob {
+  background: var(--accent-strong);
+}
+
+.servicio-historial__agrupar[data-activo="true"] .servicio-historial__agrupar-knob::after {
+  left: 14px;
+}
+
+.servicio-historial__grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.servicio-historial__grupo-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  padding: 9px 10px;
+  margin-top: 6px;
+  background: var(--bg);
+  border-radius: 6px;
+  font-size: 0.8rem;
+}
+
+.servicio-historial__grupo-nombre {
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.servicio-historial__grupo-cantidad {
+  font-weight: 400;
+  color: var(--text);
+}
+
+.servicio-historial__grupo-resumen {
+  color: var(--text);
+}
+
+.servicio-historial__tabla {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.servicio-historial__header,
+.servicio-historial__fila {
+  display: grid;
+  grid-template-columns: 90px 1fr 110px 1.4fr 110px;
+  gap: 10px;
+  align-items: center;
+  padding: 8px 10px;
+}
+
+.servicio-historial__header {
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  color: var(--text);
+}
+
+.servicio-historial__fila {
+  border-top: 1px solid var(--border);
+  font-size: 0.85rem;
+}
+
+.servicio-historial__lote {
+  color: var(--text);
+}
+
+.servicio-historial__puntos {
+  display: flex;
+  gap: 4px;
+}
+
+.servicio-historial__punto {
+  width: 36px;
+  text-align: center;
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 3px 0;
+  border-radius: 5px;
+  background: var(--border);
+  color: var(--text-h);
+}
+
+.servicio-historial__punto[data-estado="PRENADA"],
+.servicio-historial__punto[data-estado="PARIDA"] {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.servicio-historial__punto[data-estado="VACIA"] {
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.servicio-historial__tendencia {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--text);
+}
+
+.servicio-historial__tendencia[data-tendencia="MEJORANDO"],
+.servicio-historial__tendencia[data-tendencia="SIEMPRE_CABEZA"] {
+  color: var(--success);
+}
+
+.servicio-historial__tendencia[data-tendencia="BAJANDO"] {
+  color: var(--danger);
+}
+
+@media (max-width: 760px) {
+  .servicio-preñez-total {
+    grid-template-columns: 1fr;
+  }
+
+  .toros-tabla__header,
+  .toros-tabla__fila,
+  .servicio-historial__header,
+  .servicio-historial__fila {
+    grid-template-columns: 1fr;
   }
 }

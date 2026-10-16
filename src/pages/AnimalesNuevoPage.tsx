@@ -67,7 +67,7 @@ function AnimalesNuevoPage() {
 
   const close = (refresh = false) => {
     setOpen(false);
-    setTimeout(() => navigate("/animales", { state: { refresh } }), 250);
+    setTimeout(() => navigate("/rodeo", { state: { refresh } }), 250);
   };
 
   const setField = (field: keyof RodeoNuevoValues, value: string) => {

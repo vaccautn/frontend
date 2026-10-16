@@ -27,7 +27,11 @@ import type {
   UpdateEvaluacionCCSesionPayload,
 } from "@/features/animales/types";
 import { getAnimalRfidLabel } from "@/features/animales/utils/animalRfid";
-import { getImagenUploadErrorMessage } from "@/features/animales/utils/imagenUploadErrors";
+import {
+  ACCEPT_IMAGEN,
+  getImagenUploadErrorMessage,
+  validarImagenes,
+} from "@/features/animales/utils/imagenUploadErrors";
 import { formatEventDateTime } from "@/utils/localDateTime";
 import { ApiError } from "@/services/httpClient";
 
@@ -131,6 +135,11 @@ export function EditarEvaluacionDialog({
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
     if (files.length === 0) return;
+    const errorFormato = validarImagenes(files);
+    if (errorFormato) {
+      toast.error(errorFormato);
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -314,7 +323,7 @@ export function EditarEvaluacionDialog({
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/*"
+                      accept={ACCEPT_IMAGEN}
                       multiple
                       hidden
                       onChange={handleFileInputChange}

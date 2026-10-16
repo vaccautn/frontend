@@ -1,0 +1,549 @@
+.mapa-page {
+  --mapa-shadow-sm: 0 2px 6px rgba(0, 0, 0, 0.18), 0 1px 2px rgba(0, 0, 0, 0.1);
+  --mapa-shadow-lg: 0 2px 10px rgba(0, 0, 0, 0.2);
+  --mapa-shadow-xl: 0 4px 16px rgba(0, 0, 0, 0.22);
+
+  position: relative;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.mapa-page__mapa {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+}
+
+/* ── Overlay superior: búsqueda + carga KMZ + barra de dibujo ───────────── */
+
+.mapa-page__overlay-top {
+  position: absolute;
+  top: 16px;
+  left: 16px;
+  right: 16px;
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  align-items: flex-start;
+  pointer-events: none;
+}
+
+.mapa-page__overlay-top > * {
+  pointer-events: auto;
+}
+
+.mapa-page__top-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  align-items: center;
+  max-width: 100%;
+}
+
+.mapa-busqueda-pill {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  background: var(--panel);
+  border-radius: 24px;
+  height: 48px;
+  padding: 0 10px 0 18px;
+  box-shadow: var(--mapa-shadow-sm);
+  width: 380px;
+  max-width: calc(100vw - 100px);
+  box-sizing: border-box;
+}
+
+.mapa-busqueda-pill__titulo {
+  font-weight: 700;
+  font-size: 14px;
+  white-space: nowrap;
+  color: var(--accent-strong);
+}
+
+.mapa-busqueda-pill__divisor {
+  width: 1px;
+  height: 22px;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+.mapa-kmz-btn {
+  height: 48px !important;
+  padding: 0 18px !important;
+  border-radius: 24px !important;
+  border: 0 !important;
+  background: var(--panel) !important;
+  box-shadow: var(--mapa-shadow-sm) !important;
+  color: var(--text-h) !important;
+  font-weight: 600 !important;
+  white-space: nowrap;
+}
+
+.mapa-kmz-btn:hover {
+  background: var(--bg) !important;
+}
+
+/* ── Popover de lotes (dibujar/editar/quitar), abierto desde la columna derecha ── */
+
+.mapa-lotes-popover {
+  position: absolute;
+  right: 72px;
+  top: calc(50% - 48px);
+  transform: translateY(-50%);
+  z-index: 700;
+  width: 280px;
+  background: var(--panel);
+  border-radius: 14px;
+  padding: 12px;
+  box-shadow: var(--mapa-shadow-xl);
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  box-sizing: border-box;
+}
+
+.mapa-lotes-popover__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mapa-lotes-popover__header span {
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.mapa-lotes-popover__cerrar {
+  width: 26px;
+  height: 26px;
+  border-radius: 7px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  color: var(--text);
+  display: grid;
+  place-items: center;
+  transition: background 0.15s ease;
+}
+
+.mapa-lotes-popover__cerrar:hover {
+  background: var(--bg);
+}
+
+.mapa-lotes-popover__acciones {
+  display: flex;
+  gap: 6px;
+  border-top: 1px solid var(--border);
+  padding-top: 8px;
+}
+
+/* ── Píldora de hint mientras se dibuja o edita un lote ──────────────────── */
+
+.mapa-hint-pill {
+  position: absolute;
+  left: 50%;
+  top: 76px;
+  transform: translateX(-50%);
+  z-index: 700;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  background: var(--text-h);
+  color: #fff;
+  border-radius: 24px;
+  padding: 6px 6px 6px 18px;
+  font-size: 13px;
+  box-shadow: var(--mapa-shadow-xl);
+  max-width: calc(100vw - 32px);
+  box-sizing: border-box;
+}
+
+.mapa-hint-pill__accion {
+  height: 34px;
+  padding: 0 14px;
+  border-radius: 17px;
+  border: 0;
+  background: #fff;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* ── Selector de capa base (arriba a la derecha) ─────────────────────────── */
+
+.mapa-page__capas {
+  position: absolute;
+  top: 16px;
+  right: 16px;
+  z-index: 600;
+  display: flex;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 4px;
+  gap: 2px;
+  box-shadow: var(--mapa-shadow-sm);
+}
+
+.mapa-page__capas-btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: 0;
+  background: transparent;
+  color: var(--text-h);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s ease;
+}
+
+.mapa-page__capas-btn:hover {
+  background: var(--bg);
+}
+
+.mapa-page__capas-btn--activo,
+.mapa-page__capas-btn--activo:hover {
+  background: var(--accent-strong);
+  color: #fff;
+}
+
+/* ── Controles de mapa (centro derecha): mi campo + zoom ─────────────────── */
+
+.mapa-page__controles-derecha {
+  position: absolute;
+  right: 16px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.mapa-page__control-btn {
+  width: 44px;
+  height: 44px;
+  border-radius: 12px;
+  border: 0;
+  background: var(--panel);
+  box-shadow: var(--mapa-shadow-sm);
+  cursor: pointer;
+  display: grid;
+  place-items: center;
+  color: var(--accent-strong);
+  transition: background 0.15s ease;
+}
+
+.mapa-page__control-btn:hover {
+  background: var(--bg);
+}
+
+.mapa-page__control-btn--activo,
+.mapa-page__control-btn--activo:hover {
+  background: var(--accent-strong);
+  color: #fff;
+}
+
+.mapa-page__zoom {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border-radius: 12px;
+  box-shadow: var(--mapa-shadow-sm);
+  overflow: hidden;
+}
+
+.mapa-page__zoom button {
+  width: 44px;
+  height: 44px;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
+  font-size: 22px;
+  line-height: 1;
+  color: var(--text-h);
+  transition: background 0.15s ease;
+}
+
+.mapa-page__zoom button:hover {
+  background: var(--bg);
+}
+
+.mapa-page__zoom-divisor {
+  height: 1px;
+  background: var(--border);
+  margin: 0 8px;
+}
+
+/* ── Leyenda (abajo a la izquierda) ──────────────────────────────────────── */
+
+.mapa-leyenda {
+  position: absolute;
+  left: 16px;
+  bottom: 28px;
+  z-index: 500;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 14px;
+  align-items: center;
+  background: var(--panel);
+  border-radius: 12px;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 500;
+  color: var(--text-h);
+  box-shadow: var(--mapa-shadow-sm);
+  list-style: none;
+  margin: 0;
+}
+
+.rodeo-minimapa > .mapa-leyenda {
+  right: 10px;
+  bottom: 10px;
+  width: fit-content;
+}
+
+.mapa-leyenda__item {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+}
+
+.mapa-leyenda__color {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  display: inline-block;
+}
+
+/* ── Movimientos recomendados (abajo a la derecha) ───────────────────────── */
+
+.mapa-recomendaciones {
+  position: absolute;
+  right: 16px;
+  bottom: 28px;
+  z-index: 500;
+  width: 320px;
+  max-width: calc(100vw - 32px);
+  max-height: 45%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  background: var(--panel);
+  border-radius: 14px;
+  box-shadow: var(--mapa-shadow-lg);
+  box-sizing: border-box;
+}
+
+.mapa-recomendaciones__header {
+  display: flex;
+
+  align-items: center;
+  gap: 0.4rem;
+  padding: 12px 10px 12px 16px;
+  position: sticky;
+  top: 0;
+  background: var(--panel);
+}
+
+.mapa-recomendaciones__header h3 {
+  flex: 1;
+  min-width: 140px;
+  font-size: 0.9rem;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-h);
+}
+
+.mapa-recomendaciones__acciones {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  flex-shrink: 0;
+}
+
+.mapa-recomendaciones > .status-message {
+  margin: 0 16px 16px;
+}
+
+.mapa-recomendaciones__lista {
+  list-style: none;
+  margin: 0;
+
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.mapa-recomendaciones__item {
+  font-size: 0.82rem;
+  color: var(--text-h);
+  border-bottom: 1px solid var(--border);
+  padding-bottom: 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  background-color: var(--bg);
+  border-radius: 1rem;
+  padding: 0.8rem;
+}
+
+.mapa-recomendaciones__motivo {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+/* ── Buscador de localidad (embebido en la píldora de búsqueda) ─────────── */
+
+.mapa-buscador {
+  position: relative;
+  flex: 1;
+  min-width: 0;
+}
+
+.mapa-buscador__input-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.mapa-buscador__icon-search {
+  position: absolute;
+  left: 0;
+  color: var(--text);
+  pointer-events: none;
+}
+
+.mapa-buscador__input {
+  width: 100%;
+  height: 48px;
+  padding: 0 1.75rem 0 1.5rem;
+  font-size: 14px;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--text-h);
+}
+
+.mapa-buscador__spinner {
+  position: absolute;
+  right: 0;
+  color: var(--accent-strong);
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+.mapa-buscador__btn-limpiar {
+  position: absolute;
+  right: 0;
+  background: none;
+  border: none;
+  padding: 0.2rem;
+  cursor: pointer;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+}
+
+.mapa-buscador__btn-limpiar:hover {
+  background: var(--bg);
+  color: var(--text-h);
+}
+
+.mapa-buscador__dropdown {
+  position: absolute;
+  top: calc(100% + 0.5rem);
+  left: -18px;
+  right: -10px;
+  z-index: 50;
+  background: var(--panel);
+  border-radius: 0.75rem;
+  box-shadow: var(--mapa-shadow-lg);
+  list-style: none;
+  margin: 0;
+  padding: 0.25rem 0;
+  max-height: 14rem;
+  overflow-y: auto;
+}
+
+.mapa-buscador__item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.9rem;
+  cursor: pointer;
+  font-size: 0.82rem;
+  transition: background 0.1s ease;
+}
+
+.mapa-buscador__item:hover {
+  background: var(--bg);
+}
+
+.mapa-buscador__item--vacio {
+  color: var(--text);
+  cursor: default;
+  font-style: italic;
+  padding: 0.6rem 0.9rem;
+}
+
+.mapa-buscador__pin {
+  color: var(--accent-strong);
+  flex-shrink: 0;
+}
+
+.mapa-buscador__info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.mapa-buscador__nombre {
+  font-weight: 600;
+  color: var(--text-h);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.mapa-buscador__detalle {
+  font-size: 0.72rem;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* ── Responsive ───────────────────────────────────────────────────────── */
+
+@media (max-width: 640px) {
+  .mapa-busqueda-pill {
+    width: 100%;
+  }
+
+  .mapa-page__overlay-top {
+    right: 16px;
+  }
+
+  .mapa-detalle,
+  .mapa-recomendaciones {
+    width: calc(100vw - 32px);
+  }
+}

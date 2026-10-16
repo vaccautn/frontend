@@ -5,7 +5,7 @@ type Props = {
   loading: boolean;
 };
 
-export function KpiTernerosPendientes({ count, loading }: Props) {
+export function KpiVacasPrenadas({ count, loading }: Props) {
   return (
     <Box
       p="4"
@@ -23,7 +23,7 @@ export function KpiTernerosPendientes({ count, loading }: Props) {
         letterSpacing="0.04em"
         color="var(--text)"
         mb="1">
-        Terneros pendientes de registro
+        Vacas preñadas
       </Text>
 
       {loading ? (
@@ -33,15 +33,15 @@ export function KpiTernerosPendientes({ count, loading }: Props) {
           fontSize="2rem"
           fontWeight="800"
           lineHeight="1"
-          color={count > 0 ? "var(--ambar-aviso)" : "var(--text-h)"}>
+          color="var(--verde-confirmacion)">
           {count}
         </Text>
       )}
 
       <Text fontSize="0.82rem" color="var(--text)" mt="1">
         {count === 1
-          ? "ternero nacido sin caravana registrada"
-          : "terneros nacidos sin caravana registrada"}
+          ? "vaca activa con diagnóstico de preñez"
+          : "vacas activas con diagnóstico de preñez"}
       </Text>
     </Box>
   );

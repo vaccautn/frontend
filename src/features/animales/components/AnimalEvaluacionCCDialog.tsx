@@ -30,7 +30,11 @@ import type {
   EvidenciaImagenRead,
 } from "@/features/animales/types";
 import { formatFechaDeTimestamp } from "@/features/animales/utils/formatDate";
-import { getImagenUploadErrorMessage } from "@/features/animales/utils/imagenUploadErrors";
+import {
+  ACCEPT_IMAGEN,
+  getImagenUploadErrorMessage,
+  validarImagenes,
+} from "@/features/animales/utils/imagenUploadErrors";
 import { ApiError } from "@/services/httpClient";
 
 function buildScaleOptions() {
@@ -135,6 +139,11 @@ export function AnimalEvaluacionCCDialog({
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
     if (files.length === 0) return;
+    const errorFormato = validarImagenes(files);
+    if (errorFormato) {
+      toast.error(errorFormato);
+      return;
+    }
 
     setIsUploading(true);
     let subidaOk = false;
@@ -349,7 +358,7 @@ export function AnimalEvaluacionCCDialog({
                     <input
                       ref={fileInputRef}
                       type="file"
-                      accept="image/*"
+                      accept={ACCEPT_IMAGEN}
                       multiple
                       hidden
                       onChange={handleFileInputChange}

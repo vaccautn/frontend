@@ -1,4 +1,6 @@
 :root {
+  interpolate-size: allow-keywords;
+
   /* Primarios - Verde (marca) */
   --verde-bosque: #2e5339;
   --verde-vacca: #4a7856;
@@ -9,8 +11,10 @@
   --marron-cuero: #8a5a2b;
 
   /* Terciarios - Azul grisáceo (datos/UI neutro) */
-  --azul-acero: #3e5c76;
+  --azul-acero: #356188;
+  --azul-acero-bg: #bbcedf;
   --gris-niebla: #b8c4cc;
+  --gris-oscuro: #8a948c;
 
   /* Funcionales - Alertas del sistema */
   --rojo-alerta: #c94c4c;
@@ -21,8 +25,8 @@
   --rosa-hembra: #c97a94;
 
   --text: #59645c;
-  --text-h: #1d3527;
-  --bg: #f7f8f4;
+  --text-h: #264632;
+  --bg: #f6f5f4;
   --panel: #ffffff;
   --border: #dfe4dc;
   --input-bg: #ffffff;
@@ -44,6 +48,13 @@
   --orange-border: #edc99a;
   --info-bg: #e4ebf1;
   --shadow: rgba(21, 32, 25, 0.12) 0 18px 45px;
+
+  /* Timeline genérico (src/components/ui/Timeline) */
+  --timeline-planned: var(--azul-acero);
+
+  --timeline-in-progress: var(--ambar-aviso);
+  --timeline-completed: var(--verde-confirmacion);
+  --timeline-closed: var(--gris-oscuro);
 
   --sans: "Manrope", serif;
   --heading: "Manrope", serif;
@@ -78,7 +89,7 @@ body {
 
 h1 {
   font-family: var(--heading);
-  font-size: clamp(24px, calc(17.455px + 2.045vw), 42px);
+  font-size: clamp(1.5rem, 1rem + 1.6vi, 2rem);
   line-height: 1.05;
   font-weight: 700;
   letter-spacing: 0;
@@ -89,6 +100,11 @@ h1 {
 p {
   font-size: 1rem;
   margin: 0;
+  text-wrap: wrap;
+}
+
+label {
+  text-wrap: wrap;
 }
 
 button,

@@ -148,3 +148,38 @@ export type ResultadoServicioCreatePayload = {
   fecha_diagnostico?: string;
   observaciones?: string;
 };
+
+/** Rol de un toro dentro de un servicio: la mayoría queda EN_SERVICIO y unos
+ * pocos de REPUESTO, por si hay que reemplazar a uno que se lastimó. */
+export type EstadoParticipacionToro = "EN_SERVICIO" | "REPUESTO" | "BAJA";
+
+export type ParticipacionToro = {
+  id: number;
+  servicio_id: number;
+  animal_id: number;
+  lote_id: number | null;
+  estado: EstadoParticipacionToro;
+  /** Solo se completa al pasar a BAJA por un reemplazo. */
+  reemplazado_por_animal_id: number | null;
+  fecha_cambio: string | null;
+  motivo: string;
+  creado_en: string;
+  actualizado_en: string;
+};
+
+/** Un toro del servicio: su participación, el animal y el lote con el que participa. */
+export type ToroServicio = {
+  participacion: ParticipacionToro;
+  animal: Animal;
+  lote: ServicioLoteRead | null;
+};
+
+export type ParticipacionToroUpdatePayload = {
+  estado: Extract<EstadoParticipacionToro, "EN_SERVICIO" | "REPUESTO">;
+};
+
+export type ReemplazoToroPayload = {
+  toro_baja_animal_id: number;
+  toro_repuesto_animal_id: number;
+  motivo: string;
+};

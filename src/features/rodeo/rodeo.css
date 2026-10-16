@@ -1,0 +1,672 @@
+/* ── Layout general: mapa + panel lateral acoplado ──────────────────────── */
+
+.rodeo-layout {
+  position: relative;
+  display: flex;
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+}
+
+.rodeo-pestana-flotante {
+  position: absolute;
+  right: 0;
+  top: 88px;
+  background: #fff;
+  border: none;
+  border-radius: 10px 0 0 10px;
+  padding: 12px 17px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  width: auto;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-h);
+  cursor: pointer;
+  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+  z-index: 500;
+  transition: width 0.18s ease;
+}
+
+.rodeo-pestana-flotante:hover {
+  background: var(--panel);
+  width: 180px;
+}
+
+.rodeo-layout .mapa-page {
+  flex: 1 1 0%;
+  width: auto;
+  height: 100%;
+  min-width: 0;
+}
+
+.rodeo-panel {
+  flex: 0 0 460px;
+  width: 460px;
+  height: 100%;
+  background: #fff;
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow: auto;
+  animation: rodeo-panel-in 0.18s ease;
+}
+
+@keyframes rodeo-panel-in {
+  from {
+    opacity: 0;
+    transform: translateX(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+/* ── Breadcrumb ("Todo el rodeo › Lote X") ───────────────────────────────── */
+
+.rodeo-breadcrumb {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+}
+
+.rodeo-breadcrumb__todo {
+  cursor: pointer;
+  color: var(--accent-strong);
+  font-weight: 600;
+}
+
+.rodeo-breadcrumb__separador {
+  color: var(--text);
+  opacity: 0.6;
+}
+
+/* ── Header del panel (breadcrumb + botones ⤢ ×) ─────────────────────────── */
+
+.rodeo-panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 18px 22px 14px;
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+  background-color: var(--panel);
+  position: sticky;
+  top: 0;
+}
+
+.rodeo-panel__header-botones {
+  display: flex;
+  gap: 4px;
+}
+
+.rodeo-panel__header-boton {
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel);
+  border: none;
+  color: var(--text-h);
+}
+
+.rodeo-panel__header-boton:hover {
+  background: var(--border);
+}
+
+/* ── Resumen (lote seleccionado o rodeo completo) ────────────────────────── */
+
+.rodeo-panel__resumen {
+  padding: 18px 22px;
+  border-bottom: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 0 0 auto;
+}
+
+.rodeo-panel__badge {
+  align-self: flex-start;
+  font-size: 11px;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 5px;
+}
+
+.rodeo-panel__lote-nombre {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.rodeo-panel__lote-meta {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.rodeo-panel__resumen-titulo {
+  font-size: 22px;
+  font-weight: 800;
+}
+
+.rodeo-panel__resumen-subtitulo {
+  font-size: 13px;
+  color: var(--text);
+}
+
+.rodeo-panel__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.rodeo-panel__stat {
+  background: var(--panel);
+  border-radius: 8px;
+  padding: 10px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background-color: var(--bg);
+}
+
+.rodeo-panel__stat span {
+  font-size: 11px;
+  color: var(--text);
+}
+
+.rodeo-panel__stat strong {
+  font-size: 19px;
+  font-weight: 800;
+}
+
+.rodeo-panel__stat strong small {
+  font-size: 11px;
+  font-weight: 500;
+}
+
+.rodeo-panel__kpis-generales {
+  display: grid;
+
+  gap: 8px;
+}
+
+.rodeo-panel__cabecera {
+  flex: 0 0 auto;
+}
+
+/* ── Mini-histograma de CC (dentro de la cabecera) ───────────────────────── */
+
+.rodeo-mini-histograma {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  height: 80px;
+  padding: 0 22px 18px;
+}
+
+.rodeo-mini-histograma__columna {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+}
+
+.rodeo-mini-histograma__barra {
+  width: 100%;
+  border-radius: 3px 3px 0 0;
+}
+
+.rodeo-mini-histograma__label {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* ── Filtros (buscar caravana, sexo, categoría) ──────────────────────────── */
+
+.rodeo-panel__filtros {
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--border);
+  flex: 0 0 auto;
+  position: sticky;
+  top: 0;
+  background-color: var(--panel);
+}
+
+.rodeo-panel__filtros .animales-filtros {
+  flex-wrap: wrap;
+}
+
+/* ── Lista de animales ────────────────────────────────────────────────────── */
+
+.rodeo-panel__lista-header {
+  padding: 10px 22px;
+  display: flex;
+  justify-content: space-between;
+  background: var(--panel);
+  flex: 0 0 auto;
+}
+
+.rodeo-panel__lista-header span:first-child {
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-h);
+}
+
+.rodeo-panel__lista-header span:last-child {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.rodeo-panel__lista-scroll {
+  flex: 1;
+}
+
+.rodeo-panel__lista-scroll > .status-message {
+  padding: 12px 22px;
+}
+
+.rodeo-panel__animal {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 70px 36px;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 22px;
+  border-bottom: 1px solid var(--border);
+}
+
+.rodeo-panel__animal-info {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.rodeo-panel__animal-tag {
+  font-size: 15px;
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.rodeo-panel__animal-cat {
+  font-size: 11px;
+  color: var(--text);
+  display: flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.rodeo-panel__animal-dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  display: inline-block;
+}
+
+.rodeo-panel__animal-barra {
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  overflow: hidden;
+}
+
+.rodeo-panel__animal-barra-rellena {
+  height: 100%;
+}
+
+.rodeo-panel__animal-valor {
+  text-align: right;
+  font-weight: 800;
+  font-size: 14px;
+  color: var(--text-h);
+}
+
+/* ── Footer ───────────────────────────────────────────────────────────────── */
+
+.rodeo-panel__footer {
+  padding: 14px 22px;
+  border-top: 1px solid var(--border);
+  display: flex;
+  gap: 8px;
+  flex: 0 0 auto;
+  position: sticky;
+  bottom: 0;
+  background-color: var(--panel);
+}
+
+/* ── Modo pantalla completa: dashboard fusionado ─────────────────────────── */
+
+.rodeo-dashboard-full {
+  width: 100%;
+  height: 100%;
+  overflow-y: auto;
+}
+
+.rodeo-dashboard-full__inner {
+  margin: 0 auto;
+  padding: 2.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.rodeo-dashboard-full__header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 1rem;
+}
+
+.rodeo-dashboard-full__header h1 {
+  font-size: 28px;
+  font-weight: 800;
+  margin: 4px 0 0;
+}
+
+.rodeo-dashboard-full__header-acciones {
+  display: flex;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.rodeo-dashboard-full__card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  flex-wrap: wrap;
+}
+
+.rodeo-dashboard-full__card-header > span {
+  font-size: 12px;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  color: var(--text-h);
+}
+
+/* ── Bento: columna angosta de KPIs/gráficos + tabla ─────────────────────── */
+
+.rodeo-dashboard-full__bento {
+  display: grid;
+  grid-template-columns: 400px minmax(0, 1fr);
+  gap: 16px;
+  align-items: start;
+}
+
+.rodeo-dashboard-full__sidebar {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.right-col {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  min-width: 0;
+}
+
+.rodeo-dashboard-full__card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  padding: 14px 16px;
+}
+
+.rodeo-dashboard-full__card-titulo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+
+/* ── Resumen compacto (título + estado + mini-stats) ─────────────────────── */
+
+.rodeo-dashboard-full__resumen {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.rodeo-dashboard-full__resumen-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.rodeo-dashboard-full__resumen-titulo {
+  font-size: 19px;
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.rodeo-dashboard-full__resumen-subtitulo {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.rodeo-dashboard-full__resumen-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.rodeo-dashboard-full__resumen-footer {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.rodeo-dashboard-full__resumen-footer b {
+  color: var(--text-h);
+}
+
+/* ── Tabla: tarjeta derecha del bento ─────────────────────────────────────── */
+
+.rodeo-dashboard-full__tabla-card {
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.rodeo-dashboard-full__tabla-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px 16px;
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+
+.rodeo-dashboard-full__tabla-header-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.rodeo-dashboard-full__tabla-titulo {
+  font-size: 17px;
+  font-weight: 800;
+  color: var(--text-h);
+}
+
+.rodeo-dashboard-full__tabla-filtros {
+  padding: 10px 16px;
+  border-bottom: 1px solid var(--border);
+}
+
+/* ── Selector de lote enriquecido (dropdown con estado y cantidad) ───────── */
+
+.rodeo-lote-selector__trigger {
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 7px 12px;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  font-size: 12px;
+  font-weight: 600;
+  min-width: 190px;
+  background: var(--panel);
+  color: var(--text-h);
+}
+
+.rodeo-lote-selector__dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.rodeo-lote-selector__label {
+  flex: 1;
+  text-align: left;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.rodeo-lote-selector__count {
+  color: var(--text);
+  font-weight: 500;
+}
+
+.rodeo-lote-selector__menu {
+  width: 290px;
+  max-height: 320px;
+  overflow: auto;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+}
+
+.rodeo-lote-selector__buscar {
+  padding: 4px 4px 8px;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 4px;
+}
+
+.rodeo-lote-selector__item {
+  cursor: pointer;
+  display: grid;
+  grid-template-columns: 10px 1fr auto auto 14px;
+  align-items: center;
+  gap: 8px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  font-size: 13px;
+}
+
+.rodeo-lote-selector__item:hover {
+  background: var(--bg);
+}
+
+.rodeo-lote-selector__item[data-activo="true"] {
+  background: var(--verde-pastel, #eef4ee);
+}
+
+.rodeo-lote-selector__item-label {
+  font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--text-h);
+}
+
+.rodeo-lote-selector__item-estado {
+  font-size: 11px;
+  font-weight: 700;
+}
+
+.rodeo-lote-selector__item-count {
+  font-size: 12px;
+  color: var(--text);
+}
+
+.rodeo-lote-selector__check {
+  color: var(--verde-vacca, #3f6d4c);
+  font-weight: 800;
+}
+
+.rodeo-lote-selector__vacio {
+  padding: 10px;
+  font-size: 12px;
+  color: var(--text);
+  text-align: center;
+}
+
+@media (max-width: 1200px) {
+  .rodeo-dashboard-full__bento {
+    grid-template-columns: 1fr;
+  }
+
+  .rodeo-minimapa {
+    height: 260px;
+  }
+}
+
+/* ── Minimapa de solo lectura (dentro del bento del dashboard) ───────────── */
+
+.rodeo-minimapa {
+  position: relative;
+  border-radius: 10px;
+  overflow: hidden;
+  height: 400px;
+  background: #1f2a20;
+  flex-shrink: 0;
+}
+
+.rodeo-minimapa__mapa {
+  position: absolute;
+  inset: 0;
+}
+
+.rodeo-minimapa__pill {
+  position: absolute;
+  left: 10px;
+  top: 10px;
+  background: #fff;
+  border-radius: 999px;
+  padding: 6px 12px;
+  font-size: 12px;
+  font-weight: 600;
+  z-index: 10;
+}
+
+.rodeo-minimapa__abrir {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  background: #fff;
+  border: none;
+  border-radius: 8px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  z-index: 10;
+}

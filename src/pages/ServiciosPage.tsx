@@ -1,86 +1,96 @@
-import { useCallback, useEffect, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Button, Table } from "@chakra-ui/react";
+import { Button } from "@chakra-ui/react";
 import { IconPlus } from "@tabler/icons-react";
-import { getServicios } from "@/features/servicios/services/serviciosService";
-import type { ServicioRead } from "@/features/servicios/types";
 import { useServiciosFiltros } from "@/features/servicios/hooks/useServiciosFiltros";
-import { ServiciosFiltros } from "@/features/servicios/components/ServiciosFiltros";
-import { ESTADO_SERVICIO_LABELS } from "@/features/servicios/constants";
-import { ServiciosDashboard } from "@/features/servicios/components/dashboard/ServiciosDashboard";
 import { useServiciosDashboard } from "@/features/servicios/hooks/useServiciosDashboard";
 import { pendientesPorServicio } from "@/features/servicios/utils/servicioEstado";
-import { formatFecha } from "@/features/animales/utils/formatDate";
+import { ServiciosTimeline } from "@/features/servicios/components/timeline/ServiciosTimeline";
+import { ServiciosListaPanel } from "@/features/servicios/components/list/ServiciosListaPanel";
+import { ServicioResumenPanel } from "@/features/servicios/components/resumen/ServicioResumenPanel";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
 import "@/features/servicios/components/servicios.css";
 
+type NavigationState = {
+  refresh?: boolean;
+  seleccionarId?: number | null;
+  expandir?: boolean;
+};
+
 export function ServiciosPage() {
   const navigate = useNavigate();
   const location = useLocation();
-  const [servicios, setServicios] = useState<ServicioRead[]>([]);
-  const [initialLoading, setInitialLoading] = useState(true);
-  const [refetching, setRefetching] = useState(false);
-  const [error, setError] = useState("");
 
-  const {
-    estado,
-    fechaDesde,
-    fechaHasta,
-    setEstado,
-    setFechaDesde,
-    setFechaHasta,
-    clearFilters,
-    params,
-  } = useServiciosFiltros();
+  const { estado, fechaDesde, fechaHasta, setEstado, setFechaDesde, setFechaHasta } =
+    useServiciosFiltros();
   const dashboard = useServiciosDashboard();
-  // Sale de los datos del dashboard (servicios sin filtrar), así un filtro
-  // que deja afuera a los reservicios no cambia los indicadores.
+  const [seleccionadoId, setSeleccionadoId] = useState<number | null>(null);
+  const [detalleExpandido, setDetalleExpandido] = useState(false);
+
+  useEffect(() => {
+    const state = location.state as NavigationState | null;
+    if (state?.refresh) dashboard.refetch();
+    if (state?.seleccionarId != null) {
+      setSeleccionadoId(state.seleccionarId);
+      setDetalleExpandido(!!state.expandir);
+    }
+    // dashboard.refetch es estable (useCallback sin dependencias)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.state]);
+
+  // Servicios sin cancelar: un servicio CANCELADO no existe para el usuario,
+  // no se muestra ni en la línea de tiempo ni en la lista.
+  const servicios = useMemo(
+    () => dashboard.servicios.filter((s) => s.estado !== "CANCELADO"),
+    [dashboard.servicios],
+  );
+
+  // Selección por defecto: el servicio en curso (el que empezó primero, si
+  // hay más de uno) o, si no hay ninguno, el planificado más próximo.
+  const servicioPorDefectoId = useMemo(() => {
+    const masProximo = (candidatos: typeof servicios) =>
+      candidatos.reduce((a, b) => (a.fecha_inicio <= b.fecha_inicio ? a : b)).id;
+
+    const enCurso = servicios.filter((s) => s.estado === "EN_CURSO");
+    if (enCurso.length > 0) return masProximo(enCurso);
+
+    const planificados = servicios.filter((s) => s.estado === "PLANIFICADO");
+    if (planificados.length > 0) return masProximo(planificados);
+
+    return null;
+  }, [servicios]);
+
+  useEffect(() => {
+    if (seleccionadoId !== null || servicioPorDefectoId === null) return;
+    setSeleccionadoId(servicioPorDefectoId);
+  }, [servicioPorDefectoId, seleccionadoId]);
+
   const pendientes = pendientesPorServicio(
     dashboard.servicios,
     dashboard.resultados,
     dashboard.animalActivoIds,
   );
 
-  const fetchServicios = useCallback(() => {
-    setRefetching(true);
-    setError("");
-    getServicios(params)
-      .then(setServicios)
-      .catch(() => setError("No se pudieron cargar los servicios."))
-      .finally(() => {
-        setRefetching(false);
-        setInitialLoading(false);
-      });
-  }, [params]);
+  // Desde la lista: solo selecciona (el panel queda colapsado, para hojear
+  // varios servicios rápido).
+  const seleccionarDesdeLista = (id: number) => {
+    setSeleccionadoId(id);
+    setDetalleExpandido(false);
+  };
 
-  useEffect(() => {
-    fetchServicios();
-  }, [fetchServicios]);
+  // Desde el timeline, desde "ver otro servicio" dentro del detalle
+  // expandido (origen/reservicio), o al volver de /servicios/:id: seleccionar
+  // y abrir directo el detalle completo.
+  const seleccionarYExpandir = (id: number) => {
+    setSeleccionadoId(id);
+    setDetalleExpandido(true);
+  };
 
-  useEffect(() => {
-    if (location.state?.refresh) {
-      fetchServicios();
-      dashboard.refetch();
-    }
-    // dashboard.refetch es estable (useCallback sin dependencias)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state, fetchServicios]);
-
-  // Para mostrar "Reservicio de <original>". Si un filtro deja afuera al
-  // servicio original, la etiqueta queda solo como "Reservicio".
-  const nombreServicioPorId = new Map(
-    servicios.map((s) => [s.id, s.nombre || `Servicio #${s.id}`]),
-  );
-
-  const handleRowKeyDown = (
-    event: KeyboardEvent<HTMLTableRowElement>,
-    servicio: ServicioRead,
-  ) => {
-    if (event.key === "Enter" || event.key === " ") {
-      event.preventDefault();
-      navigate(`/servicios/${servicio.id}`);
-    }
+  const onEliminado = () => {
+    setSeleccionadoId(null);
+    setDetalleExpandido(false);
+    dashboard.refetch();
   };
 
   return (
@@ -91,105 +101,51 @@ export function ServiciosPage() {
         </div>
         <Button colorPalette="brand" onClick={() => navigate("/servicios/nuevo")}>
           <IconPlus size={18} stroke={1.5} />
-          Agregar servicio
+          Planificar servicio
         </Button>
       </div>
 
-      <ServiciosDashboard data={dashboard} />
+      {dashboard.error && <p className="status-message error">{dashboard.error}</p>}
 
-      <ServiciosFiltros
-        estado={estado}
-        fechaDesde={fechaDesde}
-        fechaHasta={fechaHasta}
-        onEstadoChange={setEstado}
-        onFechaDesdeChange={setFechaDesde}
-        onFechaHastaChange={setFechaHasta}
-        onClear={clearFilters}
-      />
+      {!dashboard.loading && !dashboard.error && (
+        <>
+          {!detalleExpandido && (
+            <ServiciosTimeline
+              servicios={servicios}
+              seleccionadoId={seleccionadoId}
+              onSelect={seleccionarYExpandir}
+            />
+          )}
 
-      {initialLoading && <p>Cargando...</p>}
-      {error && <p className="status-message error">{error}</p>}
-
-      {!initialLoading && !error && (
-        <div
-          className="animales-table__wrapper servicios-table__wrapper"
-          style={{
-            opacity: refetching ? 0.6 : 1,
-            transition: "opacity 0.15s",
-          }}>
-          <Table.Root className="animales-table" interactive>
-            <Table.Header>
-              <Table.Row>
-                <Table.ColumnHeader>Nombre</Table.ColumnHeader>
-                <Table.ColumnHeader>Período</Table.ColumnHeader>
-                <Table.ColumnHeader>Estado</Table.ColumnHeader>
-                <Table.ColumnHeader>Pendientes</Table.ColumnHeader>
-              </Table.Row>
-            </Table.Header>
-            <Table.Body>
-              {servicios.length === 0 ? (
-                <Table.Row>
-                  <Table.Cell colSpan={4}>
-                    No se encontraron servicios con los filtros aplicados.
-                  </Table.Cell>
-                </Table.Row>
-              ) : (
-                servicios.map((servicio) => (
-                  <Table.Row
-                    key={servicio.id}
-                    className="animales-table__row"
-                    tabIndex={0}
-                    role="button"
-                    aria-label={`Ver detalle del servicio ${servicio.nombre || `#${servicio.id}`}`}
-                    onClick={() => navigate(`/servicios/${servicio.id}`)}
-                    onKeyDown={(event) => handleRowKeyDown(event, servicio)}>
-                    <Table.Cell>
-                      {servicio.nombre || `Servicio #${servicio.id}`}
-                      {servicio.servicio_origen_id !== null && (
-                        <span className="servicios-table__reservicio">
-                          {nombreServicioPorId.has(servicio.servicio_origen_id)
-                            ? `Reservicio de ${nombreServicioPorId.get(servicio.servicio_origen_id)}`
-                            : "Reservicio"}
-                        </span>
-                      )}
-                    </Table.Cell>
-                    <Table.Cell className="servicios-table__periodo">
-                      {formatFecha(servicio.fecha_inicio)} –{" "}
-                      {servicio.fecha_fin ? formatFecha(servicio.fecha_fin) : "—"}
-                    </Table.Cell>
-                    <Table.Cell>
-                      <span
-                        className={`servicio-badge servicio-badge--${servicio.estado}`}>
-                        {ESTADO_SERVICIO_LABELS[servicio.estado] ?? servicio.estado}
-                      </span>
-                    </Table.Cell>
-                    <Table.Cell>
-                      <div className="servicios-table__pendientes">
-                        {pendientes.get(servicio.id)?.resultados && (
-                          <span className="servicio-alerta">
-                            Resultados por cargar
-                          </span>
-                        )}
-                        {pendientes.get(servicio.id)?.reservicio && (
-                          <span className="servicio-alerta servicio-alerta--reservicio">
-                            Reservicio por iniciar
-                          </span>
-                        )}
-                        {!pendientes.get(servicio.id)?.resultados &&
-                          !pendientes.get(servicio.id)?.reservicio && (
-                            <span className="servicios-table__sin-pendientes">
-                              —
-                            </span>
-                          )}
-                      </div>
-                    </Table.Cell>
-                  </Table.Row>
-                ))
-              )}
-            </Table.Body>
-          </Table.Root>
-        </div>
+          <div
+            className={`servicios-cuerpo${detalleExpandido ? " servicios-cuerpo--expandido" : ""}`}>
+            {!detalleExpandido && (
+              <ServiciosListaPanel
+                servicios={servicios}
+                resultados={dashboard.resultados}
+                pendientesPorServicioId={pendientes}
+                seleccionadoId={seleccionadoId}
+                onSelect={seleccionarDesdeLista}
+                estado={estado}
+                fechaDesde={fechaDesde}
+                fechaHasta={fechaHasta}
+                onEstadoChange={setEstado}
+                onFechaDesdeChange={setFechaDesde}
+                onFechaHastaChange={setFechaHasta}
+              />
+            )}
+            <ServicioResumenPanel
+              servicioId={seleccionadoId}
+              expandido={detalleExpandido}
+              onToggleExpandido={() => setDetalleExpandido((v) => !v)}
+              onEliminado={onEliminado}
+              onVerServicio={seleccionarYExpandir}
+            />
+          </div>
+        </>
       )}
+
+      {dashboard.loading && <p>Cargando...</p>}
 
       <Outlet />
     </section>

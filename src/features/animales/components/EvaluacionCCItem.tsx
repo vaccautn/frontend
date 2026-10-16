@@ -8,6 +8,7 @@ import {
   IconTrash,
   IconX,
 } from "@tabler/icons-react";
+import { ACCEPT_IMAGEN, validarImagenes } from "@/features/animales/utils/imagenUploadErrors";
 import { toast } from "react-toastify";
 import { normalizeBackendDetail } from "@/features/auth";
 import { DEFAULT_CC_SCALE } from "@/features/animales/constants";
@@ -130,6 +131,11 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
     const files = Array.from(event.target.files ?? []);
     event.target.value = "";
     if (files.length === 0) return;
+    const errorFormato = validarImagenes(files);
+    if (errorFormato) {
+      toast.error(errorFormato);
+      return;
+    }
 
     setIsUploading(true);
     try {
@@ -291,7 +297,7 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
       <input
         ref={fileInputRef}
         type="file"
-        accept="image/*"
+        accept={ACCEPT_IMAGEN}
         multiple
         hidden
         onChange={handleFileInputChange}

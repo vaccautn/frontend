@@ -2,7 +2,7 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  margin-bottom: 2rem;
+  margin-bottom: 1rem;
   gap: 1rem;
 
   .primary-btn {
@@ -25,7 +25,6 @@
 .animales-table__wrapper {
   width: 100%;
 
-  margin-top: 1rem;
   border: 1px solid var(--border);
   border-radius: 4px;
   overflow: hidden;
@@ -935,10 +934,11 @@
 /* ── Filter bar ── */
 .animales-filtros {
   display: flex;
-  flex-wrap: wrap;
+  flex-direction: row;
+
   gap: 0.6rem;
   align-items: center;
-  margin: 0.75rem 0;
+  margin: 0.2rem 0;
 }
 
 .animales-filtros__campo {

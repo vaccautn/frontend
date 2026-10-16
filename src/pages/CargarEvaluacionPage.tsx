@@ -7,6 +7,7 @@ import { getSesion } from "@/features/sesiones/services/sesionesService";
 import {
   getAnimalesAgrupadosPorLote,
   getEvaluacionesCc,
+  FotoRechazadaError,
   registrarEvaluacionCCCompleta,
   updateEvaluacionCcEnSesion,
 } from "@/features/animales/services/animalesService";
@@ -61,13 +62,11 @@ export function CargarEvaluacionesPage() {
 
   const {
     caravanaInput,
-    sexo,
     raza,
     estado,
     loteId,
     categoriaLote,
     setCaravanaInput,
-    setSexo,
     setRaza,
     setEstado,
     setLoteId,
@@ -95,8 +94,8 @@ export function CargarEvaluacionesPage() {
       .finally(() => setLoading(false));
   }, [sesionId]);
 
-  // Los mismos filtros que la página de animales (caravana, sexo, raza,
-  // estado, lote), para encontrar rápido a quién falta evaluar en la sesión.
+  // Los mismos filtros que la página de animales (caravana, raza, estado,
+  // lote), para encontrar rápido a quién falta evaluar en la sesión.
   useEffect(() => {
     setRefetchingGrupos(true);
     getAnimalesAgrupadosPorLote(filtrosParams)
@@ -188,6 +187,7 @@ export function CargarEvaluacionesPage() {
             sesionId,
             animalId,
             valorCc: data.valorCc,
+            valorCcInferido: data.valorCcInferido,
             escalaMin: data.escalaMin,
             escalaMax: data.escalaMax,
             observaciones: data.observaciones,
@@ -212,7 +212,9 @@ export function CargarEvaluacionesPage() {
         toast.error(
           error instanceof ApiError
             ? normalizeBackendDetail(error.detail)
-            : "No se pudo registrar la evaluación. Probá nuevamente.",
+            : error instanceof FotoRechazadaError
+              ? error.message
+              : "No se pudo registrar la evaluación. Probá nuevamente.",
         );
         return false;
       }
@@ -326,7 +328,6 @@ export function CargarEvaluacionesPage() {
 
       <AnimalesFiltros
         caravanaInput={caravanaInput}
-        sexo={sexo}
         raza={raza}
         estado={estado}
         loteId={loteId}
@@ -334,7 +335,6 @@ export function CargarEvaluacionesPage() {
         lotes={lotes}
         loadingLotes={loadingLotes}
         onCaravanaChange={setCaravanaInput}
-        onSexoChange={setSexo}
         onRazaChange={setRaza}
         onEstadoChange={setEstado}
         onLoteChange={setLoteId}

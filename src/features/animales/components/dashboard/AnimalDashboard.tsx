@@ -5,6 +5,7 @@ import { KpiEvaluaciones } from "./KpiEvaluaciones";
 import { AnimalEvolucion } from "./AnimalEvolucion";
 import { DashboardHistograma } from "./DashboardHistograma";
 import { HistorialCriticos } from "./HistorialCriticos";
+import { nivelCC } from "@/features/animales/utils/ccColor";
 
 type Props = {
   data: DashboardAnimalData | null;
@@ -21,6 +22,13 @@ export function AnimalDashboard({ data, loading, error }: Props) {
     evolucion.length > 0
       ? evolucion[evolucion.length - 1].fecha
       : new Date().toISOString();
+
+  // Críticas según el semáforo mes × CC (nivelCC), igual que los badges de
+  // las tablas. `historial_peores` del backend usa el criterio viejo (CC 1
+  // o 5), por eso no se usa.
+  const criticas = evolucion
+    .filter((punto) => nivelCC(punto.valor_cc, punto.fecha) === "critico")
+    .reverse();
 
   return (
     <Box
@@ -50,7 +58,7 @@ export function AnimalDashboard({ data, loading, error }: Props) {
 
       <SimpleGrid columns={{ base: 1, md: 2 }} gap="4">
         <KpiCriticos
-          count={data?.historial_peores.length ?? 0}
+          count={criticas.length}
           loading={loading}
           label={{
             singular: "evaluación crítica",
@@ -86,7 +94,7 @@ export function AnimalDashboard({ data, loading, error }: Props) {
         </Box>
       </SimpleGrid>
 
-      <HistorialCriticos historial={data?.historial_peores ?? []} loading={loading} />
+      <HistorialCriticos historial={criticas} loading={loading} />
     </Box>
   );
 }
