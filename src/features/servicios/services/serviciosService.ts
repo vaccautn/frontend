@@ -2,7 +2,9 @@ import { getAccessToken } from "@/features/auth";
 import { deleteRequest, getJson, patchJson, postJson } from "@/services/httpClient";
 import type {
   CargaResultadosPayload,
+  ParticipacionToroUpdatePayload,
   ParticipanteServicio,
+  ReemplazoToroPayload,
   ReservicioCreatePayload,
   ResultadoServicioCreatePayload,
   ResultadoServicioListParams,
@@ -14,6 +16,7 @@ import type {
   ServicioLotesAgrupados,
   ServicioRead,
   ServicioUpdatePayload,
+  ToroServicio,
 } from "../types";
 
 export function crearServicio(
@@ -179,4 +182,41 @@ export function getLotesServicio(id: number): Promise<ServicioLotesAgrupados> {
 export function eliminarServicio(id: number): Promise<void> {
   const token = getAccessToken();
   return deleteRequest(`/servicios/${id}`, token);
+}
+
+/** Lista los toros del servicio con su rol, sincronizando antes con los
+ * lotes de toros asociados. */
+export function getTorosServicio(servicioId: number): Promise<ToroServicio[]> {
+  const token = getAccessToken();
+  return getJson<ToroServicio[]>(`/servicios/${servicioId}/toros`, token);
+}
+
+/** Cambia el rol de un toro entre en servicio y repuesto. Solo mientras el
+ * servicio está PLANIFICADO (409 en cualquier otro estado). */
+export function cambiarRolToro(
+  servicioId: number,
+  animalId: number,
+  payload: ParticipacionToroUpdatePayload,
+): Promise<ToroServicio> {
+  const token = getAccessToken();
+  return patchJson<ToroServicio, ParticipacionToroUpdatePayload>(
+    `/servicios/${servicioId}/toros/${animalId}`,
+    payload,
+    token,
+  );
+}
+
+/** Reemplaza un toro en servicio por uno de repuesto (por ejemplo, por una
+ * lesión). Solo mientras el servicio está EN_CURSO. Devuelve la lista
+ * completa de toros actualizada. */
+export function reemplazarToro(
+  servicioId: number,
+  payload: ReemplazoToroPayload,
+): Promise<ToroServicio[]> {
+  const token = getAccessToken();
+  return postJson<ToroServicio[], ReemplazoToroPayload>(
+    `/servicios/${servicioId}/toros/reemplazar`,
+    payload,
+    token,
+  );
 }

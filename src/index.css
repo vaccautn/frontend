@@ -13,6 +13,7 @@
   /* Terciarios - Azul grisáceo (datos/UI neutro) */
   --azul-acero: #3e5c76;
   --gris-niebla: #b8c4cc;
+  --gris-oscuro: #8a948c;
 
   /* Funcionales - Alertas del sistema */
   --rojo-alerta: #c94c4c;
@@ -46,6 +47,12 @@
   --orange-border: #edc99a;
   --info-bg: #e4ebf1;
   --shadow: rgba(21, 32, 25, 0.12) 0 18px 45px;
+
+  /* Timeline genérico (src/components/ui/Timeline) */
+  --timeline-planned: var(--azul-acero);
+  --timeline-in-progress: var(--ambar-aviso);
+  --timeline-completed: var(--verde-confirmacion);
+  --timeline-closed: var(--gris-oscuro);
 
   --sans: "Manrope", serif;
   --heading: "Manrope", serif;

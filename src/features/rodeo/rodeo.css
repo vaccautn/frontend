@@ -172,6 +172,7 @@
   display: flex;
   flex-direction: column;
   gap: 2px;
+  background-color: var(--bg);
 }
 
 .rodeo-panel__stat span {

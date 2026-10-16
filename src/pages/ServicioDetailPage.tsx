@@ -36,6 +36,7 @@ import {
   getParticipantesServicio,
   getServicio,
   getServicios,
+  getTorosServicio,
 } from "@/features/servicios/services/serviciosService";
 import type {
   EstadoServicio,
@@ -43,6 +44,7 @@ import type {
   ServicioLoteRead,
   ServicioLotesAgrupados,
   ServicioRead,
+  ToroServicio,
 } from "@/features/servicios/types";
 import {
   ESTADO_RESULTADO_SERVICIO_LABELS,
@@ -66,10 +68,13 @@ import { getLotes } from "@/features/lotes/services/lotesService";
 import type { LoteOption } from "@/features/lotes/types";
 import { getAnimales } from "@/features/animales/services/animalesService";
 import type { Animal } from "@/features/animales/types";
-import { ToroIcon, VacaIcon } from "@/utils/icons";
+import { VacaIcon } from "@/utils/icons";
 import { FechaInput } from "@/components/FechaInput";
-import { ServicioDashboard } from "@/features/servicios/components/dashboard/ServicioDashboard";
 import { DiagnosticoControles } from "@/features/servicios/components/DiagnosticoControles";
+import { ServicioResumenEstado } from "@/features/servicios/components/detail/ServicioResumenEstado";
+import { ServicioTorosTabla } from "@/features/servicios/components/detail/ServicioTorosTabla";
+import { ServicioPreservicioRecomendaciones } from "@/features/servicios/components/detail/ServicioPreservicioRecomendaciones";
+import { ServicioHistorialPorVaca } from "@/features/servicios/components/detail/ServicioHistorialPorVaca";
 import {
   esCargable,
   faltaTipo,
@@ -79,7 +84,6 @@ import { localNaiveNow } from "@/utils/localDateTime";
 import { toast } from "react-toastify";
 import "@/features/animales/components/animales.css";
 import "@/features/servicios/components/servicios.css";
-import { RecomendacionesServicio } from "@/features/recomendaciones/components/RecomendacionesServicio";
 
 const CAMPOS: { label: string; render: (servicio: ServicioRead) => string }[] = [
   {
@@ -129,6 +133,8 @@ export function ServicioDetailPage() {
   const [participantes, setParticipantes] = useState<ParticipanteServicio[]>(
     [],
   );
+  const [toros, setToros] = useState<ToroServicio[]>([]);
+  const [loadingToros, setLoadingToros] = useState(true);
   // Animales que hoy están en cada lote: los toros siempre, y las vacas solo
   // para la vista previa de un servicio PLANIFICADO (todavía sin
   // participantes).
@@ -204,7 +210,7 @@ export function ServicioDetailPage() {
         // El servicio primero: al consultarlo el backend aplica la transición
         // por fecha y, si sale de PLANIFICADO, fija los participantes.
         const servicioData = await getServicio(servicioId);
-        const [lotesData, participantesData, reserviciosData, origenData] =
+        const [lotesData, participantesData, reserviciosData, origenData, torosData] =
           await Promise.all([
             getLotesServicio(servicioId),
             getParticipantesServicio(servicioId),
@@ -212,6 +218,7 @@ export function ServicioDetailPage() {
             servicioData.servicio_origen_id !== null
               ? getServicio(servicioData.servicio_origen_id)
               : Promise.resolve(null),
+            getTorosServicio(servicioId),
           ]);
         if (cancelled) return;
         setServicio(servicioData);
@@ -219,6 +226,8 @@ export function ServicioDetailPage() {
         setParticipantes(participantesData);
         setReservicios(reserviciosData);
         setOrigen(origenData);
+        setToros(torosData);
+        setLoadingToros(false);
         setStatus("ready");
         void fetchAnimalesDeLotes(lotesData, servicioData.estado);
       } catch (error) {
@@ -323,12 +332,14 @@ export function ServicioDetailPage() {
 
   const refetchLotes = async () => {
     if (!servicio) return;
-    const [nuevosLotes, nuevosParticipantes] = await Promise.all([
+    const [nuevosLotes, nuevosParticipantes, nuevosToros] = await Promise.all([
       getLotesServicio(servicio.id),
       getParticipantesServicio(servicio.id),
+      getTorosServicio(servicio.id),
     ]);
     setLotes(nuevosLotes);
     setParticipantes(nuevosParticipantes);
+    setToros(nuevosToros);
     void fetchAnimalesDeLotes(nuevosLotes, servicio.estado);
   };
 
@@ -493,14 +504,6 @@ export function ServicioDetailPage() {
           0,
         )
       : participantes.length;
-  // La efectividad solo tiene sentido con el servicio terminado y todos los
-  // diagnósticos cargados.
-  const cantidadTerneros =
-    (servicio?.estado === "FINALIZADO" || servicio?.estado === "CERRADO") &&
-    participantes.length > 0 &&
-    !hayResultadosPendientes
-      ? participantes.filter((p) => p.resultado.estado === "PARIDA").length
-      : null;
 
   return (
     <section className="animal-page">
@@ -752,20 +755,25 @@ export function ServicioDetailPage() {
 
           <div className="animal-page__details-divider" />
 
+          <ServicioResumenEstado
+            servicio={servicio}
+            lotes={lotes}
+            participantes={participantes}
+            toros={toros}
+            animalesPorLoteId={animalesPorLoteId}
+            cantidadVacas={cantidadVacas}
+            loading={loadingAnimales}
+            hayResultadosPendientes={hayResultadosPendientes}
+            onCargarResultados={iniciarCargaResultados}
+          />
+
           {(servicio.estado === "PLANIFICADO" ||
             servicio.estado === "EN_CURSO") && (
-            <RecomendacionesServicio
+            <ServicioPreservicioRecomendaciones
               key={servicio.id}
               servicioId={servicio.id}
             />
           )}
-
-          <ServicioDashboard
-            vacas={cantidadVacas}
-            toros={contarToros(lotes?.toros ?? [], animalesPorLoteId)}
-            terneros={cantidadTerneros}
-            loading={loadingAnimales}
-          />
 
           {reservicios.length > 0 && (
             <section className="animal-detail__section servicio-detail__reservicios">
@@ -912,16 +920,21 @@ export function ServicioDetailPage() {
                 mostrarErroresTipo={mostrarErroresResultados}
                 onDiagnosticoChange={actualizarDiagnostico}
               />
-              <TorosGrupo
-                lotes={lotes?.toros ?? []}
-                animalesPorLoteId={animalesPorLoteId}
-                loading={loadingAnimales}
-                isEditing={isEditing}
-                loteIdQuitando={loteIdQuitando}
-                onQuitar={handleQuitarLote}
+              <ServicioTorosTabla
+                servicioId={servicio.id}
+                estado={servicio.estado}
+                toros={toros}
+                loading={loadingToros}
+                onChanged={setToros}
               />
             </div>
           </section>
+
+          {(servicio.estado === "CERRADO" ||
+            (servicio.estado === "FINALIZADO" && !hayResultadosPendientes)) &&
+            participantes.length > 0 && (
+              <ServicioHistorialPorVaca participantes={participantes} />
+            )}
         </>
       )}
 
@@ -962,103 +975,6 @@ export function ServicioDetailPage() {
   );
 }
 
-type TorosGrupoProps = {
-  lotes: ServicioLoteRead[];
-  animalesPorLoteId: Map<number, Animal[]>;
-  loading: boolean;
-  isEditing: boolean;
-  loteIdQuitando: number | null;
-  onQuitar: (loteId: number) => void;
-};
-
-/** Toros del servicio: plegado muestra solo cuántos hay; desplegado, los
- * lotes de toros con sus animales. */
-function TorosGrupo({
-  lotes,
-  animalesPorLoteId,
-  loading,
-  isEditing,
-  loteIdQuitando,
-  onQuitar,
-}: TorosGrupoProps) {
-  const [abierto, setAbierto] = useState(false);
-  const cantidad = contarToros(lotes, animalesPorLoteId);
-
-  return (
-    <div className="servicio-detail__lotes-grupo">
-      <button
-        type="button"
-        className="servicio-detail__lotes-grupo-header servicio-detail__toros-toggle"
-        aria-expanded={abierto}
-        onClick={() => setAbierto((actual) => !actual)}>
-        <h2 className="servicio-detail__lotes-grupo-titulo">
-          <ToroIcon />
-          Toros
-        </h2>
-        <span className="servicio-detail__toros-resumen">
-          <Badge colorPalette="brand">
-            {loading ? "…" : cantidad === 1 ? "1 toro" : `${cantidad} toros`}
-          </Badge>
-          <IconChevronDown
-            size={16}
-            stroke={1.75}
-            className={`animal-page__details-toggle-icon${
-              abierto ? " animal-page__details-toggle-icon--open" : ""
-            }`}
-          />
-        </span>
-      </button>
-
-      {abierto &&
-        (lotes.length === 0 ? (
-          <p className="servicio-detail__lotes-vacio">
-            No hay lotes de toros asociados a este servicio.
-          </p>
-        ) : (
-          <ul className="servicio-detail__lotes-lista">
-            {lotes.map((lote) => (
-              <li key={lote.id} className="servicio-detail__vientre-lote">
-                <div className="servicio-detail__lote-item">
-                  <span>{lote.nombre}</span>
-                  <span className="servicio-detail__lote-categoria">
-                    {CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? lote.categoria}
-                  </span>
-                  {isEditing && (
-                    <button
-                      type="button"
-                      className="servicio-detail__lote-quitar"
-                      aria-label={`Quitar ${lote.nombre} del servicio`}
-                      disabled={loteIdQuitando === lote.id}
-                      onClick={() => onQuitar(lote.id)}>
-                      <IconX size={14} stroke={2} />
-                    </button>
-                  )}
-                </div>
-                <VacasVistaPrevia
-                  vacas={animalesPorLoteId.get(lote.id) ?? []}
-                  loading={loading}
-                />
-              </li>
-            ))}
-          </ul>
-        ))}
-    </div>
-  );
-}
-
-function contarToros(
-  lotes: ServicioLoteRead[],
-  animalesPorLoteId: Map<number, Animal[]>,
-): number {
-  return lotes.reduce(
-    (total, lote) =>
-      total +
-      (animalesPorLoteId.get(lote.id) ?? []).filter(
-        (animal) => animal.estado === "ACTIVO",
-      ).length,
-    0,
-  );
-}
 
 type GrupoVientre = {
   key: string;

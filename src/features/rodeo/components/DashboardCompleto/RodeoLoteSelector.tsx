@@ -1,5 +1,5 @@
 import { useMemo, useState } from "react";
-import { Input, Menu, Portal } from "@chakra-ui/react";
+import { Menu, Portal } from "@chakra-ui/react";
 import { IconChevronDown } from "@tabler/icons-react";
 import {
   colorPorEstadoLote,
