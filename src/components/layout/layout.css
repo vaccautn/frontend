@@ -121,12 +121,21 @@
   box-shadow: var(--shadow-pop);
 }
 
+/* Cuenta del usuario al pie: mismo margen lateral que la navegación
+ * (0.75rem), así queda alineada con los ítems, abierta o colapsada. */
+.sidebar__footer {
+  margin: 0.5rem 0.75rem 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--border);
+}
+
 .sidebar__user {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  margin: 0.5rem 1.5rem 0;
-  padding: 0.5rem 0.75rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.45rem 0.5rem;
   border: none;
   border-radius: var(--radius-sm);
   background: none;
@@ -134,34 +143,48 @@
   font: inherit;
   cursor: pointer;
   text-align: left;
+  transition: background 160ms var(--ease-out);
 }
 
 .sidebar--collapsed .sidebar__user {
-  margin: 0.5rem auto 0;
-  padding: 0.5rem;
-}
-
-.sidebar__user {
-  transition: background 160ms var(--ease-out);
+  justify-content: center;
+  padding: 0.45rem 0;
 }
 
 .sidebar__user:hover,
 .sidebar__user[data-state="open"] {
-  background: rgba(23, 38, 28, 0.045);
+  background: rgba(23, 38, 28, 0.05);
+}
+
+.sidebar__user:focus-visible {
+  outline: none;
+  box-shadow: var(--ring-focus);
+}
+
+.sidebar__avatar {
+  flex-shrink: 0;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 2px rgba(23, 38, 28, 0.18);
 }
 
 .sidebar__user-info {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 2px;
-  line-height: 1;
+  gap: 3px;
+  min-width: 0;
+  line-height: 1.1;
   text-align: left;
 }
 
 .sidebar__user-name {
+  overflow: hidden;
   color: var(--text-h);
+  font-size: 0.88rem;
   font-weight: 650;
-  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar__user-role {
@@ -170,11 +193,29 @@
 }
 
 .sidebar__user-caret {
+  flex-shrink: 0;
+  color: var(--gris-oscuro);
+}
+
+.sidebar__user-menu-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.45rem 0.7rem 0.55rem;
+}
+
+.sidebar__user-menu-header strong {
+  color: var(--text-h);
+  font-size: 0.88rem;
+}
+
+.sidebar__user-menu-header span {
   color: var(--text);
+  font-size: 0.78rem;
 }
 
 .sidebar__user-menu {
-  min-width: 200px;
+  min-width: 190px;
   background: var(--panel);
   border-radius: var(--radius-md);
   box-shadow: var(--shadow-pop);

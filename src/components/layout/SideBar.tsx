@@ -14,10 +14,14 @@ import {
   IconCalendarHeart,
   IconMap,
   IconMenu2,
-  IconChevronDown,
+  IconSelector,
   IconLogout,
 } from "@tabler/icons-react";
 import { getStoredUser, useAuth } from "@/features/auth";
+
+/** "PRODUCTOR" → "Productor". */
+const formatRol = (rol: string) =>
+  rol.charAt(0).toUpperCase() + rol.slice(1).toLowerCase();
 
 const navItems = [
   // {
@@ -123,57 +127,79 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       </nav>
 
       {user && (
-        <Menu.Root>
-          <Menu.Trigger asChild>
-            <button
-              type="button"
-              className="sidebar__user"
-              title={`${user.nombre} ${user.apellido} · ${user.rol}`}>
-              <Avatar.Root size="sm" colorPalette="brand">
-                <Avatar.Fallback>
-                  {getInitials(user.nombre, user.apellido)}
-                </Avatar.Fallback>
-              </Avatar.Root>
-              {isOpen && (
-                <>
-                  <div className="sidebar__user-info">
-                    <span className="sidebar__user-name">
+        <div className="sidebar__footer">
+          <Menu.Root
+            positioning={{
+              // Abierta: el menú sube y toma el ancho del botón. Colapsada: sale
+              // hacia la derecha, alineado con el avatar.
+              placement: isOpen ? "top" : "right-end",
+              sameWidth: isOpen,
+              gutter: 8,
+            }}>
+            <Menu.Trigger asChild>
+              <button
+                type="button"
+                className="sidebar__user"
+                aria-label={`Cuenta de ${user.nombre} ${user.apellido}`}
+                title={isOpen ? undefined : `${user.nombre} ${user.apellido}`}>
+                <Avatar.Root
+                  size="sm"
+                  variant="solid"
+                  colorPalette="brand"
+                  className="sidebar__avatar">
+                  <Avatar.Fallback>
+                    {getInitials(user.nombre, user.apellido)}
+                  </Avatar.Fallback>
+                </Avatar.Root>
+                {isOpen && (
+                  <>
+                    <div className="sidebar__user-info">
+                      <span className="sidebar__user-name">
+                        {user.nombre} {user.apellido}
+                      </span>
+                      <span className="sidebar__user-role">
+                        {formatRol(user.rol)}
+                      </span>
+                    </div>
+                    <IconSelector
+                      className="sidebar__user-caret"
+                      size={16}
+                      stroke={1.75}
+                    />
+                  </>
+                )}
+              </button>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content className="sidebar__user-menu">
+                  <div className="sidebar__user-menu-header">
+                    <strong>
                       {user.nombre} {user.apellido}
-                    </span>
-                    <span className="sidebar__user-role">{user.rol}</span>
+                    </strong>
+                    <span>{formatRol(user.rol)}</span>
                   </div>
-                  <IconChevronDown
-                    className="sidebar__user-caret"
-                    size={16}
-                    stroke={1.5}
-                  />
-                </>
-              )}
-            </button>
-          </Menu.Trigger>
-          <Portal>
-            <Menu.Positioner>
-              <Menu.Content className="sidebar__user-menu">
-                {/* <Menu.Item
-                  value="editar-perfil"
-                  onSelect={() => {
-                    // TODO: sin funcionalidad todavía, no existe la página de perfil.
-                  }}>
-                  <IconUserEdit stroke={1.5} size={18} />
-                  Editar perfil
-                </Menu.Item> */}
-                <Menu.Separator />
-                <Menu.Item
-                  value="cerrar-sesion"
-                  className="sidebar__user-menu-item--danger"
-                  onSelect={() => setIsLogoutConfirmOpen(true)}>
-                  <IconLogout stroke={1.5} size={18} />
-                  Cerrar sesión
-                </Menu.Item>
-              </Menu.Content>
-            </Menu.Positioner>
-          </Portal>
-        </Menu.Root>
+                  {/* <Menu.Item
+                    value="editar-perfil"
+                    onSelect={() => {
+                      // TODO: sin funcionalidad todavía, no existe la página de perfil.
+                    }}>
+                    <IconUserEdit stroke={1.5} size={18} />
+                    Editar perfil
+                  </Menu.Item> */}
+                  <Menu.Separator />
+                  <Menu.Item
+                    value="cerrar-sesion"
+                    className="sidebar__user-menu-item--danger"
+                    onSelect={() => setIsLogoutConfirmOpen(true)}>
+                    <IconLogout stroke={1.5} size={18} />
+                    Cerrar sesión
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
+        </div>
       )}
 
       <Dialog.Root
