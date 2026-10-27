@@ -4,7 +4,12 @@ import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 import type { Animal } from "@/features/animales/types";
 import { calcularFaseServicio } from "../../utils/faseServicio";
 import { ServicioFaseBar, type SegmentoBreakdown } from "./ServicioFaseBar";
-import type { ParticipanteServicio, ServicioLotesAgrupados, ServicioRead, ToroServicio } from "../../types";
+import type {
+  ParticipanteServicio,
+  ServicioLotesAgrupados,
+  ServicioRead,
+  ToroServicio,
+} from "../../types";
 
 type Props = {
   servicio: ServicioRead;
@@ -18,7 +23,15 @@ type Props = {
   onCargarResultados: () => void;
 };
 
-function KpiTile({ label, valor, sub }: { label: string; valor: string | number; sub?: string }) {
+function KpiTile({
+  label,
+  valor,
+  sub,
+}: {
+  label: string;
+  valor: string | number;
+  sub?: string;
+}) {
   return (
     <Box className="servicio-kpi-tile">
       <Text className="servicio-kpi-tile__label">{label}</Text>
@@ -46,8 +59,12 @@ export function ServicioResumenEstado({
   hayResultadosPendientes,
   onCargarResultados,
 }: Props) {
-  const enServicio = toros.filter((t) => t.participacion.estado === "EN_SERVICIO").length;
-  const repuesto = toros.filter((t) => t.participacion.estado === "REPUESTO").length;
+  const enServicio = toros.filter(
+    (t) => t.participacion.estado === "EN_SERVICIO",
+  ).length;
+  const repuesto = toros.filter(
+    (t) => t.participacion.estado === "REPUESTO",
+  ).length;
 
   if (loading) {
     return <p className="status-message">Cargando...</p>;
@@ -58,30 +75,51 @@ export function ServicioResumenEstado({
     for (const lote of lotes?.toros ?? []) {
       for (const animal of animalesPorLoteId.get(lote.id) ?? []) {
         if (animal.estado !== "ACTIVO" || animal.categoria === "TORO") continue;
-        excluidosPorCategoria.set(animal.categoria, (excluidosPorCategoria.get(animal.categoria) ?? 0) + 1);
+        excluidosPorCategoria.set(
+          animal.categoria,
+          (excluidosPorCategoria.get(animal.categoria) ?? 0) + 1,
+        );
       }
     }
-    const totalExcluidos = [...excluidosPorCategoria.values()].reduce((a, b) => a + b, 0);
+    const totalExcluidos = [...excluidosPorCategoria.values()].reduce(
+      (a, b) => a + b,
+      0,
+    );
     const excluidosTexto = [...excluidosPorCategoria.entries()]
-      .map(([categoria, n]) => `${n} ${(CATEGORIA_ANIMAL_LABELS[categoria] ?? categoria).toLowerCase()}${n === 1 ? "" : "s"}`)
+      .map(
+        ([categoria, n]) =>
+          `${n} ${(CATEGORIA_ANIMAL_LABELS[categoria] ?? categoria).toLowerCase()}${n === 1 ? "" : "s"}`,
+      )
       .join(" · ");
 
     return (
       <div className="servicio-kpis">
-        <KpiTile label="Vacas" valor={cantidadVacas} sub="todas, de todos los lotes" />
+        <KpiTile
+          label="Vacas"
+          valor={cantidadVacas}
+          sub="todas, de todos los lotes"
+        />
         <KpiTile
           label="Toros en servicio / repuesto"
           valor={`${enServicio} / ${repuesto}`}
           sub="elegí abajo"
         />
-        <KpiTile label="Excluidos automáticamente" valor={totalExcluidos} sub={excluidosTexto || "—"} />
+        <KpiTile
+          label="Excluidos automáticamente"
+          valor={totalExcluidos}
+          sub={excluidosTexto || "—"}
+        />
       </div>
     );
   }
 
   if (servicio.estado === "EN_CURSO") {
-    const progreso = calcularFaseServicio(servicio.fecha_inicio, servicio.fecha_fin);
-    const ratio = enServicio > 0 ? Math.round(cantidadVacas / enServicio) : null;
+    const progreso = calcularFaseServicio(
+      servicio.fecha_inicio,
+      servicio.fecha_fin,
+    );
+    const ratio =
+      enServicio > 0 ? Math.round(cantidadVacas / enServicio) : null;
     return (
       <div className="servicio-resumen-estado">
         {progreso && servicio.fecha_fin && (
@@ -103,20 +141,24 @@ export function ServicioResumenEstado({
             valor={enServicio}
             sub={ratio ? `1 toro c/ ${ratio} vacas` : undefined}
           />
-          <KpiTile label="Toros de repuesto" valor={repuesto} sub="disponibles para cambio" />
+          <KpiTile
+            label="Toros de repuesto"
+            valor={repuesto}
+            sub="disponibles para cambio"
+          />
         </div>
       </div>
     );
   }
 
-  const esFinPend =
-    servicio.estado === "FINALIZADO" && hayResultadosPendientes;
+  const esFinPend = servicio.estado === "FINALIZADO" && hayResultadosPendientes;
 
   if (esFinPend) {
     const dias =
       servicio.fecha_fin && servicio.fecha_inicio
         ? Math.round(
-            (new Date(servicio.fecha_fin).getTime() - new Date(servicio.fecha_inicio).getTime()) /
+            (new Date(servicio.fecha_fin).getTime() -
+              new Date(servicio.fecha_inicio).getTime()) /
               (1000 * 60 * 60 * 24),
           )
         : null;
@@ -127,9 +169,10 @@ export function ServicioResumenEstado({
             Falta el tacto
           </Text>
           <Text fontSize="0.85rem" color="var(--text)" maxW="520px">
-            El servicio terminó el {servicio.fecha_fin ? servicio.fecha_fin : ""}. Cargá el resultado del tacto de
-            cada vaca (cabeza, cuerpo, cola o vacía) para medir el rendimiento y planificar el reservicio de las
-            vacías.
+            El servicio terminó el{" "}
+            {servicio.fecha_fin ? servicio.fecha_fin : ""}. Cargá el resultado
+            del tacto de cada vaca (cabeza, cuerpo, cola o vacía) para medir el
+            rendimiento y planificar el reservicio de las vacías.
           </Text>
           <Button colorPalette="brand" size="sm" onClick={onCargarResultados}>
             <IconClipboardCheck size={16} stroke={1.5} />
@@ -137,7 +180,11 @@ export function ServicioResumenEstado({
           </Button>
         </div>
         <div className="servicio-kpis">
-          <KpiTile label="Vacas" valor={participantes.length} sub="en este servicio" />
+          <KpiTile
+            label="Vacas"
+            valor={participantes.length}
+            sub="en este servicio"
+          />
           <KpiTile label="Toros usados" valor={enServicio + repuesto} />
           {dias !== null && <KpiTile label="Duración" valor={`${dias} días`} />}
         </div>
@@ -146,13 +193,23 @@ export function ServicioResumenEstado({
   }
 
   // hasRes: FINALIZADO con resultados cargados, o CERRADO.
-  const diagnosticados = participantes.filter((p) => p.resultado.estado !== "PENDIENTE");
+  const diagnosticados = participantes.filter(
+    (p) => p.resultado.estado !== "PENDIENTE",
+  );
   if (diagnosticados.length === 0) return null;
 
-  const cabeza = diagnosticados.filter((p) => p.resultado.tipo_prenez === "CABEZA").length;
-  const cuerpo = diagnosticados.filter((p) => p.resultado.tipo_prenez === "CUERPO").length;
-  const cola = diagnosticados.filter((p) => p.resultado.tipo_prenez === "COLA").length;
-  const vacias = diagnosticados.filter((p) => p.resultado.estado === "VACIA").length;
+  const cabeza = diagnosticados.filter(
+    (p) => p.resultado.tipo_prenez === "CABEZA",
+  ).length;
+  const cuerpo = diagnosticados.filter(
+    (p) => p.resultado.tipo_prenez === "CUERPO",
+  ).length;
+  const cola = diagnosticados.filter(
+    (p) => p.resultado.tipo_prenez === "COLA",
+  ).length;
+  const vacias = diagnosticados.filter(
+    (p) => p.resultado.estado === "VACIA",
+  ).length;
   const total = cabeza + cuerpo + cola + vacias;
   if (total === 0) return null;
 
@@ -160,10 +217,30 @@ export function ServicioResumenEstado({
   const pregPct = Math.round((pregnadas / total) * 100);
 
   const segmentos: SegmentoBreakdown[] = [
-    { label: "Cabeza", cantidad: cabeza, pct: (cabeza / total) * 100, color: SEGS_COLORES.Cabeza },
-    { label: "Cuerpo", cantidad: cuerpo, pct: (cuerpo / total) * 100, color: SEGS_COLORES.Cuerpo },
-    { label: "Cola", cantidad: cola, pct: (cola / total) * 100, color: SEGS_COLORES.Cola },
-    { label: "Vacía", cantidad: vacias, pct: (vacias / total) * 100, color: SEGS_COLORES.Vacía },
+    {
+      label: "Cabeza",
+      cantidad: cabeza,
+      pct: (cabeza / total) * 100,
+      color: SEGS_COLORES.Cabeza,
+    },
+    {
+      label: "Cuerpo",
+      cantidad: cuerpo,
+      pct: (cuerpo / total) * 100,
+      color: SEGS_COLORES.Cuerpo,
+    },
+    {
+      label: "Cola",
+      cantidad: cola,
+      pct: (cola / total) * 100,
+      color: SEGS_COLORES.Cola,
+    },
+    {
+      label: "Vacía",
+      cantidad: vacias,
+      pct: (vacias / total) * 100,
+      color: SEGS_COLORES.Vacía,
+    },
   ].filter((s) => s.cantidad > 0);
 
   return (
@@ -173,7 +250,11 @@ export function ServicioResumenEstado({
           <Text fontSize="0.75rem" color="var(--text)">
             Preñez total
           </Text>
-          <Text fontSize="2.75rem" fontWeight="800" color="var(--verde-confirmacion)" lineHeight="1.1">
+          <Text
+            fontSize="2.75rem"
+            fontWeight="800"
+            color="var(--verde-confirmacion)"
+            lineHeight="1.1">
             {pregPct}%
           </Text>
           <Text fontSize="0.75rem" color="var(--text)">
@@ -184,8 +265,10 @@ export function ServicioResumenEstado({
       </div>
       {vacias > 0 && (
         <p className="servicio-vacias-nota">
-          <b>{vacias}</b> {vacias === 1 ? "vaca vacía" : "vacas vacías"} · quedan secas
-          {servicio.estado === "FINALIZADO" && servicio.servicio_origen_id === null && " y pasan a reservicio"}
+          <b>{vacias}</b> {vacias === 1 ? "vaca vacía" : "vacas vacías"}
+          {servicio.estado === "FINALIZADO" &&
+            servicio.servicio_origen_id === null &&
+            " y pasan a reservicio"}
         </p>
       )}
     </div>
