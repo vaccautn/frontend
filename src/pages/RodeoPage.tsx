@@ -22,7 +22,7 @@ export function RodeoPage() {
     refetch: refetchRecomendaciones,
   } = useRecomendaciones();
 
-  const [mode, setMode] = useState<RodeoMode>("docked");
+  const [mode, setMode] = useState<RodeoMode>("full");
   const [loteSeleccionadoId, setLoteSeleccionadoId] = useState<number | null>(null);
   const [loteHoverId, setLoteHoverId] = useState<number | null>(null);
 
