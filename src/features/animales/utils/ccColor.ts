@@ -42,3 +42,11 @@ export const CC_COLORS: Record<number, string> = {
 export function colorPorValorCc(valorCc: number): string {
   return CC_COLORS[Math.round(valorCc)] ?? "#a0aec0";
 }
+
+// Hex del semáforo (--danger / --warning / --success de index.css): los
+// gráficos SVG (Recharts, el velocímetro) no resuelven bien variables CSS.
+export const NIVEL_CC_HEX: Record<NivelCC, string> = {
+  critico: "#c94c4c",
+  atencion: "#e0a83e",
+  normal: "#4a9163",
+};

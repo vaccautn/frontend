@@ -28,7 +28,8 @@
   --text-h: #264632;
   --bg: #f6f5f4;
   --panel: #ffffff;
-  --border: #dfe4dc;
+  /* Translúcido: separa sin pesar (sobre blanco se ve como #e8ebe8). */
+  --border: rgba(23, 38, 28, 0.09);
   --input-bg: #ffffff;
   --input-border: #c8d0c5;
   --accent: var(--verde-vacca);
@@ -47,7 +48,45 @@
   --orange-bg: #fbeadd;
   --orange-border: #edc99a;
   --info-bg: #e4ebf1;
-  --shadow: rgba(21, 32, 25, 0.12) 0 18px 45px;
+
+  /* ── Sistema de forma y profundidad ──────────────────────────────────────
+   * Una sola escala para toda la app. Referencia: el radio más grande en uso
+   * (24px, el del mapa).
+   *   lg   → tarjetas, paneles, tablas, diálogos y drawers
+   *   md   → elementos dentro de una tarjeta (tiles, filas, avisos, menús)
+   *   sm   → controles donde se escribe o elige (inputs, selects, segmentados)
+   *   xs   → tooltips y detalles chicos
+   *   full → acciones (botones), badges y chips
+   * Profundidad: sombras en capas en vez de bordes. Los bordes quedan solo
+   * para divisores y contornos de inputs. */
+  --radius-xs: 8px;
+  --radius-sm: 12px;
+  --radius-md: 16px;
+  --radius-lg: 24px;
+  --radius-full: 999px;
+  /* Concéntricos: radio externo − padding del contenedor. */
+  --radius-item: 10px; /* ítem de menú dentro de un menú md con 6px de padding */
+  --radius-segment: 9px; /* segmento dentro de un riel sm con 3px de padding */
+
+  /* Tinte verde oscuro (en vez de negro) para que las sombras sean cálidas. */
+  --shadow-card:
+    0 0 0 1px rgba(23, 38, 28, 0.04), 0 1px 2px rgba(23, 38, 28, 0.04),
+    0 6px 20px -6px rgba(23, 38, 28, 0.1);
+  --shadow-raised:
+    0 0 0 1px rgba(23, 38, 28, 0.05), 0 2px 4px rgba(23, 38, 28, 0.05),
+    0 16px 36px -10px rgba(23, 38, 28, 0.2);
+  --shadow-pop:
+    0 0 0 1px rgba(23, 38, 28, 0.06), 0 2px 6px rgba(23, 38, 28, 0.06),
+    0 12px 32px -8px rgba(23, 38, 28, 0.22);
+  --shadow-overlay:
+    0 0 0 1px rgba(23, 38, 28, 0.05), 0 28px 72px -16px rgba(23, 38, 28, 0.35);
+  --shadow-control: 0 1px 2px rgba(23, 38, 28, 0.06);
+  /* Compatibilidad: --shadow se usaba para menús y diálogos. */
+  --shadow: var(--shadow-pop);
+
+  --ring-focus: 0 0 0 4px var(--focus);
+  --backdrop: rgba(21, 32, 25, 0.32);
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
 
   /* Timeline genérico (src/components/ui/Timeline) */
   --timeline-planned: var(--azul-acero);
@@ -90,11 +129,37 @@ body {
 h1 {
   font-family: var(--heading);
   font-size: clamp(1.5rem, 1rem + 1.6vi, 2rem);
-  line-height: 1.05;
+  line-height: 1.1;
   font-weight: 700;
-  letter-spacing: 0;
+  letter-spacing: -0.02em;
   color: var(--text-h);
   margin: 0 0 12px;
+  text-wrap: balance;
+}
+
+h2,
+h3 {
+  letter-spacing: -0.01em;
+  text-wrap: balance;
+}
+
+::selection {
+  background: var(--verde-pastel);
+  color: var(--text-h);
+}
+
+button {
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* Respeta "reducir movimiento" del sistema: sin desplazamientos ni escalas. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 p {
@@ -127,15 +192,42 @@ input[type="date"][value=""] {
 
 input[type="date"]::-webkit-calendar-picker-indicator {
   padding: 2px;
-  border-radius: 4px;
+  border-radius: var(--radius-xs);
   cursor: pointer;
   opacity: 0.55;
   transition:
-    opacity 0.15s,
-    background 0.15s;
+    opacity 160ms var(--ease-out),
+    background 160ms var(--ease-out);
 }
 
 input[type="date"]::-webkit-calendar-picker-indicator:hover {
   background: var(--verde-pastel);
   opacity: 1;
+}
+
+/* Toasts (react-toastify) con el sistema de la app: tarjeta flotante blanca,
+ * radio md, sombra pop y colores semánticos de la marca. Se definen sobre
+ * .Toastify porque la librería declara sus variables en :root. */
+.Toastify {
+  --toastify-font-family: var(--sans);
+  --toastify-toast-bd-radius: var(--radius-md);
+  --toastify-toast-shadow: var(--shadow-pop);
+  --toastify-toast-padding: 14px 16px;
+  --toastify-toast-min-height: 56px;
+  --toastify-color-light: var(--panel);
+  --toastify-text-color-light: var(--text-h);
+  --toastify-color-success: var(--verde-confirmacion);
+  --toastify-color-error: var(--rojo-alerta);
+  --toastify-color-warning: var(--ambar-aviso);
+  --toastify-color-info: var(--azul-acero);
+  --toastify-color-progress-light: var(--accent);
+}
+
+.Toastify__toast {
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.Toastify__progress-bar {
+  height: 3px;
 }

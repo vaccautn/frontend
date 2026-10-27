@@ -12,9 +12,7 @@ export function KpiEvaluados({ total, evaluados, loading }: Props) {
   return (
     <Box
       p="4"
-      border="1px solid"
-      borderColor="var(--border)"
-      borderRadius="8px"
+      borderRadius="var(--radius-md)"
       bg="var(--bg)"
       display="flex"
       flexDirection="column"
@@ -52,10 +50,10 @@ export function KpiEvaluados({ total, evaluados, loading }: Props) {
         </Text>
       )}
 
-      <Box mt="3" h="5px" borderRadius="2px" bg="var(--verde-pastel)" overflow="hidden">
+      <Box mt="3" h="5px" borderRadius="full" bg="var(--verde-pastel)" overflow="hidden">
         <Box
           h="100%"
-          borderRadius="2px"
+          borderRadius="full"
           bg="var(--verde-vacca)"
           w={`${pct}%`}
           transition="width 0.4s ease"

@@ -17,9 +17,7 @@ export function KpiCriticos({ count, loading, label }: Props) {
   return (
     <Box
       p="4"
-      border="1px solid"
-      borderColor="var(--border)"
-      borderRadius="8px"
+      borderRadius="var(--radius-md)"
       bg="var(--bg)"
       display="flex"
       flexDirection="column"

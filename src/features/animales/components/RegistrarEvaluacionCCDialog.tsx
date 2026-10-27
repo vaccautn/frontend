@@ -469,7 +469,7 @@ export function RegistrarEvaluacionCCDialog({
                                       <FileUpload.ItemPreviewImage
                                         boxSize="48px"
                                         objectFit="cover"
-                                        borderRadius="md"
+                                        borderRadius="var(--radius-sm)"
                                       />
                                     </FileUpload.ItemPreview>
                                     <div className="align-baseline">

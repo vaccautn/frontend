@@ -12,10 +12,10 @@
   position: absolute;
   right: 0;
   top: 88px;
-  background: #fff;
+  background: var(--panel);
   border: none;
-  border-radius: 10px 0 0 10px;
-  padding: 12px 17px;
+  border-radius: var(--radius-full) 0 0 var(--radius-full);
+  padding: 12px 18px;
   display: flex;
   align-items: center;
   gap: 8px;
@@ -24,9 +24,9 @@
   font-weight: 700;
   color: var(--text-h);
   cursor: pointer;
-  box-shadow: 0 1px 6px rgba(0, 0, 0, 0.18);
+  box-shadow: var(--shadow-pop);
   z-index: 500;
-  transition: width 0.18s ease;
+  transition: width 200ms var(--ease-out);
 }
 
 .rodeo-pestana-flotante:hover {
@@ -50,7 +50,7 @@
   display: flex;
   flex-direction: column;
   overflow: auto;
-  animation: rodeo-panel-in 0.18s ease;
+  animation: rodeo-panel-in 240ms var(--ease-out);
 }
 
 @keyframes rodeo-panel-in {
@@ -107,17 +107,24 @@
   cursor: pointer;
   width: 32px;
   height: 32px;
-  border-radius: 6px;
+  border-radius: var(--radius-full);
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--panel);
+  background: var(--bg);
   border: none;
   color: var(--text-h);
+  transition:
+    background 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
 }
 
 .rodeo-panel__header-boton:hover {
-  background: var(--border);
+  background: rgba(23, 38, 28, 0.08);
+}
+
+.rodeo-panel__header-boton:active {
+  transform: scale(0.94);
 }
 
 /* ── Resumen (lote seleccionado o rodeo completo) ────────────────────────── */
@@ -135,8 +142,8 @@
   align-self: flex-start;
   font-size: 11px;
   font-weight: 700;
-  padding: 3px 8px;
-  border-radius: 5px;
+  padding: 3px 10px;
+  border-radius: var(--radius-full);
 }
 
 .rodeo-panel__lote-nombre {
@@ -167,8 +174,8 @@
 
 .rodeo-panel__stat {
   background: var(--panel);
-  border-radius: 8px;
-  padding: 10px;
+  border-radius: var(--radius-md);
+  padding: 12px;
   display: flex;
   flex-direction: column;
   gap: 2px;
@@ -418,9 +425,9 @@
 
 .rodeo-dashboard-full__card {
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
-  padding: 14px 16px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
+  padding: 18px 20px;
 }
 
 .rodeo-dashboard-full__card-titulo {
@@ -475,8 +482,8 @@
 
 .rodeo-dashboard-full__tabla-card {
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
   display: flex;
   flex-direction: column;
   min-width: 0;
@@ -488,7 +495,7 @@
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 14px 16px;
+  padding: 18px 20px;
   border-bottom: 1px solid var(--border);
   flex-wrap: wrap;
 }
@@ -507,7 +514,7 @@
 }
 
 .rodeo-dashboard-full__tabla-filtros {
-  padding: 10px 16px;
+  padding: 12px 20px;
   border-bottom: 1px solid var(--border);
 }
 
@@ -518,14 +525,30 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-height: 36px;
   padding: 7px 12px;
-  border: 1px solid var(--border);
-  border-radius: 999px;
+  border: 1px solid var(--input-border);
+  border-radius: var(--radius-sm);
   font-size: 12px;
   font-weight: 600;
   min-width: 190px;
   background: var(--panel);
+  box-shadow: var(--shadow-control);
   color: var(--text-h);
+  transition:
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
+}
+
+.rodeo-lote-selector__trigger:hover {
+  border-color: var(--gris-oscuro);
+}
+
+.rodeo-lote-selector__trigger[data-state="open"],
+.rodeo-lote-selector__trigger:focus-visible {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: var(--ring-focus);
 }
 
 .rodeo-lote-selector__dot {
@@ -553,9 +576,8 @@
   max-height: 320px;
   overflow: auto;
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.16);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-pop);
   padding: 6px;
   display: flex;
   flex-direction: column;
@@ -574,8 +596,9 @@
   align-items: center;
   gap: 8px;
   padding: 8px 10px;
-  border-radius: 8px;
+  border-radius: var(--radius-item);
   font-size: 13px;
+  transition: background 160ms var(--ease-out);
 }
 
 .rodeo-lote-selector__item:hover {
@@ -630,7 +653,8 @@
 
 .rodeo-minimapa {
   position: relative;
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-card);
   overflow: hidden;
   height: 400px;
   background: #1f2a20;
@@ -646,8 +670,9 @@
   position: absolute;
   left: 10px;
   top: 10px;
-  background: #fff;
-  border-radius: 999px;
+  background: var(--panel);
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-pop);
   padding: 6px 12px;
   font-size: 12px;
   font-weight: 600;
@@ -658,10 +683,11 @@
   position: absolute;
   right: 10px;
   bottom: 10px;
-  background: #fff;
+  background: var(--panel);
   border: none;
-  border-radius: 8px;
-  padding: 6px 10px;
+  border-radius: var(--radius-full);
+  box-shadow: var(--shadow-pop);
+  padding: 7px 12px;
   font-size: 12px;
   font-weight: 600;
   display: flex;

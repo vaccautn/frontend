@@ -45,15 +45,13 @@ export function HistorialCriticos({ historial, loading }: Props) {
                 gap="3"
                 px="3"
                 py="2"
-                border="1px solid"
-                borderColor="var(--border)"
-                borderRadius="6px"
+                borderRadius="var(--radius-sm)"
                 bg="var(--bg)">
                 <Box
                   w="4px"
                   h="full"
                   bg="var(--rojo-alerta)"
-                  borderRadius="2px"
+                  borderRadius="full"
                 />
                 <Text
                   fontWeight="600"
