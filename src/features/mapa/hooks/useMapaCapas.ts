@@ -16,6 +16,7 @@ import Stroke from "ol/style/Stroke";
 import Text from "ol/style/Text";
 import { fromLonLat } from "ol/proj";
 import { isEmpty } from "ol/extent";
+import type Geometry from "ol/geom/Geometry";
 
 import { colorPorEstadoLote, hexConAlpha } from "../utils/estadoLoteColor";
 import type { LotePotreroFeature, LotePotreroPropiedades } from "../types";
@@ -25,6 +26,19 @@ export type TipoCapaBase = "satelite" | "calles";
 export const PROYECCION_MAPA = "EPSG:3857";
 export const PROYECCION_DATOS = "EPSG:4326";
 export const geoJsonFormat = new GeoJSON();
+
+export function escribirPoligonoGeoJSON(geometria: Geometry): GeoJSON.Polygon {
+  const geomGeoJSON = geoJsonFormat.writeGeometryObject(geometria, {
+    dataProjection: PROYECCION_DATOS,
+    featureProjection: PROYECCION_MAPA,
+  }) as GeoJSON.Polygon;
+  return {
+    ...geomGeoJSON,
+    coordinates: geomGeoJSON.coordinates.map((anillo) =>
+      anillo.map(([lon, lat]) => [lon, lat]),
+    ),
+  };
+}
 
 export const ESRI_WORLD_IMAGERY_URL =
   "https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}";
