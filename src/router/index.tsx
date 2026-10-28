@@ -18,8 +18,12 @@ import { ServicioDetailPage } from "@/pages/ServicioDetailPage";
 import { CrearReservicioPage } from "@/pages/CrearReservicioPage";
 import ServicioNuevoPage from "@/pages/ServicioNuevoPage";
 import { RedirectAnimalDetail } from "./RedirectAnimalDetail";
+import { LandingPage } from "@/pages/LandingPage";
 
 export const router = createBrowserRouter([
+  // Landing publica: accesible con o sin sesion
+  { path: "/landing", element: <LandingPage /> },
+
   // Si ya estas logeado la ruta publica te lleva directo al dashboard
   {
     element: <PublicRoute />,
