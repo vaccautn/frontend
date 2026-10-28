@@ -1,8 +1,9 @@
-import { deleteRequest, getJson, putJson } from "@/services/httpClient";
+import { deleteRequest, getJson, postJson, putJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
 import type {
   AnimalLoteDetalle,
   GuardarGeometriaPayload,
+  LoteNdviHistorial,
   LotePotreroFeature,
   LotesPotreroFeatureCollection,
   Movimiento,
@@ -26,6 +27,7 @@ function normalizarFeature(feature: LotePotreroFeature): LotePotreroFeature {
       superficie_ha: numeroONull(feature.properties.superficie_ha),
       carga_animales_ha: numeroONull(feature.properties.carga_animales_ha),
       edad_promedio_meses: numeroONull(feature.properties.edad_promedio_meses),
+      ndvi_promedio: numeroONull(feature.properties.ndvi_promedio),
     },
   };
 }
@@ -57,4 +59,25 @@ export function eliminarGeometriaLote(loteId: number): Promise<void> {
 export function getAnimalesLote(loteId: number): Promise<AnimalLoteDetalle[]> {
   const token = getAccessToken();
   return getJson<AnimalLoteDetalle[]>(`/lotes/${loteId}/animales`, token);
+}
+
+export function getNdviHistorialLote(loteId: number): Promise<LoteNdviHistorial[]> {
+  const token = getAccessToken();
+  return getJson<LoteNdviHistorial[]>(`/lotes/${loteId}/ndvi/historial`, token);
+}
+
+export function getUltimoNdviLote(loteId: number): Promise<LoteNdviHistorial | null> {
+  return getNdviHistorialLote(loteId).then((historial) => historial.at(-1) ?? null);
+}
+
+export function actualizarNdviLote(
+  loteId: number,
+  payload?: { dias_atras?: number; max_nubosidad_pct?: number },
+): Promise<LoteNdviHistorial> {
+  const token = getAccessToken();
+  return postJson<LoteNdviHistorial, { dias_atras?: number; max_nubosidad_pct?: number }>(
+    `/lotes/${loteId}/ndvi/actualizar`,
+    payload,
+    token,
+  );
 }

@@ -18,7 +18,7 @@ import { fromLonLat } from "ol/proj";
 import { isEmpty } from "ol/extent";
 import type Geometry from "ol/geom/Geometry";
 
-import { colorPorEstadoLote, hexConAlpha } from "../utils/estadoLoteColor";
+import { getLoteStyle } from "../utils/ndviStyle";
 import type { LotePotreroFeature, LotePotreroPropiedades } from "../types";
 
 export type TipoCapaBase = "satelite" | "calles";
@@ -58,17 +58,22 @@ export function estiloLote(
   feature: FeatureLike,
   loteSeleccionadoId: number | null,
   loteHoverId: number | null = null,
+  mapType: "satelite" | "calle" = "satelite",
 ): Style {
   const propiedades = feature.get("propiedades") as LotePotreroPropiedades | undefined;
-  const color = propiedades ? colorPorEstadoLote(propiedades.estado) : "#a0aec0";
+  const ndvi = (feature.get("ndvi_promedio") ?? propiedades?.ndvi_promedio ?? null) as number | null;
+  const baseStyle = getLoteStyle(ndvi, mapType);
+  const baseFill = (baseStyle.getFill()?.getColor() as string | undefined) ?? "rgba(128, 128, 128, 0.7)";
+  const baseStroke = (baseStyle.getStroke()?.getColor() as string | undefined) ?? "#1a202c";
   const seleccionado = propiedades !== undefined && propiedades.id === loteSeleccionadoId;
   const enHover = !seleccionado && propiedades !== undefined && propiedades.id === loteHoverId;
+
   return new Style({
     stroke: new Stroke({
-      color: seleccionado || enHover ? "#ffffff" : color,
+      color: seleccionado || enHover ? "#ffffff" : baseStroke,
       width: seleccionado ? 4 : enHover ? 3 : 2,
     }),
-    fill: new Fill({ color: hexConAlpha(color, enHover ? 0.4 : 0.28) }),
+    fill: new Fill({ color: baseFill }),
     text: new Text({
       text: propiedades?.nombre ?? "",
       font: "12px sans-serif",
@@ -127,6 +132,7 @@ export function useMapaCapas({
   const huboAjusteInicialRef = useRef(false);
   const loteSeleccionadoIdRef = useRef(loteSeleccionadoId);
   const loteHoverIdRef = useRef(loteHoverId);
+  const tipoCapaBaseRef = useRef(tipoCapaBase);
   const onLoteClickRef = useRef(onLoteClick);
 
   useEffect(() => {
@@ -138,6 +144,11 @@ export function useMapaCapas({
     loteHoverIdRef.current = loteHoverId;
     lotesSourceRef.current.changed();
   }, [loteHoverId]);
+
+  useEffect(() => {
+    tipoCapaBaseRef.current = tipoCapaBase;
+    lotesSourceRef.current.changed();
+  }, [tipoCapaBase]);
 
   useEffect(() => {
     onLoteClickRef.current = onLoteClick;
@@ -158,7 +169,12 @@ export function useMapaCapas({
         new VectorLayer({
           source: lotesSourceRef.current,
           style: (feature) =>
-            estiloLote(feature, loteSeleccionadoIdRef.current, loteHoverIdRef.current),
+            estiloLote(
+              feature,
+              loteSeleccionadoIdRef.current,
+              loteHoverIdRef.current,
+              tipoCapaBaseRef.current === "calles" ? "calle" : "satelite",
+            ),
         }),
       ],
       view: new View({ center: fromLonLat(centro), zoom, minZoom, maxZoom }),
@@ -212,7 +228,10 @@ export function useMapaCapas({
           { type: "Feature", geometry: f.geometry, properties: {} },
           { dataProjection: PROYECCION_DATOS, featureProjection: PROYECCION_MAPA },
         ) as OlFeature;
-        feature.set("propiedades", f.properties);
+        const ndvi = f.properties.ndvi_promedio ?? null;
+        const propiedades = { ...f.properties, ndvi_promedio: ndvi };
+        feature.set("propiedades", propiedades);
+        feature.set("ndvi_promedio", ndvi);
         feature.setId(f.properties.id);
         return feature;
       });

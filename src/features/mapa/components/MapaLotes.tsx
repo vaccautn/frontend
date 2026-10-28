@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Button, Dialog, Portal, Spinner } from "@chakra-ui/react";
 import { IconFocusCentered, IconPolygon } from "@tabler/icons-react";
 import { toast } from "react-toastify";
 import "ol/ol.css";
@@ -34,12 +35,24 @@ import type { LoteOption } from "@/features/lotes/types";
 import {
   useMapaCapas,
   escribirPoligonoGeoJSON,
+  estiloLote,
   PROYECCION_MAPA,
   PROYECCION_DATOS,
   type TipoCapaBase,
 } from "../hooks/useMapaCapas";
-import { guardarGeometriaLote, eliminarGeometriaLote } from "../services/mapaService";
-import type { CapaKmz, LotePotreroFeature, LotePotreroPropiedades, Movimiento } from "../types";
+import {
+  actualizarNdviLote,
+  eliminarGeometriaLote,
+  getNdviHistorialLote,
+  guardarGeometriaLote,
+} from "../services/mapaService";
+import type {
+  CapaKmz,
+  LoteNdviHistorial,
+  LotePotreroFeature,
+  LotePotreroPropiedades,
+  Movimiento,
+} from "../types";
 
 import { KmzUploader } from "./KmzUploader";
 import { DibujoToolbar } from "./DibujoToolbar";
@@ -153,11 +166,81 @@ export function MapaLotes({
     nombre: string;
   } | null>(null);
   const [vinculandoKmz, setVinculandoKmz] = useState(false);
+  const [ndviLote, setNdviLote] = useState<LoteNdviHistorial | null>(null);
+  const [ndviLoading, setNdviLoading] = useState(false);
+  const [ndviActualizando, setNdviActualizando] = useState(false);
+  const [ndviModalOpen, setNdviModalOpen] = useState(false);
 
   const loteSeleccionado = useMemo(
     () => features.find((f) => f.properties.id === loteSeleccionadoId)?.properties ?? null,
     [features, loteSeleccionadoId],
   );
+
+  const sincronizarNdviEnFeature = useCallback((loteId: number, valor: number | null) => {
+    const feature = lotesSourceRef.current.getFeatureById(loteId);
+    if (!feature) return;
+    feature.set("ndvi_promedio", valor);
+    const propiedades = feature.get("propiedades") as LotePotreroPropiedades | undefined;
+    if (propiedades) {
+      const propiedadesActualizadas = { ...propiedades, ndvi_promedio: valor };
+      feature.set("propiedades", propiedadesActualizadas);
+      feature.setStyle(
+        (featureLike) =>
+          estiloLote(
+            featureLike,
+            loteSeleccionadoId,
+            loteHoverId,
+            tipoCapaBase === "calles" ? "calle" : "satelite",
+          ),
+      );
+    }
+    lotesSourceRef.current.changed();
+  }, [loteHoverId, loteSeleccionadoId, tipoCapaBase]);
+
+  const cargarNdviDelLote = useCallback(
+    async (loteId: number) => {
+      setNdviLoading(true);
+      try {
+        const historial = await getNdviHistorialLote(loteId);
+        const ultimo = historial.at(-1) ?? null;
+        setNdviLote(ultimo);
+        sincronizarNdviEnFeature(loteId, ultimo?.ndvi_promedio ?? null);
+        setNdviModalOpen(true);
+      } catch (error) {
+        const mensaje =
+          error instanceof ApiError ? normalizeBackendDetail(error.detail) : "No se pudo cargar el NDVI del lote.";
+        toast.error(mensaje);
+      } finally {
+        setNdviLoading(false);
+      }
+    },
+    [sincronizarNdviEnFeature],
+  );
+
+  useEffect(() => {
+    if (!loteSeleccionadoId) {
+      return;
+    }
+
+    const feature = lotesSourceRef.current.getFeatureById(loteSeleccionadoId);
+    if (feature) {
+      const propiedades = feature.get("propiedades") as LotePotreroPropiedades | undefined;
+      const ndviEnFeature = (feature.get("ndvi_promedio") ?? propiedades?.ndvi_promedio ?? null) as number | null;
+      if (ndviEnFeature !== null) {
+        setNdviLote((prev) => prev ?? { id: 0, lote_id: loteSeleccionadoId, ndvi_promedio: ndviEnFeature, ndvi_max: null, ndvi_min: null, cloud_cover_percentage: null, fecha_lectura: null });
+      }
+    }
+  }, [features, loteSeleccionadoId]);
+
+  useEffect(() => {
+    if (!loteSeleccionadoId) {
+      setNdviModalOpen(false);
+      setNdviLote(null);
+      return;
+    }
+
+    void cargarNdviDelLote(loteSeleccionadoId);
+  }, [loteSeleccionadoId, cargarNdviDelLote]);
 
   const lotesSinPoligono = useMemo(() => {
     const idsConPoligono = new Set(
@@ -256,6 +339,29 @@ export function MapaLotes({
       recomendacionesSourceRef.current.addFeature(feature);
     });
   }, [movimientos, mostrarRecomendaciones]);
+
+  const actualizarDatosSatelitales = useCallback(async () => {
+    if (!loteSeleccionadoId) return;
+
+    setNdviActualizando(true);
+    try {
+      const actualizado = await actualizarNdviLote(loteSeleccionadoId, {
+        dias_atras: 15,
+        max_nubosidad_pct: 20,
+      });
+      setNdviLote(actualizado);
+      sincronizarNdviEnFeature(loteSeleccionadoId, actualizado.ndvi_promedio ?? null);
+      onLotesChanged();
+      window.setTimeout(() => onLotesChanged(), 150);
+      toast.success("Datos satelitales actualizados correctamente.");
+    } catch (error) {
+      const mensaje =
+        error instanceof ApiError ? normalizeBackendDetail(error.detail) : "No se pudo actualizar el NDVI del lote.";
+      toast.error(mensaje);
+    } finally {
+      setNdviActualizando(false);
+    }
+  }, [loteSeleccionadoId, sincronizarNdviEnFeature]);
 
   const detenerInteracciones = () => {
     const map = mapRef.current;
@@ -570,6 +676,60 @@ export function MapaLotes({
         onCancelar={() => setPoligonoKmzSeleccionado(null)}
         onConfirmar={confirmarVinculacionKmz}
       />
+
+      <Dialog.Root
+        open={ndviModalOpen && loteSeleccionado !== null}
+        onOpenChange={(details) => {
+          if (!details.open) {
+            setNdviModalOpen(false);
+            setNdviLote(null);
+            onDeselect();
+          }
+        }}>
+        <Portal>
+          <Dialog.Backdrop />
+          <Dialog.Positioner>
+            <Dialog.Content>
+              <Dialog.Header>
+                <Dialog.Title>{loteSeleccionado?.nombre ?? "Lote"}</Dialog.Title>
+              </Dialog.Header>
+              <Dialog.Body>
+                {ndviLoading ? (
+                  <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                    <Spinner size="sm" />
+                    <span>Cargando lectura NDVI...</span>
+                  </div>
+                ) : ndviLote ? (
+                  <div style={{ display: "grid", gap: 8 }}>
+                    <div>
+                      <strong>NDVI promedio:</strong> {ndviLote.ndvi_promedio?.toFixed(4) ?? "Sin datos"}
+                    </div>
+                    <div>
+                      <strong>Fecha lectura:</strong> {ndviLote.fecha_lectura ?? "Sin datos"}
+                    </div>
+                    <div>
+                      <strong>Nubosidad:</strong> {ndviLote.cloud_cover_percentage ?? 0}%
+                    </div>
+                  </div>
+                ) : (
+                  <span>No hay lectura NDVI disponible para este lote.</span>
+                )}
+              </Dialog.Body>
+              <Dialog.Footer>
+                <Button variant="outline" onClick={() => setNdviModalOpen(false)}>
+                  Cerrar
+                </Button>
+                <Button
+                  colorPalette="green"
+                  onClick={actualizarDatosSatelitales}
+                  disabled={ndviActualizando || ndviLoading || loteSeleccionado === null}>
+                  {ndviActualizando ? <Spinner size="xs" /> : "Actualizar Datos Satelitales"}
+                </Button>
+              </Dialog.Footer>
+            </Dialog.Content>
+          </Dialog.Positioner>
+        </Portal>
+      </Dialog.Root>
     </div>
   );
 }

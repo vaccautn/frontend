@@ -11,8 +11,21 @@ export type LotePotreroPropiedades = {
   carga_animales_ha: number | null;
   cc_promedio: number | null;
   edad_promedio_meses?: number | null;
+  ndvi_promedio?: number | null;
   estado: EstadoLote;
   centroide: GeoJSON.Point | null;
+};
+
+export type LoteNdviHistorial = {
+  id: number;
+  lote_id: number;
+  ndvi_promedio: number | null;
+  ndvi_max: number | null;
+  ndvi_min: number | null;
+  cloud_cover_percentage: number | null;
+  fecha_lectura: string | null;
+  creado_en?: string | null;
+  actualizado_en?: string | null;
 };
 
 export type LotePotreroFeature = {
