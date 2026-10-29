@@ -5,6 +5,18 @@ type ApiErrorBody = {
   detail?: string | { message?: string; sesion_id?: number };
 };
 
+/** Evento que se dispara cuando el backend rechaza un token (401): la sesión
+ * venció o es inválida. AuthProvider lo escucha y cierra la sesión. */
+export const SESION_VENCIDA_EVENT = "vacca:sesion-vencida";
+
+function avisarSiSesionVencida(response: Response, accessToken?: string | null) {
+  // Sin token es un 401 esperable (p. ej. credenciales incorrectas en el
+  // login): no es una sesión vencida.
+  if (response.status === 401 && accessToken) {
+    window.dispatchEvent(new Event(SESION_VENCIDA_EVENT));
+  }
+}
+
 export class ApiError extends Error {
   status: number;
   detail: string;
@@ -44,6 +56,7 @@ export async function postJson<TResponse, TPayload>(
 
   const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
 
+  avisarSiSesionVencida(response, accessToken);
   if (!response.ok) {
     throw new ApiError(
       response.status,
@@ -71,6 +84,7 @@ export async function getJson<TResponse>(
 
   const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
 
+  avisarSiSesionVencida(response, accessToken);
   if (!response.ok) {
     throw new ApiError(
       response.status,
@@ -102,6 +116,7 @@ export async function patchJson<TResponse, TPayload>(
 
   const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
 
+  avisarSiSesionVencida(response, accessToken);
   if (!response.ok) {
     throw new ApiError(
       response.status,
@@ -133,6 +148,7 @@ export async function putJson<TResponse, TPayload>(
 
   const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
 
+  avisarSiSesionVencida(response, accessToken);
   if (!response.ok) {
     throw new ApiError(
       response.status,
@@ -158,6 +174,7 @@ export async function deleteRequest(
     headers,
   });
 
+  avisarSiSesionVencida(response, accessToken);
   if (!response.ok) {
     const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
     throw new ApiError(
@@ -186,6 +203,7 @@ export async function postFormData<TResponse>(
 
   const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
 
+  avisarSiSesionVencida(response, accessToken);
   if (!response.ok) {
     throw new ApiError(
       response.status,

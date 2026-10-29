@@ -6,8 +6,15 @@ import {
   type ReactNode,
 } from "react";
 import type { AuthUser } from "../types/authTypes";
-import { getStoredUser, clearSession } from "./authSession";
+import {
+  getAccessToken,
+  getStoredUser,
+  clearSession,
+  marcarSesionVencida,
+  tokenVencido,
+} from "./authSession";
 import { logoutProducer } from "../services/authService";
+import { SESION_VENCIDA_EVENT } from "@/services/httpClient";
 
 interface AuthContextValue {
   user: AuthUser | null;
@@ -19,10 +26,29 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
-  const [user, setUser] = useState<AuthUser | null>(null);
+  // La sesión se lee al crear el estado (localStorage es sincrónico), así el
+  // primer render ya sabe si hay usuario. Un token vencido no es una sesión:
+  // se descarta antes de que la app empiece a pedir datos y mostrar errores.
+  const [user, setUser] = useState<AuthUser | null>(() => {
+    const token = getAccessToken();
+    if (token && tokenVencido(token)) {
+      clearSession();
+      marcarSesionVencida();
+      return null;
+    }
+    return getStoredUser();
+  });
 
+  // El backend rechazó el token en medio del uso (venció mientras la app
+  // estaba abierta): se cierra la sesión y ProtectedRoute lleva al login.
   useEffect(() => {
-    setUser(getStoredUser());
+    const alVencer = () => {
+      clearSession();
+      marcarSesionVencida();
+      setUser(null);
+    };
+    window.addEventListener(SESION_VENCIDA_EVENT, alVencer);
+    return () => window.removeEventListener(SESION_VENCIDA_EVENT, alVencer);
   }, []);
 
   const refreshSession = () => {

@@ -39,3 +39,28 @@ export function getStoredUser() {
     return null;
   }
 }
+
+/** true si el JWT ya venció (o no se puede leer su vencimiento). */
+export function tokenVencido(token: string): boolean {
+  try {
+    const payload = token.split(".")[1].replace(/-/g, "+").replace(/_/g, "/");
+    const { exp } = JSON.parse(atob(payload)) as { exp?: number };
+    return typeof exp !== "number" || Date.now() >= exp * 1000;
+  } catch {
+    return true;
+  }
+}
+
+// Aviso para el login: se marca al cerrar la sesión por vencimiento y la
+// pantalla de login lo muestra una vez.
+const AVISO_SESION_VENCIDA = "auth.sesionVencida";
+
+export function marcarSesionVencida() {
+  sessionStorage.setItem(AVISO_SESION_VENCIDA, "1");
+}
+
+export function consumirAvisoSesionVencida(): boolean {
+  const hayAviso = sessionStorage.getItem(AVISO_SESION_VENCIDA) === "1";
+  sessionStorage.removeItem(AVISO_SESION_VENCIDA);
+  return hayAviso;
+}

@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Alert, Button } from "@chakra-ui/react";
 import { useAuth } from "@/features/auth";
 import {
+  consumirAvisoSesionVencida,
   initialLoginValues,
   loginProducer,
   normalizeBackendDetail,
@@ -28,6 +29,8 @@ function LoginPage() {
     sessionStorage.removeItem("register-success-message");
     return message;
   }, []);
+
+  const sesionVencida = useMemo(() => consumirAvisoSesionVencida(), []);
 
   const updateField =
     (field: keyof LoginValues) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -92,6 +95,17 @@ function LoginPage() {
             <Alert.Indicator />
             <Alert.Content>
               <Alert.Description>{successMessage}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
+        ) : null}
+
+        {sesionVencida && !formError ? (
+          <Alert.Root status="info" colorPalette="brand" className="auth-alert">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Description>
+                Tu sesión venció. Volvé a ingresar para continuar.
+              </Alert.Description>
             </Alert.Content>
           </Alert.Root>
         ) : null}
