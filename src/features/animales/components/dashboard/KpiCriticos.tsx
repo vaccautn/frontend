@@ -16,6 +16,7 @@ export function KpiCriticos({ count, loading, label }: Props) {
 
   return (
     <Box
+      className="animal-dashboard__tarjeta"
       p="4"
       borderRadius="var(--radius-md)"
       bg="var(--tile-bg)"

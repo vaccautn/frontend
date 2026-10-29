@@ -113,13 +113,13 @@ function Cobertura({ evaluados, total }: { evaluados: number; total: number }) {
   return (
     <div className="sesion-dashboard__cobertura">
       <svg viewBox="0 0 130 130" width="140" height="140" role="img" aria-label={`${pct}% del rodeo evaluado`}>
-        <circle cx="65" cy="65" r={radio} fill="none" stroke="#e4ebf1" strokeWidth="12" />
+        <circle cx="65" cy="65" r={radio} fill="none" stroke="var(--indicador-neutro-bg)" strokeWidth="12" />
         <circle
           cx="65"
           cy="65"
           r={radio}
           fill="none"
-          stroke="#3e5c76"
+          stroke="var(--indicador-neutro)"
           strokeWidth="12"
           strokeLinecap="round"
           strokeDasharray={`${(pct / 100) * circunferencia} ${circunferencia}`}
@@ -257,8 +257,9 @@ function DistribucionApilada({
           </div>
         ))}
       </div>
+      {/* La referencia solo lista las calificaciones con animales. */}
       <ul className="sesion-dashboard__leyenda">
-        {ESCALA.map((cc) => (
+        {ESCALA.filter((cc) => cantidadDe(cc) > 0).map((cc) => (
           <li key={cc}>
             <span
               className="sesion-dashboard__leyenda-color"

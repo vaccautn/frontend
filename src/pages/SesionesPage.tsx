@@ -107,16 +107,17 @@ export function SesionesPage() {
   return (
     <section>
       <div className="section-header">
-        <div className="title-and-description">
+        <div className="titulo-con-accion">
           <h1>Sesiones de evaluación</h1>
+          <Button
+            colorPalette="brand"
+            className="boton-agregar"
+            onClick={handleIniciarSesion}
+            loading={isStarting}>
+            Iniciar sesión de evaluación
+            <IconPlus size={18} stroke={2.25} />
+          </Button>
         </div>
-        <Button
-          colorPalette="brand"
-          onClick={handleIniciarSesion}
-          loading={isStarting}>
-          <IconPlus size={18} stroke={1.5} />
-          Iniciar sesión de evaluación
-        </Button>
       </div>
 
       <SesionesFiltros

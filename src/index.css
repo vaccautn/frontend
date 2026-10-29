@@ -55,6 +55,10 @@
   --orange: var(--ocre-campo);
   --orange-bg: #fbeadd;
   --orange-border: #edc99a;
+  /* Indicadores neutros de los tableros (no semáforo): entre el ocre y el
+   * marrón cuero, sin irse al mostaza. */
+  --indicador-neutro: #a3703f;
+  --indicador-neutro-bg: #f1e5d8;
   --info-bg: #e4ebf1;
 
   /* ── Sistema de forma y profundidad ──────────────────────────────────────
@@ -176,6 +180,40 @@ h2,
 h3 {
   letter-spacing: -0.01em;
   text-wrap: balance;
+}
+
+/* Título de página con su acción de agregar al lado (Sesiones, Servicios):
+ * CTA verde con sombra de color, como el de agregar animales. */
+.titulo-con-accion {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 14px;
+}
+
+.titulo-con-accion h1 {
+  margin: 0;
+}
+
+.boton-agregar {
+  height: 44px;
+  padding-inline: 18px 16px;
+  box-shadow:
+    0 8px 20px -6px rgba(74, 120, 86, 0.6),
+    0 1px 2px rgba(23, 38, 28, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transition:
+    background 160ms var(--ease-out),
+    transform 160ms var(--ease-out),
+    box-shadow 200ms var(--ease-out);
+}
+
+.boton-agregar:hover:not(:disabled) {
+  box-shadow:
+    0 12px 26px -8px rgba(46, 83, 57, 0.7),
+    0 1px 2px rgba(23, 38, 28, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transform: translateY(-1px);
 }
 
 /* Logotipo: "vacca" en minúscula, Manrope 800 con tracking cerrado. El
