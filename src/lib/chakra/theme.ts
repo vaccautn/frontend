@@ -5,6 +5,18 @@ import { createSystem, defaultConfig, defineConfig } from "@chakra-ui/react";
  * definidas en src/index.css (paleta VACCA). No agregar hex nuevos:
  * si hace falta un color que no está en index.css, se define ahí primero.
  */
+// Los slot recipes de abajo pisan solo algunos estilos. Chakra fusiona el
+// array `slots` por posición, así que hay que repetir la lista completa del
+// recipe original o se pierden slots (p. ej. el `trigger` del diálogo).
+const slotsDe = (recipe: string) =>
+  defaultConfig.theme?.slotRecipes?.[recipe]?.slots ?? [];
+
+const CONTROL_OUTLINE = {
+  bg: "var(--input-bg)",
+  borderColor: "var(--input-border)",
+  boxShadow: "var(--shadow-control)",
+} as const;
+
 const config = defineConfig({
   cssVarsPrefix: "vacca",
   globalCss: {
@@ -34,12 +46,140 @@ const config = defineConfig({
         body: { value: "var(--sans)" },
       },
     },
+    // Forma y profundidad: los componentes de Chakra usan la misma escala que
+    // el CSS propio (tokens --radius-* y --shadow-* de src/index.css).
+    recipes: {
+      button: {
+        base: {
+          borderRadius: "full",
+          fontWeight: "semibold",
+          transitionProperty: "background, border-color, color, box-shadow, transform",
+          transitionDuration: "160ms",
+          transitionTimingFunction: "var(--ease-out)",
+          _active: { transform: "scale(0.97)" },
+        },
+        variants: {
+          variant: {
+            solid: {
+              boxShadow:
+                "0 1px 2px rgba(23, 38, 28, 0.16), inset 0 1px 0 rgba(255, 255, 255, 0.14)",
+            },
+            outline: {
+              bg: "var(--panel)",
+              borderColor: "var(--border)",
+              boxShadow: "var(--shadow-control)",
+              _hover: { bg: "var(--bg)" },
+            },
+          },
+        },
+      },
+      badge: {
+        base: { borderRadius: "full" },
+      },
+      // Controles donde se escribe: mismo borde, fondo y sombra que los
+      // inputs propios (.field input, filtros).
+      input: {
+        variants: { variant: { outline: CONTROL_OUTLINE } },
+      },
+      textarea: {
+        variants: { variant: { outline: CONTROL_OUTLINE } },
+      },
+    },
+    slotRecipes: {
+      dialog: {
+        slots: slotsDe("dialog"),
+        base: {
+          backdrop: { bg: "var(--backdrop)" },
+          content: {
+            borderRadius: "var(--radius-lg)",
+            boxShadow: "var(--shadow-overlay)",
+          },
+        },
+      },
+      drawer: {
+        slots: slotsDe("drawer"),
+        base: {
+          backdrop: { bg: "var(--backdrop)" },
+        },
+      },
+      menu: {
+        slots: slotsDe("menu"),
+        base: {
+          content: {
+            borderRadius: "var(--radius-md)",
+            boxShadow: "var(--shadow-pop)",
+            p: "6px",
+          },
+          item: { borderRadius: "var(--radius-item)" },
+        },
+      },
+      nativeSelect: {
+        slots: slotsDe("nativeSelect"),
+        variants: { variant: { outline: { field: CONTROL_OUTLINE } } },
+      },
+      select: {
+        slots: slotsDe("select"),
+        variants: { variant: { outline: { trigger: CONTROL_OUTLINE } } },
+        base: {
+          content: {
+            borderRadius: "var(--radius-md)",
+            boxShadow: "var(--shadow-pop)",
+            p: "6px",
+          },
+          item: { borderRadius: "var(--radius-item)" },
+        },
+      },
+      popover: {
+        slots: slotsDe("popover"),
+        base: {
+          content: {
+            borderRadius: "var(--radius-md)",
+            boxShadow: "var(--shadow-pop)",
+          },
+        },
+      },
+      datePicker: {
+        slots: slotsDe("datePicker"),
+        variants: { variant: { outline: { input: CONTROL_OUTLINE } } },
+        base: {
+          content: {
+            borderRadius: "var(--radius-md)",
+            boxShadow: "var(--shadow-pop)",
+          },
+        },
+      },
+    },
     semanticTokens: {
+      // l2: inputs, selects y controles; l3: paneles flotantes chicos.
+      radii: {
+        l1: { value: "var(--radius-xs)" },
+        l2: { value: "var(--radius-sm)" },
+        l3: { value: "var(--radius-md)" },
+      },
+      shadows: {
+        xs: { value: "var(--shadow-control)" },
+        sm: { value: "var(--shadow-card)" },
+        md: { value: "var(--shadow-pop)" },
+        lg: { value: "var(--shadow-pop)" },
+        xl: { value: "var(--shadow-overlay)" },
+        "2xl": { value: "var(--shadow-overlay)" },
+      },
       colors: {
         // Texto por defecto de los componentes de Chakra: verde muy oscuro
         // (--text-h) en vez de negro, para bajar el contraste.
         fg: { value: "var(--text-h)" },
+        // Fondo de diálogos, menús, popovers y calendarios: el blanco roto
+        // de la app.
+        bg: {
+          panel: { value: "var(--panel)" },
+        },
+        // La paleta por defecto es gris (botones "Cancelar" neutros), pero el
+        // anillo de foco es siempre el verde de la marca.
+        gray: {
+          focusRing: { value: "{colors.verdeVacca}" },
+        },
         brand: {
+          border: { value: "var(--border)" },
           solid: { value: "{colors.verdeVacca}" },
           contrast: { value: "white" },
           fg: { value: "{colors.verdeBosque}" },

@@ -1,0 +1,131 @@
+/* Botón que abre la ficha: pastilla con sombra de tarjeta, sin divisores
+ * alrededor. */
+.ficha__trigger {
+  margin-bottom: 1.75rem;
+  box-shadow: var(--shadow-card);
+  transition:
+    box-shadow 200ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.ficha__trigger:hover {
+  box-shadow: var(--shadow-raised);
+}
+
+/* Ficha flotante: panel blanco roto con radio md y sombra pop (como los
+ * menús), filas etiqueta–valor con filetes y acciones al pie. */
+.ficha {
+  width: min(380px, calc(100vw - 32px));
+  padding: 16px 20px 18px;
+  border-radius: var(--radius-md);
+  background: var(--panel);
+  box-shadow: var(--shadow-pop);
+}
+
+/* Editando entra el formulario: más ancho y en una columna. */
+.ficha--editando {
+  width: min(460px, calc(100vw - 32px));
+}
+
+.ficha--editando .animal-edit-page__form {
+  grid-template-columns: 1fr;
+}
+
+.ficha__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 10px;
+}
+
+.ficha__titulo {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 1.05rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
+}
+
+.ficha__filas {
+  margin: 0;
+}
+
+.ficha__fila {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 11px 0;
+  border-top: 1px solid var(--border);
+}
+
+.ficha__fila dt {
+  flex-shrink: 0;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.ficha__fila dd {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 0.92rem;
+  font-weight: 700;
+  text-align: right;
+}
+
+.ficha__valor--vacio {
+  color: var(--gris-oscuro) !important;
+  font-weight: 500 !important;
+}
+
+/* Acciones al pie, a la derecha: pastillas con borde fino. */
+.ficha__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--border);
+}
+
+.ficha__acciones .animal-detail__action {
+  border: 1px solid var(--border);
+  background: var(--panel);
+  opacity: 1;
+}
+
+.ficha__acciones .animal-detail__action:hover:not(:disabled) {
+  background: var(--bg);
+}
+
+/* Estado (Activo, Vendido…) junto al título de la página. */
+.estado-pill {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.65rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-full);
+  background: var(--bg);
+  color: var(--text);
+  font-size: 0.8rem;
+  font-weight: 700;
+}
+
+.estado-pill--exito {
+  border-color: var(--success-border);
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.estado-pill--alerta {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.estado-pill--aviso {
+  border-color: var(--warning-border);
+  background: var(--warning-bg);
+  color: var(--ocre-campo);
+}

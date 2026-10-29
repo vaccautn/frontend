@@ -16,7 +16,6 @@ import {
   Textarea,
 } from "@chakra-ui/react";
 import {
-  IconChevronDown,
   IconChevronRight,
   IconClipboardCheck,
   IconEdit,
@@ -60,6 +59,7 @@ import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
 import { VacaIcon } from "@/utils/icons";
 import { FechaInput } from "@/components/FechaInput";
+import { Ficha, FichaFilas } from "@/components/ui/Ficha";
 import { DiagnosticoControles } from "../DiagnosticoControles";
 import { ServicioTorosTabla } from "../detail/ServicioTorosTabla";
 import { ServicioPreservicioRecomendaciones } from "../detail/ServicioPreservicioRecomendaciones";
@@ -68,16 +68,6 @@ import { esCargable, faltaTipo, type Diagnostico } from "../../utils/diagnostico
 import { localNaiveNow } from "@/utils/localDateTime";
 import { toast } from "react-toastify";
 import { useServicioDetalleExtra } from "../../hooks/useServicioDetalleExtra";
-
-const CAMPOS: { label: string; render: (servicio: ServicioRead) => string }[] = [
-  { label: "Fecha de inicio", render: (s) => formatFecha(s.fecha_inicio) },
-  { label: "Fecha de fin", render: (s) => (s.fecha_fin ? formatFecha(s.fecha_fin) : "—") },
-];
-
-const CAMPO_OBSERVACIONES = {
-  label: "Observaciones",
-  render: (servicio: ServicioRead) => servicio.observaciones || "—",
-};
 
 type Props = {
   servicioId: number;
@@ -381,177 +371,159 @@ export function ServicioDetalleCompleto({
         </p>
       )}
 
-      <Button
-        colorPalette="brand"
-        variant="outline"
-        bg="var(--panel)"
-        className="animal-page__details-toggle"
-        aria-expanded={isDetailsOpen}
-        disabled={isEditing}
-        onClick={() => setIsDetailsOpen((current) => !current)}>
-        <IconChevronDown
-          size={16}
-          stroke={1.75}
-          className={`animal-page__details-toggle-icon${
-            isDetailsOpen ? " animal-page__details-toggle-icon--open" : ""
-          }`}
-        />
-        {isDetailsOpen ? "Ocultar detalles" : "Mostrar detalles"}
-      </Button>
-
-      <div
-        className={`animal-page__grid-collapse${
-          isDetailsOpen ? " animal-page__grid-collapse--open" : ""
-        }`}>
-        <div className="animal-page__grid-collapse-inner">
-          <div className="animal-page__grid-wrapper">
-            {isEditing && editValues ? (
-              <form onSubmit={handleSave} noValidate className="animal-edit-page__form">
-                {editFormError && (
-                  <p
-                    className="status-message error animal-edit-page__field--full"
-                    role="alert">
-                    {editFormError}
-                  </p>
-                )}
-
-                <Field.Root invalid={!!editErrors.nombre}>
-                  <Field.Label>Nombre</Field.Label>
-                  <Input value={editValues.nombre} onChange={updateEditField("nombre")} />
-                  <Field.ErrorText>{editErrors.nombre}</Field.ErrorText>
-                </Field.Root>
-
-                <Field.Root invalid={!!editErrors.estado}>
-                  <Field.Label>Estado</Field.Label>
-                  <NativeSelect.Root>
-                    <NativeSelect.Field
-                      value={editValues.estado}
-                      onChange={updateEditField("estado")}>
-                      {opcionesEstadoServicio(servicio.estado).map(({ value, label }) => (
-                        <option key={value} value={value}>
-                          {label}
-                        </option>
-                      ))}
-                    </NativeSelect.Field>
-                    <NativeSelect.Indicator />
-                  </NativeSelect.Root>
-                  <Field.ErrorText>{editErrors.estado}</Field.ErrorText>
-                </Field.Root>
-
-                <Field.Root invalid={!!editErrors.fecha_inicio}>
-                  <Field.Label>Fecha de inicio</Field.Label>
-                  <FechaInput
-                    value={editValues.fecha_inicio}
-                    onChange={(value) => setEditField("fecha_inicio", value)}
-                  />
-                  <Field.ErrorText>{editErrors.fecha_inicio}</Field.ErrorText>
-                </Field.Root>
-
-                <Field.Root invalid={!!editErrors.fecha_fin}>
-                  <Field.Label>Fecha de fin</Field.Label>
-                  <FechaInput
-                    value={editValues.fecha_fin}
-                    onChange={(value) => setEditField("fecha_fin", value)}
-                  />
-                  <Field.ErrorText>{editErrors.fecha_fin}</Field.ErrorText>
-                </Field.Root>
-
-                <Field.Root className="animal-edit-page__field--full">
-                  <Field.Label>Observaciones</Field.Label>
-                  <Textarea
-                    value={editValues.observaciones}
-                    onChange={updateEditField("observaciones")}
-                    rows={3}
-                  />
-                </Field.Root>
-
-                <div className="animal-edit-page__actions">
-                  <Button
-                    type="button"
-                    variant="outline"
-                    className="animal-form__cancel"
-                    onClick={cancelEditing}
-                    disabled={isSaving}>
-                    Cancelar
-                  </Button>
-                  <Button
-                    type="submit"
-                    colorPalette="brand"
-                    loading={isSaving}
-                    loadingText="Guardando...">
-                    Guardar cambios
-                  </Button>
-                </div>
-              </form>
-            ) : (
-              <>
-                <dl className="animal-page__grid">
-                  {CAMPOS.map(({ label, render }) => (
-                    <div key={label}>
-                      <dt>{label}</dt>
-                      <dd>{render(servicio)}</dd>
-                    </div>
-                  ))}
-                  <div className="animal-page__grid-field--full">
-                    <dt>{CAMPO_OBSERVACIONES.label}</dt>
-                    <dd>{CAMPO_OBSERVACIONES.render(servicio)}</dd>
-                  </div>
-                </dl>
-
-                <div className="animal-page__grid-actions">
-                  <button type="button" className="animal-detail__action" onClick={startEditing}>
-                    <IconEdit size={16} stroke={1.5} />
-                    Editar
-                  </button>
-                  <span
-                    className={`animal-detail__action-tooltip-target${
-                      puedeEliminar ? "" : " animal-detail__action-tooltip-target--disabled"
-                    }`}
-                    title={puedeEliminar ? undefined : "No se puede eliminar un servicio cerrado."}>
-                    <button
-                      type="button"
-                      className="animal-detail__action animal-detail__action--danger"
-                      onClick={() => setIsEliminarOpen(true)}
-                      disabled={!puedeEliminar}>
-                      <IconTrash size={16} stroke={1.5} />
-                      Eliminar
-                    </button>
-                  </span>
-                  {puedeCerrar && (
-                    <button
-                      type="button"
-                      className="animal-detail__action"
-                      disabled={isCerrando}
-                      onClick={handleCerrarServicio}>
-                      Cerrar servicio
-                    </button>
-                  )}
-                  {puedeIniciarReservicio && (
-                    <button
-                      type="button"
-                      className="animal-detail__action"
-                      onClick={() => navigate(`/servicios/${servicio.id}/reservicio`)}>
-                      <IconRepeat size={16} stroke={1.5} />
-                      Iniciar reservicio
-                    </button>
-                  )}
-                  {servicio.estado === "FINALIZADO" && hayResultadosPendientes && !diagnosticos && (
-                    <button
-                      type="button"
-                      className="animal-detail__action"
-                      onClick={iniciarCargaResultados}>
-                      <IconClipboardCheck size={16} stroke={1.5} />
-                      Cargar resultados
-                    </button>
-                  )}
-                </div>
-              </>
+      <Ficha
+        titulo="Ficha del servicio"
+        abierta={isDetailsOpen}
+        onAbiertaChange={(abierta) => {
+          if (!abierta && isEditing) cancelEditing();
+          setIsDetailsOpen(abierta);
+        }}
+        editando={isEditing}>
+        {isEditing && editValues ? (
+          <form onSubmit={handleSave} noValidate className="animal-edit-page__form">
+            {editFormError && (
+              <p
+                className="status-message error animal-edit-page__field--full"
+                role="alert">
+                {editFormError}
+              </p>
             )}
-          </div>
-        </div>
-      </div>
 
-      <div className="animal-page__details-divider" />
+            <Field.Root invalid={!!editErrors.nombre}>
+              <Field.Label>Nombre</Field.Label>
+              <Input value={editValues.nombre} onChange={updateEditField("nombre")} />
+              <Field.ErrorText>{editErrors.nombre}</Field.ErrorText>
+            </Field.Root>
+
+            <Field.Root invalid={!!editErrors.estado}>
+              <Field.Label>Estado</Field.Label>
+              <NativeSelect.Root>
+                <NativeSelect.Field
+                  value={editValues.estado}
+                  onChange={updateEditField("estado")}>
+                  {opcionesEstadoServicio(servicio.estado).map(({ value, label }) => (
+                    <option key={value} value={value}>
+                      {label}
+                    </option>
+                  ))}
+                </NativeSelect.Field>
+                <NativeSelect.Indicator />
+              </NativeSelect.Root>
+              <Field.ErrorText>{editErrors.estado}</Field.ErrorText>
+            </Field.Root>
+
+            <Field.Root invalid={!!editErrors.fecha_inicio}>
+              <Field.Label>Fecha de inicio</Field.Label>
+              <FechaInput
+                value={editValues.fecha_inicio}
+                onChange={(value) => setEditField("fecha_inicio", value)}
+              />
+              <Field.ErrorText>{editErrors.fecha_inicio}</Field.ErrorText>
+            </Field.Root>
+
+            <Field.Root invalid={!!editErrors.fecha_fin}>
+              <Field.Label>Fecha de fin</Field.Label>
+              <FechaInput
+                value={editValues.fecha_fin}
+                onChange={(value) => setEditField("fecha_fin", value)}
+              />
+              <Field.ErrorText>{editErrors.fecha_fin}</Field.ErrorText>
+            </Field.Root>
+
+            <Field.Root className="animal-edit-page__field--full">
+              <Field.Label>Observaciones</Field.Label>
+              <Textarea
+                value={editValues.observaciones}
+                onChange={updateEditField("observaciones")}
+                rows={3}
+              />
+            </Field.Root>
+
+            <div className="animal-edit-page__actions">
+              <Button
+                type="button"
+                variant="outline"
+                className="animal-form__cancel"
+                onClick={cancelEditing}
+                disabled={isSaving}>
+                Cancelar
+              </Button>
+              <Button
+                type="submit"
+                colorPalette="brand"
+                loading={isSaving}
+                loadingText="Guardando...">
+                Guardar cambios
+              </Button>
+            </div>
+          </form>
+        ) : (
+          <>
+            <FichaFilas
+              filas={[
+                { label: "Fecha de inicio", valor: formatFecha(servicio.fecha_inicio) },
+                {
+                  label: "Fecha de fin",
+                  valor: servicio.fecha_fin ? formatFecha(servicio.fecha_fin) : null,
+                },
+                {
+                  label: "Observaciones",
+                  valor: servicio.observaciones,
+                  vacio: "Sin observaciones",
+                },
+              ]}
+            />
+            <div className="ficha__acciones">
+              <button type="button" className="animal-detail__action" onClick={startEditing}>
+                <IconEdit size={16} stroke={1.5} />
+                Editar
+              </button>
+              <span
+                className={`animal-detail__action-tooltip-target${
+                  puedeEliminar ? "" : " animal-detail__action-tooltip-target--disabled"
+                }`}
+                title={puedeEliminar ? undefined : "No se puede eliminar un servicio cerrado."}>
+                <button
+                  type="button"
+                  className="animal-detail__action animal-detail__action--danger"
+                  onClick={() => setIsEliminarOpen(true)}
+                  disabled={!puedeEliminar}>
+                  <IconTrash size={16} stroke={1.5} />
+                  Eliminar
+                </button>
+              </span>
+              {puedeCerrar && (
+                <button
+                  type="button"
+                  className="animal-detail__action"
+                  disabled={isCerrando}
+                  onClick={handleCerrarServicio}>
+                  Cerrar servicio
+                </button>
+              )}
+              {puedeIniciarReservicio && (
+                <button
+                  type="button"
+                  className="animal-detail__action"
+                  onClick={() => navigate(`/servicios/${servicio.id}/reservicio`)}>
+                  <IconRepeat size={16} stroke={1.5} />
+                  Iniciar reservicio
+                </button>
+              )}
+              {servicio.estado === "FINALIZADO" && hayResultadosPendientes && !diagnosticos && (
+                <button
+                  type="button"
+                  className="animal-detail__action"
+                  onClick={iniciarCargaResultados}>
+                  <IconClipboardCheck size={16} stroke={1.5} />
+                  Cargar resultados
+                </button>
+              )}
+            </div>
+          </>
+        )}
+      </Ficha>
+
 
       {(servicio.estado === "PLANIFICADO" || servicio.estado === "EN_CURSO") && (
         <ServicioPreservicioRecomendaciones key={servicio.id} servicioId={servicio.id} />

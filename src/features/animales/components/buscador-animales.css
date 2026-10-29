@@ -1,0 +1,230 @@
+/* Buscador tipo "spotlight": pastilla con el fondo y la sombra del
+ * contenido, y botón verde de lupa. */
+.buscador-animales {
+  width: min(100%, 460px);
+}
+
+.buscador-animales__control {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 48px;
+  padding: 0 6px 0 20px;
+  border-radius: var(--radius-full);
+  background: var(--contenido-bg);
+  box-shadow:
+    0 0 0 1px rgba(23, 38, 28, 0.07),
+    var(--shadow-contenido);
+  cursor: text;
+  transition: box-shadow 200ms var(--ease-out);
+}
+
+/* Hover y foco: misma cantidad de capas (4) que en reposo, así la sombra se
+ * interpola en vez de saltar. El fondo no cambia; crece la sombra. */
+.buscador-animales__control:hover {
+  box-shadow:
+    0 0 0 1px rgba(23, 38, 28, 0.1),
+    0 2px 4px rgba(23, 38, 28, 0.08),
+    0 14px 32px -8px rgba(23, 38, 28, 0.24),
+    0 36px 72px -20px rgba(23, 38, 28, 0.36);
+}
+
+.buscador-animales__control:focus-within {
+  box-shadow:
+    0 0 0 1px var(--accent),
+    0 0 0 4px var(--focus),
+    0 14px 32px -8px rgba(23, 38, 28, 0.24),
+    0 36px 72px -20px rgba(23, 38, 28, 0.36);
+}
+
+/* Lupa en un círculo verde. */
+.buscador-animales__boton {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--verde-vacca);
+  color: #ffffff;
+  cursor: pointer;
+  transition:
+    background 200ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.buscador-animales__control:focus-within .buscador-animales__boton,
+.buscador-animales__boton:hover {
+  background: var(--verde-bosque);
+}
+
+.buscador-animales__boton:active {
+  transform: scale(0.94);
+}
+
+.buscador-animales__input {
+  flex: 1;
+  min-width: 0;
+  height: 100%;
+  padding: 0;
+  border: none;
+  outline: none;
+  background: transparent;
+  box-shadow: none;
+  color: var(--text-h);
+  font-size: 0.92rem;
+  font-weight: 500;
+}
+
+.buscador-animales__input::placeholder {
+  color: var(--text);
+  font-weight: 400;
+}
+
+/* Teclas de la ayuda del menú: chips chicos, como en macOS. */
+.buscador-animales__menu kbd {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 5px;
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow:
+    inset 0 0 0 1px var(--border),
+    0 1px 0 rgba(23, 38, 28, 0.08);
+  color: var(--text);
+  font-family: inherit;
+  font-size: 11px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.buscador-animales__menu {
+  display: flex;
+  flex-direction: column;
+  padding: 6px;
+  border-radius: var(--radius-md);
+  background: var(--panel);
+  box-shadow: var(--shadow-pop);
+}
+
+.buscador-animales__titulo {
+  padding: 8px 10px 6px;
+  color: var(--gris-oscuro);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.buscador-animales__item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 8px 10px;
+  border-radius: var(--radius-item);
+  cursor: pointer;
+  transition: background 120ms var(--ease-out);
+}
+
+.buscador-animales__item[data-highlighted] {
+  background: var(--verde-pastel);
+}
+
+.buscador-animales__avatar {
+  display: inline-flex;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: var(--radius-full);
+}
+
+.buscador-animales__avatar[data-sexo="hembra"] {
+  background: rgba(201, 122, 148, 0.14);
+  color: var(--rosa-hembra);
+}
+
+.buscador-animales__avatar[data-sexo="macho"] {
+  background: rgba(53, 97, 136, 0.12);
+  color: var(--azul-acero);
+}
+
+.buscador-animales__texto {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+  min-width: 0;
+}
+
+.buscador-animales__caravana {
+  color: var(--text-h);
+  font-size: 0.9rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.buscador-animales__meta {
+  overflow: hidden;
+  color: var(--text);
+  font-size: 12px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* El "enter" solo aparece en el resultado resaltado. */
+.buscador-animales__enter {
+  flex-shrink: 0;
+  color: var(--verde-vacca);
+  opacity: 0;
+  transition: opacity 120ms var(--ease-out);
+}
+
+.buscador-animales__item[data-highlighted] .buscador-animales__enter {
+  opacity: 1;
+}
+
+.buscador-animales__vacio {
+  padding: 14px 10px;
+  color: var(--text);
+  font-size: 13px;
+}
+
+.buscador-animales__pie {
+  display: flex;
+  gap: 14px;
+  margin-top: 6px;
+  padding: 8px 10px 4px;
+  border-top: 1px solid var(--border);
+  color: var(--gris-oscuro);
+  font-size: 11px;
+}
+
+.buscador-animales__pie span {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.buscador-animales__pie kbd {
+  min-width: 18px;
+  height: 18px;
+  font-size: 10px;
+}
+
+@media (max-width: 800px) {
+  .buscador-animales {
+    width: 100%;
+  }
+
+  .buscador-animales__pie {
+    display: none;
+  }
+}

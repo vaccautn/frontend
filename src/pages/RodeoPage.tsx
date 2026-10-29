@@ -88,6 +88,7 @@ export function RodeoPage() {
             onClose={() => setMode("closed")}
             onClearSeleccion={handleDeselect}
             onAgregarAnimal={() => navigate("/rodeo/nuevo")}
+            onImportarAnimales={() => navigate("/rodeo/importar")}
           />
         )}
         {mode === "closed" && (
@@ -107,9 +108,7 @@ export function RodeoPage() {
             onCategoriaLoteChange={setCategoriaLote}
             onVolverAlMapa={() => setMode("docked")}
             onAgregarAnimal={() => navigate("/rodeo/nuevo")}
-            movimientos={movimientos}
-            cargandoRecomendaciones={cargandoRecomendaciones}
-            onRefrescarRecomendaciones={refetchRecomendaciones}
+            onImportarAnimales={() => navigate("/rodeo/importar")}
           />
         )}
       </div>

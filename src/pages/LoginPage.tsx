@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { Alert, Button } from "@chakra-ui/react";
 import { useAuth } from "@/features/auth";
 import {
+  consumirAvisoSesionVencida,
   initialLoginValues,
   loginProducer,
   normalizeBackendDetail,
@@ -13,6 +14,7 @@ import {
   type LoginValues,
 } from "../features/auth";
 import AuthTextField from "../features/auth/components/AuthTextField";
+import { VaccaIsotipo } from "@/components/ui/VaccaIsotipo";
 import { ApiError } from "../services/httpClient";
 
 function LoginPage() {
@@ -28,6 +30,8 @@ function LoginPage() {
     sessionStorage.removeItem("register-success-message");
     return message;
   }, []);
+
+  const sesionVencida = useMemo(() => consumirAvisoSesionVencida(), []);
 
   const updateField =
     (field: keyof LoginValues) => (event: ChangeEvent<HTMLInputElement>) => {
@@ -61,7 +65,7 @@ function LoginPage() {
 
       saveSession(response.access_token, response.token_type, response.user);
       refreshSession();
-      navigate("/rodeo");
+      navigate("/inicio");
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(normalizeBackendDetail(error.detail));
@@ -76,6 +80,13 @@ function LoginPage() {
   return (
     <main className="auth-shell">
       <section className="auth-panel" aria-labelledby="login-title">
+        <div className="auth-brand">
+          <VaccaIsotipo size={56} />
+          <span className="auth-brand__texto">
+            <span className="vacca-wordmark">vacca</span>
+            <span className="auth-brand__lema">Gestión bovina</span>
+          </span>
+        </div>
         <div className="panel-heading">
           {/*<p className="eyebrow">Acceso de productores</p>*/}
           <h1 id="login-title">Iniciar sesión</h1>
@@ -92,6 +103,17 @@ function LoginPage() {
             <Alert.Indicator />
             <Alert.Content>
               <Alert.Description>{successMessage}</Alert.Description>
+            </Alert.Content>
+          </Alert.Root>
+        ) : null}
+
+        {sesionVencida && !formError ? (
+          <Alert.Root status="info" colorPalette="brand" className="auth-alert">
+            <Alert.Indicator />
+            <Alert.Content>
+              <Alert.Description>
+                Tu sesión venció. Volvé a ingresar para continuar.
+              </Alert.Description>
             </Alert.Content>
           </Alert.Root>
         ) : null}

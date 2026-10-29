@@ -2,22 +2,28 @@ import { useState } from "react";
 import { NavLink } from "react-router-dom";
 import { Dialog } from "@chakra-ui/react";
 import {
-  IconList,
-  IconChartBar,
   IconCalendarHeart,
+  IconClipboardText,
   IconSettings,
 } from "@tabler/icons-react";
+import { VaccaIsotipo } from "@/components/ui/VaccaIsotipo";
+import { VacaIcon } from "@/utils/icons";
 
 const navItems = [
   {
+    label: "Inicio",
+    to: "/inicio",
+    icon: <VaccaIsotipo size={22} variante="mono" />,
+  },
+  {
     label: "Rodeo",
     to: "/rodeo",
-    icon: <IconList size={22} stroke={1.5} />,
+    icon: <VacaIcon size={22} />,
   },
   {
     label: "Sesiones",
     to: "/sesiones",
-    icon: <IconChartBar size={22} stroke={1.5} />,
+    icon: <IconClipboardText size={22} stroke={1.5} />,
   },
   {
     label: "Servicios",

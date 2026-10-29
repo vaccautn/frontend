@@ -1,4 +1,6 @@
 import { useState, type FormEvent } from "react";
+import { Portal } from "@chakra-ui/react";
+import { FechaInput } from "@/components/FechaInput";
 import { toast } from "react-toastify";
 import { normalizeBackendDetail } from "@/features/auth";
 import { updateAnimal } from "@/features/animales/services/animalesService";
@@ -106,112 +108,112 @@ export function BajaAnimalModal({
   };
 
   return (
-    <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
-      <section
-        className="baja-modal"
-        role="dialog"
-        aria-modal="true"
-        aria-labelledby="baja-animal-title"
-        onMouseDown={(event) => event.stopPropagation()}>
-        <div className="baja-modal__header">
-          <div>
-            <span className="baja-modal__eyebrow">Baja de animal</span>
-            <h2 id="baja-animal-title">Dar de baja animal</h2>
-          </div>
-          <button
-            type="button"
-            className="baja-modal__close"
-            onClick={onClose}
-            aria-label="Cerrar">
-            x
-          </button>
-        </div>
-
-        <p className="baja-modal__warning">
-          ¿Está seguro de que desea dar de baja a este animal? Esta acción lo
-          removerá del inventario activo, pero conservará su historial.
-        </p>
-
-        {!canSubmitBaja && (
-          <p className="status-message error" role="alert">
-            Solo los animales en estado ACTIVO pueden ingresar al flujo de baja o
-            eliminación.
-          </p>
-        )}
-
-        <dl className="baja-modal__summary">
-          <div>
-            <dt>Caravana</dt>
-            <dd>{animal.caravana ?? "-"}</dd>
-          </div>
-          <div>
-            <dt>Estado actual</dt>
-            <dd>{animal.estado}</dd>
-          </div>
-        </dl>
-
-        {formError && (
-          <p className="status-message error" role="alert">
-            {formError}
-          </p>
-        )}
-
-        <form onSubmit={handleSubmit} noValidate>
-          <div className="field">
-            <label htmlFor="motivo-baja">Motivo</label>
-            <select
-              id="motivo-baja"
-              value={motivo}
-              onChange={(event) => {
-                const value = event.target.value;
-                setMotivo(value ? (value as BajaAnimalMotivo) : "");
-                setFormError("");
-              }}
-              required>
-              <option value="">Seleccioná un motivo</option>
-              {MOTIVOS.map(({ value, label }) => (
-                <option key={value} value={value}>
-                  {label}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="field">
-            <label htmlFor="fecha-baja">Fecha de baja</label>
-            <input
-              id="fecha-baja"
-              type="date"
-              value={fechaBaja}
-              max={getTodayInputValue()}
-              onChange={(event) => {
-                setFechaBaja(event.target.value);
-                setFormError("");
-              }}
-              required
-            />
-          </div>
-
-          <div className="field">
-            <label htmlFor="notas-baja">Notas adicionales</label>
-            <textarea
-              id="notas-baja"
-              value={notas}
-              onChange={(event) => setNotas(event.target.value)}
-              rows={4}
-            />
-          </div>
-
-          <div className="form-actions">
-            <button type="button" onClick={onClose}>
-              Cancelar
+    <Portal>
+      <div className="modal-backdrop" role="presentation" onMouseDown={onClose}>
+        <section
+          className="baja-modal"
+          role="dialog"
+          aria-modal="true"
+          aria-labelledby="baja-animal-title"
+          onMouseDown={(event) => event.stopPropagation()}>
+          <div className="baja-modal__header">
+            <div>
+              <span className="baja-modal__eyebrow">Baja de animal</span>
+              <h2 id="baja-animal-title">Dar de baja animal</h2>
+            </div>
+            <button
+              type="button"
+              className="baja-modal__close"
+              onClick={onClose}
+              aria-label="Cerrar">
+              x
             </button>
-             <button type="submit" disabled={isSubmitting || !canSubmitBaja}>
-               {isSubmitting ? "Dando de baja..." : "Dar de baja"}
-             </button>
           </div>
-        </form>
-      </section>
-    </div>
+
+          <p className="baja-modal__warning">
+            ¿Está seguro de que desea dar de baja a este animal? Esta acción lo
+            removerá del inventario activo, pero conservará su historial.
+          </p>
+
+          {!canSubmitBaja && (
+            <p className="status-message error" role="alert">
+              Solo los animales en estado ACTIVO pueden ingresar al flujo de baja o
+              eliminación.
+            </p>
+          )}
+
+          <dl className="baja-modal__summary">
+            <div>
+              <dt>Caravana</dt>
+              <dd>{animal.caravana ?? "-"}</dd>
+            </div>
+            <div>
+              <dt>Estado actual</dt>
+              <dd>{animal.estado}</dd>
+            </div>
+          </dl>
+
+          {formError && (
+            <p className="status-message error" role="alert">
+              {formError}
+            </p>
+          )}
+
+          <form onSubmit={handleSubmit} noValidate>
+            <div className="field">
+              <label htmlFor="motivo-baja">Motivo</label>
+              <select
+                id="motivo-baja"
+                value={motivo}
+                onChange={(event) => {
+                  const value = event.target.value;
+                  setMotivo(value ? (value as BajaAnimalMotivo) : "");
+                  setFormError("");
+                }}
+                required>
+                <option value="">Seleccioná un motivo</option>
+                {MOTIVOS.map(({ value, label }) => (
+                  <option key={value} value={value}>
+                    {label}
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            <div className="field">
+              <label htmlFor="fecha-baja">Fecha de baja</label>
+              <FechaInput
+                id="fecha-baja"
+                value={fechaBaja}
+                max={getTodayInputValue()}
+                onChange={(fecha) => {
+                  setFechaBaja(fecha);
+                  setFormError("");
+                }}
+              />
+            </div>
+
+            <div className="field">
+              <label htmlFor="notas-baja">Notas adicionales</label>
+              <textarea
+                id="notas-baja"
+                value={notas}
+                onChange={(event) => setNotas(event.target.value)}
+                rows={4}
+              />
+            </div>
+
+            <div className="form-actions">
+              <button type="button" onClick={onClose}>
+                Cancelar
+              </button>
+               <button type="submit" disabled={isSubmitting || !canSubmitBaja}>
+                 {isSubmitting ? "Dando de baja..." : "Dar de baja"}
+               </button>
+            </div>
+          </form>
+        </section>
+      </div>
+    </Portal>
   );
 }

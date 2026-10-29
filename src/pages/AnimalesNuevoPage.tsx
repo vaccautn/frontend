@@ -29,6 +29,7 @@ import {
 import type { LoteOption } from "@/features/lotes/types";
 import { SelectOpciones } from "@/components/SelectOpciones";
 import { toast } from "react-toastify";
+import { FechaInput } from "@/components/FechaInput";
 
 function AnimalesNuevoPage() {
   const navigate = useNavigate();
@@ -276,10 +277,9 @@ function AnimalesNuevoPage() {
 
                 <Field.Root invalid={!!errors.fecha_nacimiento}>
                   <Field.Label>Fecha de nacimiento</Field.Label>
-                  <Input
-                    type="date"
+                  <FechaInput
                     value={values.fecha_nacimiento}
-                    onChange={updateField("fecha_nacimiento")}
+                    onChange={(fecha) => setField("fecha_nacimiento", fecha)}
                   />
                   <Field.ErrorText>{errors.fecha_nacimiento}</Field.ErrorText>
                 </Field.Root>

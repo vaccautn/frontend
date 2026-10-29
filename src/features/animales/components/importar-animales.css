@@ -1,0 +1,693 @@
+/* ── Importar animales desde planilla (/rodeo/importar) ─────────────────── */
+.importar {
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+  max-width: 1200px;
+  margin: 0 auto;
+}
+
+.importar__volver {
+  align-self: flex-start;
+  margin-inline-start: -0.75rem;
+}
+
+/* Encabezado con el verde de la marca: es la puerta de entrada al flujo. */
+.importar__hero {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 2rem;
+  padding: 2rem 2.25rem;
+  border-radius: var(--radius-lg);
+  background:
+    radial-gradient(
+      120% 140% at 100% 0%,
+      rgba(74, 120, 86, 0.22),
+      transparent 55%
+    ),
+    var(--verde-pastel);
+  box-shadow: inset 0 0 0 1px rgba(74, 120, 86, 0.12);
+  overflow: hidden;
+}
+
+.importar__hero h1 {
+  margin: 0.6rem 0 0.85rem;
+  color: var(--accent-strong);
+}
+
+.importar__hero p {
+  max-width: 40rem;
+  color: var(--text-h);
+  opacity: 0.8;
+  line-height: 1.6;
+  text-wrap: pretty;
+}
+
+.importar__eyebrow {
+  color: var(--accent-strong);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+/* Pasos: guía de dónde está el usuario, no navegación. */
+.importar__pasos {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem 1.75rem;
+  margin: 1.75rem 0 0;
+  padding: 0;
+  list-style: none;
+}
+
+.importar__pasos li {
+  display: flex;
+  align-items: center;
+  gap: 0.55rem;
+  color: var(--text);
+  font-size: 0.9rem;
+  font-weight: 500;
+}
+
+.importar__paso-numero {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 26px;
+  height: 26px;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.7);
+  font-size: 0.8rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.importar__pasos li[data-estado="actual"] {
+  color: var(--text-h);
+  font-weight: 650;
+}
+
+.importar__pasos li[data-estado="actual"] .importar__paso-numero {
+  background: var(--accent);
+  color: #ffffff;
+}
+
+.importar__pasos li[data-estado="hecho"] .importar__paso-numero {
+  background: var(--panel);
+  color: var(--accent-strong);
+}
+
+/* Formato arriba (ancho completo) y la subida/revisión debajo. */
+.importar__cuerpo {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+/* ── Formato esperado (columna izquierda) ── */
+.importar__formato {
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-card);
+}
+
+.importar__formato h2,
+.importar__tabla-header h2 {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 1.05rem;
+  font-weight: 700;
+}
+
+.importar__ayuda {
+  color: var(--text);
+  font-size: 0.85rem;
+  line-height: 1.5;
+}
+
+.importar__formato-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 1rem 2rem;
+}
+
+.importar__formato-header .importar__ayuda {
+  margin-top: 0.25rem;
+}
+
+.importar__formato-acciones {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 0.35rem;
+}
+
+/* Las columnas de la planilla, de izquierda a derecha como en Excel. */
+.importar__columnas {
+  display: grid;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.6rem;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+/* Cada columna con su tono de la paleta; al pasar el mouse se eleva. */
+.importar__columnas li {
+  --tono: var(--verde-vacca);
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 0.3rem;
+  padding: 0.9rem 0.95rem 1rem;
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--tono) 7%, var(--panel));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--tono) 14%, transparent);
+  transition:
+    transform 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out),
+    background 220ms var(--ease-out);
+}
+
+.importar__columnas li:hover {
+  transform: translateY(-4px);
+  background: color-mix(in srgb, var(--tono) 11%, var(--panel));
+  box-shadow:
+    inset 0 0 0 1px color-mix(in srgb, var(--tono) 24%, transparent),
+    0 14px 30px -12px color-mix(in srgb, var(--tono) 55%, transparent);
+}
+
+.importar__columnas li[data-columna="sexo"] {
+  --tono: var(--azul-acero);
+}
+
+.importar__columnas li[data-columna="categoria"] {
+  --tono: var(--ocre-campo);
+}
+
+.importar__columnas li[data-columna="lote"] {
+  --tono: var(--marron-cuero);
+}
+
+.importar__columnas li[data-columna="fecha_nacimiento"] {
+  --tono: var(--rosa-hembra);
+}
+
+.importar__columnas li[data-columna="raza"] {
+  --tono: var(--verde-confirmacion);
+}
+
+.importar__columna-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  margin-bottom: 0.35rem;
+  border-radius: var(--radius-sm);
+  background: var(--tono);
+  box-shadow: 0 4px 10px -4px color-mix(in srgb, var(--tono) 70%, transparent);
+  color: #ffffff;
+  transition: transform 220ms var(--ease-out);
+}
+
+.importar__columnas li:hover .importar__columna-icono {
+  transform: scale(1.06) rotate(-4deg);
+}
+
+.importar__columnas li code {
+  color: color-mix(in srgb, var(--tono) 85%, black);
+}
+
+.importar__columna-titulo {
+  color: var(--text-h);
+  font-size: 0.9rem;
+  font-weight: 650;
+}
+
+.importar__columnas code,
+.importar__categorias code {
+  padding: 0.05rem 0.4rem;
+  border-radius: 6px;
+  background: var(--panel);
+  box-shadow: inset 0 0 0 1px var(--border);
+  color: var(--accent-strong);
+  font-family: ui-monospace, "SF Mono", Menlo, monospace;
+  font-size: 0.78rem;
+}
+
+.importar__columna-formato {
+  color: var(--text-h);
+  font-size: 0.85rem;
+}
+
+.importar__columna-ejemplo {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+.importar__categorias {
+  border-radius: var(--radius-sm);
+  background: var(--tile-bg);
+  box-shadow: var(--shadow-tile);
+}
+
+.importar__categorias summary {
+  padding: 0.65rem 0.8rem;
+  color: var(--text-h);
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.importar__categorias-cuerpo {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: flex-start;
+  gap: 0.75rem 2rem;
+  padding: 0 0.8rem 0.8rem;
+}
+
+.importar__categorias-cuerpo .importar__ayuda {
+  flex-basis: 100%;
+}
+
+.importar__categorias-grupo {
+  display: flex;
+  flex-direction: column;
+  gap: 0.35rem;
+}
+
+.importar__categorias-grupo > span {
+  color: var(--text);
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.importar__categorias-grupo div {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.3rem;
+}
+
+.importar__nota {
+  color: var(--text);
+  font-size: 0.78rem;
+}
+
+/* ── Subida y revisión (columna derecha) ── */
+.importar__principal {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  min-width: 0;
+}
+
+.importar__principal .status-message {
+  margin: 0;
+}
+
+.importar__dropzone {
+  width: 100%;
+  box-sizing: border-box;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  min-height: 240px;
+  padding: 2.25rem 1.5rem;
+  border: 2px dashed rgba(74, 120, 86, 0.35);
+  border-radius: var(--radius-lg);
+  background: color-mix(in srgb, var(--accent) 5%, var(--panel));
+  color: var(--text);
+  text-align: center;
+  transition:
+    border-color 200ms var(--ease-out),
+    background 200ms var(--ease-out);
+}
+
+.importar__dropzone:hover {
+  border-color: rgba(74, 120, 86, 0.6);
+}
+
+.importar__dropzone[data-dragging] {
+  border-color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 12%, var(--panel));
+}
+
+.importar__dropzone-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 64px;
+  height: 64px;
+  margin-bottom: 0.5rem;
+  border-radius: var(--radius-full);
+  background: var(--accent);
+  box-shadow: 0 12px 26px -10px rgba(46, 83, 57, 0.6);
+  color: #ffffff;
+  transition: transform 200ms var(--ease-out);
+}
+
+.importar__dropzone[data-dragging] .importar__dropzone-icono {
+  transform: translateY(-4px) scale(1.05);
+}
+
+.importar__dropzone strong {
+  color: var(--text-h);
+  font-size: 1.05rem;
+}
+
+.importar__dropzone-formatos {
+  margin-top: 0.4rem;
+  font-size: 0.8rem;
+}
+
+.importar__archivo {
+  display: flex;
+  align-items: center;
+  gap: 0.9rem;
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-card);
+}
+
+.importar__archivo-icono {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 46px;
+  height: 46px;
+  border-radius: var(--radius-md);
+  background: var(--verde-pastel);
+  color: var(--accent-strong);
+}
+
+.importar__archivo-info {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.importar__archivo-info strong {
+  overflow: hidden;
+  color: var(--text-h);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.importar__archivo-info span {
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+.importar__archivo-quitar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--bg);
+  color: var(--text);
+  cursor: pointer;
+  transition: background 160ms var(--ease-out);
+}
+
+.importar__archivo-quitar:hover {
+  background: rgba(23, 38, 28, 0.08);
+  color: var(--text-h);
+}
+
+.importar__detectadas {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.importar__chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.25rem 0.7rem;
+  border: 1px solid transparent;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+}
+
+.importar__chip--ok {
+  border-color: var(--success-border);
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.importar__chip--falta {
+  border-color: var(--danger-border);
+  background: var(--danger-bg);
+  color: var(--danger);
+}
+
+.importar__aviso {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-radius: var(--radius-md);
+  background: var(--warning-bg);
+  color: var(--marron-cuero);
+}
+
+.importar__aviso strong {
+  display: block;
+  color: var(--text-h);
+}
+
+.importar__aviso p {
+  margin-top: 0.2rem;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+.importar__revision {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.importar__resumen {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+.importar__resumen div {
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+  padding: 1rem 1.15rem;
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-card);
+}
+
+.importar__resumen strong {
+  color: var(--text-h);
+  font-size: 1.75rem;
+  font-weight: 800;
+  line-height: 1;
+  font-variant-numeric: tabular-nums;
+}
+
+.importar__resumen span {
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+/* Tiles con el color de lo que significan. */
+.importar__resumen div[data-tono="total"] {
+  background: var(--info-bg);
+}
+
+.importar__resumen div[data-tono="total"] strong {
+  color: var(--azul-acero);
+}
+
+.importar__resumen div[data-tono="ok"] {
+  background: var(--success-bg);
+}
+
+.importar__resumen div[data-tono="ok"] strong {
+  color: var(--success);
+}
+
+.importar__resumen div[data-tono="error"] {
+  background: var(--danger-bg);
+}
+
+.importar__resumen div[data-tono="error"] strong {
+  color: var(--danger);
+}
+
+.importar__tabla-card {
+  border-radius: var(--radius-lg);
+  background: var(--card-bg);
+  box-shadow: var(--shadow-card);
+  overflow: hidden;
+}
+
+.importar__tabla-header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 1rem 1.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.importar__solo-errores {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45rem;
+  color: var(--text-h);
+  cursor: pointer;
+  font-size: 0.85rem;
+}
+
+.importar__solo-errores input {
+  width: 1rem;
+  height: 1rem;
+  accent-color: var(--accent-strong);
+}
+
+.importar__tabla-scroll {
+  max-height: 460px;
+  overflow: auto;
+}
+
+.importar__tabla thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  white-space: nowrap;
+}
+
+.importar__tabla tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.importar__fila-numero {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+.importar__fila--error td {
+  background: rgba(201, 76, 76, 0.04);
+}
+
+.importar__vacio {
+  color: var(--gris-oscuro);
+}
+
+.importar__estado {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: var(--radius-full);
+  font-size: 0.8rem;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.importar__estado--ok {
+  background: var(--success-bg);
+  color: var(--success);
+}
+
+.importar__errores {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  color: var(--danger);
+  font-size: 0.8rem;
+  font-weight: 500;
+  white-space: nowrap;
+}
+
+/* Barra de acciones fija al pie, como en los asistentes de macOS. */
+.importar__acciones {
+  position: sticky;
+  bottom: 1rem;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.85rem 1rem 0.85rem 1.25rem;
+  border-radius: var(--radius-full);
+  background: rgba(255, 255, 255, 0.86);
+  backdrop-filter: blur(20px) saturate(180%);
+  box-shadow: var(--shadow-pop);
+}
+
+.importar__acciones-nota {
+  flex: 1;
+  color: var(--text);
+  font-size: 0.85rem;
+}
+
+@media (max-width: 1100px) {
+  .importar__columnas {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .importar__columnas {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .importar__hero {
+    padding: 1.5rem;
+  }
+
+
+  .importar__formato-acciones {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 600px) {
+  .importar__resumen {
+    grid-template-columns: 1fr;
+  }
+
+  .importar__acciones {
+    flex-wrap: wrap;
+    border-radius: var(--radius-lg);
+  }
+
+  .importar__acciones-nota {
+    flex-basis: 100%;
+  }
+}

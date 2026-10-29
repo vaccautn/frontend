@@ -1,93 +1,141 @@
+/* El shell (navegación + buscador) forma una L arriba y a la izquierda; el
+ * contenido llega hasta los bordes de la ventana, con la única esquina
+ * redondeada hacia el shell. */
 .app-shell {
   display: flex;
   height: 100vh;
   overflow: hidden;
   position: relative;
+  background: var(--nav-bg);
 }
 
 .sidebar {
   width: 220px;
   flex-shrink: 0;
-  background: var(--panel);
   display: flex;
   flex-direction: column;
-  padding: 0 0 1.25rem 0;
-  border-right: 1px solid var(--border);
+  padding: 0 0 0.75rem 0;
   overflow: hidden;
   white-space: nowrap;
-  transition:
-    width 0.25s ease,
-    border-color 0.25s ease;
+  transition: width 250ms var(--ease-out);
 }
 
 .sidebar--collapsed {
   width: 76px;
 }
 
+/* Misma altura que la barra del buscador: logo y buscador en una línea. El
+ * isotipo (32px) queda centrado sobre la columna de íconos del menú. */
 .sidebar__top {
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0.5rem 0.75rem 0.5rem 1.5rem;
-  margin-bottom: 1.5rem;
+  min-height: 72px;
+  padding: 0 0.75rem 0 1.25rem;
+  margin-bottom: 0.75rem;
 }
 
 .sidebar--collapsed .sidebar__top {
+  flex-direction: column;
   justify-content: center;
-  padding: 0.5rem;
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem 0;
 }
 
+/* Isologo: lleva al inicio. */
 .sidebar__brand {
   display: flex;
-  align-items: flex-start;
-  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  padding: 4px;
+  margin: -4px;
+  border-radius: var(--radius-sm);
+  text-decoration: none;
+  transition: transform 160ms var(--ease-out);
+}
+
+.sidebar__brand:active {
+  transform: scale(0.97);
+}
+
+.sidebar__brand:focus-visible {
+  outline: none;
+  box-shadow: var(--nav-ring);
+}
+
+.sidebar__brand-texto {
+  display: flex;
   flex-direction: column;
-  gap: 2px;
+  gap: 3px;
+}
 
-  p {
-    font-weight: 700;
-    color: var(--text-h);
-    font-family: var(--heading);
-  }
+.sidebar__brand .vacca-wordmark {
+  font-size: 22px;
+  color: var(--nav-text-strong);
+}
 
-  span {
-    font-weight: 400;
-    font-size: 0.8rem;
-    color: var(--text);
-    line-height: 1;
-  }
+.sidebar__brand-lema {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--nav-lema);
+  line-height: 1;
+}
+
+.sidebar__toggle {
+  color: var(--nav-text);
+}
+
+.sidebar__toggle:hover {
+  background: var(--nav-hover);
+  color: var(--nav-text-strong);
 }
 
 .sidebar__nav {
   display: flex;
   flex-direction: column;
+  gap: 2px;
   flex: 1;
+  padding: 0 0.75rem;
 }
 
+/* Ítems como pastillas: el activo se "levanta" sobre el fondo. */
 .sidebar__link {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  padding: 0.75rem 1.5rem;
-  color: var(--text);
+  padding: 0.65rem 0.9rem;
+  border-radius: var(--radius-sm);
+  color: var(--nav-text);
   text-decoration: none;
   font-size: 0.9rem;
+  font-weight: 500;
+  transition:
+    background 160ms var(--ease-out),
+    color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
 }
 
 .sidebar--collapsed .sidebar__link {
   justify-content: center;
-  padding: 0.75rem 0;
+  padding: 0.65rem 0;
 }
 
 .sidebar__link:hover {
-  color: var(--accent-strong);
-  background: var(--verde-pastel);
+  color: var(--nav-text-strong);
+  background: var(--nav-hover);
 }
 
-.sidebar__link--active {
-  color: var(--accent-strong);
-  background: var(--verde-pastel);
+.sidebar__link--active,
+.sidebar__link--active:hover {
+  color: var(--nav-active-text);
+  background: var(--nav-active);
+  box-shadow: var(--nav-active-shadow);
   font-weight: 650;
+}
+
+.sidebar__link:focus-visible {
+  outline: none;
+  box-shadow: var(--nav-ring);
 }
 
 .sidebar__icon {
@@ -100,73 +148,117 @@
   color: var(--panel);
   font-size: 0.8rem;
   padding: 0.35rem 0.6rem;
-  border-radius: 4px;
-  box-shadow: var(--shadow);
+  border-radius: var(--radius-xs);
+  box-shadow: var(--shadow-pop);
+}
+
+/* Cuenta del usuario al pie: mismo margen lateral que la navegación
+ * (0.75rem), así queda alineada con los ítems, abierta o colapsada. */
+.sidebar__footer {
+  margin: 0.5rem 0.75rem 0;
+  padding-top: 0.75rem;
+  border-top: 1px solid var(--nav-divider);
 }
 
 .sidebar__user {
   display: flex;
   align-items: center;
   gap: 0.65rem;
-  margin: 0.5rem 1.5rem 0;
-  padding: 0.5rem 0.75rem;
+  width: 100%;
+  min-width: 0;
+  padding: 0.45rem 0.5rem;
   border: none;
-  border-radius: 4px;
+  border-radius: var(--radius-sm);
   background: none;
   color: inherit;
   font: inherit;
   cursor: pointer;
   text-align: left;
+  transition: background 160ms var(--ease-out);
 }
 
 .sidebar--collapsed .sidebar__user {
-  margin: 0.5rem auto 0;
-  padding: 0.5rem;
+  justify-content: center;
+  padding: 0.45rem 0;
 }
 
 .sidebar__user:hover,
 .sidebar__user[data-state="open"] {
-  background: var(--verde-pastel);
+  background: var(--nav-hover);
+}
+
+.sidebar__user:focus-visible {
+  outline: none;
+  box-shadow: var(--nav-ring);
+}
+
+.sidebar__avatar {
+  flex-shrink: 0;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  box-shadow: 0 1px 2px rgba(23, 38, 28, 0.18);
 }
 
 .sidebar__user-info {
   display: flex;
+  flex: 1;
   flex-direction: column;
-  gap: 2px;
-  line-height: 1;
+  gap: 3px;
+  min-width: 0;
+  line-height: 1.1;
   text-align: left;
 }
 
 .sidebar__user-name {
-  color: var(--text-h);
+  overflow: hidden;
+  color: var(--nav-text-strong);
+  font-size: 0.88rem;
   font-weight: 650;
-  font-size: 0.9rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar__user-role {
   font-size: 0.75rem;
-  color: var(--text);
+  color: var(--nav-text);
 }
 
 .sidebar__user-caret {
+  flex-shrink: 0;
+  color: var(--nav-text);
+}
+
+.sidebar__user-menu-header {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 0.45rem 0.7rem 0.55rem;
+}
+
+.sidebar__user-menu-header strong {
+  color: var(--text-h);
+  font-size: 0.88rem;
+}
+
+.sidebar__user-menu-header span {
   color: var(--text);
+  font-size: 0.78rem;
 }
 
 .sidebar__user-menu {
-  min-width: 200px;
+  min-width: 190px;
   background: var(--panel);
-  border: 1px solid var(--border);
-  border-radius: 4px;
-  box-shadow: var(--shadow);
-  padding: 0.4rem;
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-pop);
+  padding: 6px;
 }
 
 .sidebar__user-menu [data-part="item"] {
   display: flex;
   align-items: center;
   gap: 0.6rem;
-  padding: 0.55rem 0.65rem;
-  border-radius: 6px;
+  padding: 0.55rem 0.7rem;
+  border-radius: var(--radius-item);
   color: var(--text-h);
   font-size: 0.9rem;
   cursor: pointer;
@@ -191,15 +283,15 @@
 }
 
 .sidebar__settings-backdrop {
-  background: rgba(21, 32, 25, 0.48);
+  background: var(--backdrop);
 }
 
 .sidebar__settings-dialog {
   width: min(420px, calc(100vw - 2rem));
   background: var(--panel);
-  border-radius: 4px;
-  box-shadow: var(--shadow);
-  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-overlay);
+  padding: 1.75rem;
   position: relative;
 }
 
@@ -209,57 +301,113 @@
   right: 1rem;
   width: 32px;
   height: 32px;
-  border: 1px solid var(--border);
-  border-radius: 6px;
-  background: var(--panel);
+  border: none;
+  border-radius: var(--radius-full);
+  background: var(--bg);
   color: var(--text);
   cursor: pointer;
+  transition: background 160ms var(--ease-out);
 }
 
 .sidebar__settings-close:hover {
   color: var(--text-h);
-  border-color: var(--text);
+  background: rgba(23, 38, 28, 0.08);
 }
 
+/* margin y no gap: el contenedor de toasts también es hijo del shell. Sin
+ * overflow hidden, para no recortar la sombra de la tarjeta. */
 .app-shell__main {
   flex: 1;
   display: flex;
   flex-direction: column;
-  overflow: hidden;
+  min-width: 0;
+  min-height: 0;
+  margin-left: 10px;
 }
 
+/* El buscador va centrado sobre la tarjeta del contenido. */
+.app-shell__topbar {
+  flex: 0 0 72px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 8px;
+}
+
+/* Contenido: solo la esquina superior izquierda redondeada; sombra en capas
+ * para que se lea por encima del shell. */
+/* Marco del contenido: el shell lo envuelve con un filo a la derecha. Es
+ * transparente; el blanco lo pone la hoja de adentro, que scrollea. */
+.app-shell__card {
+  flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  margin-right: 10px;
+  /* drop-shadow (y no box-shadow) sigue la forma de lo que se ve: las
+   * esquinas de arriba y, al final del scroll, las de abajo. Un box-shadow
+   * seguiría la caja, que llega hasta el borde de la ventana. */
+  filter: drop-shadow(0 0 1px rgba(23, 38, 28, 0.14))
+    drop-shadow(0 10px 24px rgba(23, 38, 28, 0.12));
+}
+
+/* clip-path (y no overflow + radio) recorta también la barra de scroll y el
+ * mapa, que en Safari se escapan de las esquinas redondeadas. */
 .app-shell__content {
   flex: 1;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
   overflow-y: auto;
   box-sizing: border-box;
+  clip-path: inset(0 round var(--radius-lg) var(--radius-lg) 0 0);
+  /* Sin scrollbar-width/scrollbar-color: personalizarla obliga a una barra
+   * fija con su propia columna, que corta la esquina superior derecha. Así
+   * queda la barra flotante del sistema. */
 }
 
 .app-shell__content--full {
+  display: block;
   overflow: hidden;
 }
 
-.app-shell__content-inner {
-  margin: 0 auto;
-  padding: 2.5rem;
+/* Filo inferior del shell, al final del scroll. Es un elemento y no un
+ * margin: algunos navegadores ignoran el margen final dentro de un
+ * contenedor con scroll. */
+.app-shell__content::after {
+  content: "";
+  flex: 0 0 10px;
 }
 
+/* Hoja del contenido: llena el alto disponible y crece con el contenido. */
+.app-shell__content-inner {
+  flex: 1 0 auto;
+  margin: 0;
+  padding: 2.5rem;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  background: var(--contenido-bg);
+}
+
+/* Pantallas de alto fijo (el mapa del rodeo): sin filo inferior. */
 .app-shell__content-inner--full {
   max-width: none;
   margin: 0;
   padding: 0;
   height: 100%;
+  border-radius: 0;
+  box-shadow: none;
 }
 
 .logout-confirm__backdrop {
-  background: rgba(21, 32, 25, 0.48);
+  background: var(--backdrop);
 }
 
 .logout-confirm {
   width: min(420px, calc(100vw - 2rem));
   background: var(--panel);
-  border-radius: 8px;
-  box-shadow: var(--shadow);
-  padding: 1.5rem;
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-overlay);
+  padding: 1.75rem;
 }
 
 .logout-confirm p {
@@ -275,17 +423,31 @@
 
 .logout-confirm__cancel,
 .logout-confirm__confirm {
-  min-height: 38px;
-  padding: 0.5rem 0.9rem;
-  border-radius: 6px;
+  min-height: 40px;
+  padding: 0.5rem 1.15rem;
+  border-radius: var(--radius-full);
   cursor: pointer;
   font: inherit;
+  font-weight: 600;
+  transition:
+    background 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.logout-confirm__cancel:active:not(:disabled),
+.logout-confirm__confirm:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .logout-confirm__cancel {
   border: 1px solid var(--border);
   background: var(--panel);
+  box-shadow: var(--shadow-control);
   color: var(--text-h);
+}
+
+.logout-confirm__cancel:hover:not(:disabled) {
+  background: var(--bg);
 }
 
 .logout-confirm__confirm {
@@ -306,6 +468,34 @@
 }
 
 @media (max-width: 800px) {
+  /* Sin sidebar, el contenido ocupa todo el ancho. */
+  .app-shell__main {
+    margin-left: 0;
+  }
+
+  .app-shell__topbar {
+    flex-basis: 64px;
+    padding: 0 1rem;
+  }
+
+  .app-shell__card {
+    margin-right: 0;
+    filter: none;
+    box-shadow: 0 -1px 0 var(--border);
+  }
+
+  .app-shell__content {
+    clip-path: none;
+  }
+
+  .app-shell__content::after {
+    display: none;
+  }
+
+  .app-shell__content-inner {
+    border-radius: 0;
+  }
+
   /* El sidebar deja de tener sentido con solo 2 accesos: se oculta del todo */
   .sidebar {
     display: none;
@@ -317,7 +507,9 @@
     justify-content: space-around;
     flex-shrink: 0;
     height: 60px;
-    background: var(--panel);
+    /* Translúcida sobre el contenido, como las barras de iOS. */
+    background: rgba(255, 255, 255, 0.82);
+    backdrop-filter: blur(20px) saturate(180%);
     border-top: 1px solid var(--border);
   }
 

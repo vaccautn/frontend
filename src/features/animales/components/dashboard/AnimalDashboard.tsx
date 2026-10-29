@@ -34,10 +34,9 @@ export function AnimalDashboard({ data, loading, error }: Props) {
     <Box
       my="7"
       p="5"
-      border="1px solid"
-      borderColor="var(--border)"
-      borderRadius="8px"
-      bg="var(--panel)"
+      borderRadius="var(--radius-lg)"
+      bg="var(--card-bg)"
+      boxShadow="var(--shadow-card)"
       display="flex"
       flexDirection="column"
       gap="5">
@@ -74,18 +73,16 @@ export function AnimalDashboard({ data, loading, error }: Props) {
       <SimpleGrid columns={{ base: 1, md: 2 }} gap="4">
         <Box
           p="3"
-          border="1px solid"
-          borderColor="var(--border)"
-          borderRadius="8px"
-          bg="var(--bg)">
+          borderRadius="var(--radius-md)"
+          bg="var(--tile-bg)"
+          boxShadow="var(--shadow-tile)">
           <AnimalEvolucion evolucion={data?.evolucion ?? []} loading={loading} />
         </Box>
         <Box
           p="3"
-          border="1px solid"
-          borderColor="var(--border)"
-          borderRadius="8px"
-          bg="var(--bg)">
+          borderRadius="var(--radius-md)"
+          bg="var(--tile-bg)"
+          boxShadow="var(--shadow-tile)">
           <DashboardHistograma
             histograma={data?.histograma ?? []}
             loading={loading}

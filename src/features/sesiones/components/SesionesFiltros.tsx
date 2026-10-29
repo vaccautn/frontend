@@ -1,4 +1,4 @@
-import { Input } from "@chakra-ui/react";
+import { FechaInput } from "@/components/FechaInput";
 
 type SesionesFiltrosProps = {
   fechaDesde: string;
@@ -21,11 +21,10 @@ export function SesionesFiltros({
         <label htmlFor="fecha-desde" className="sr-only">
           Filtrar desde
         </label>
-        <Input
+        <FechaInput
           id="fecha-desde"
-          type="date"
           value={fechaDesde}
-          onChange={(event) => onFechaDesdeChange(event.target.value)}
+          onChange={onFechaDesdeChange}
           aria-label="Filtrar sesiones desde una fecha"
           className="animales-filtros__input"
         />
@@ -35,11 +34,10 @@ export function SesionesFiltros({
         <label htmlFor="fecha-hasta" className="sr-only">
           Filtrar hasta
         </label>
-        <Input
+        <FechaInput
           id="fecha-hasta"
-          type="date"
           value={fechaHasta}
-          onChange={(event) => onFechaHastaChange(event.target.value)}
+          onChange={onFechaHastaChange}
           aria-label="Filtrar sesiones hasta una fecha"
           className="animales-filtros__input"
         />

@@ -10,7 +10,8 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { HistogramaBin } from "@/features/animales/types";
-import { nivelCC, type NivelCC } from "@/features/animales/utils/ccColor";
+import { NIVEL_CC_HEX, nivelCC } from "@/features/animales/utils/ccColor";
+import { CHART_TOOLTIP_STYLE } from "./chartTooltip";
 
 type Props = {
   histograma: HistogramaBin[];
@@ -20,15 +21,7 @@ type Props = {
   fecha: string;
 };
 
-// Hex constants — resolved values of the VACCA palette from index.css
-// (--danger / --warning / --success). Recharts SVG fill props do not
-// reliably resolve CSS variables, así que se repiten los mismos valores
-// que usan los badges de nivel en las tablas.
-const NIVEL_COLORS: Record<NivelCC, string> = {
-  critico: "#c94c4c", // --rojo-alerta / --danger
-  atencion: "#e0a83e", // --ambar-aviso / --warning
-  normal: "#4a9163", // --verde-confirmacion / --success
-};
+const NIVEL_COLORS = NIVEL_CC_HEX;
 
 const GRID_COLOR = "#dfe4dc"; // --border
 const TICK_COLOR = "#59645c"; // --text
@@ -92,12 +85,7 @@ export function DashboardHistograma({ histograma, loading, fecha }: Props) {
             <Tooltip
               formatter={(value) => [`${value} animal(es)`, "Cantidad"]}
               labelFormatter={(value) => `CC ${value}`}
-              contentStyle={{
-                background: "var(--panel)",
-                border: "1px solid var(--border)",
-                borderRadius: 6,
-                fontSize: 13,
-              }}
+              contentStyle={CHART_TOOLTIP_STYLE}
             />
             <Bar dataKey="cantidad" radius={[4, 4, 0, 0]}>
               {histograma.map((entry) => (

@@ -6,6 +6,7 @@ export {
 
 export {
   clearSession,
+  consumirAvisoSesionVencida,
   getAccessToken,
   getStoredUser,
   saveSession,
