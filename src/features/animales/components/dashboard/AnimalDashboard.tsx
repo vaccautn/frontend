@@ -35,7 +35,7 @@ export function AnimalDashboard({ data, loading, error }: Props) {
       my="7"
       p="5"
       borderRadius="var(--radius-lg)"
-      bg="var(--panel)"
+      bg="var(--card-bg)"
       boxShadow="var(--shadow-card)"
       display="flex"
       flexDirection="column"
@@ -74,13 +74,15 @@ export function AnimalDashboard({ data, loading, error }: Props) {
         <Box
           p="3"
           borderRadius="var(--radius-md)"
-          bg="var(--bg)">
+          bg="var(--tile-bg)"
+          boxShadow="var(--shadow-tile)">
           <AnimalEvolucion evolucion={data?.evolucion ?? []} loading={loading} />
         </Box>
         <Box
           p="3"
           borderRadius="var(--radius-md)"
-          bg="var(--bg)">
+          bg="var(--tile-bg)"
+          boxShadow="var(--shadow-tile)">
           <DashboardHistograma
             histograma={data?.histograma ?? []}
             loading={loading}

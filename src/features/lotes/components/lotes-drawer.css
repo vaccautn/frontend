@@ -25,7 +25,8 @@
   gap: 0.75rem;
   padding: 0.6rem 0.85rem;
   border-radius: var(--radius-md);
-  background: var(--bg);
+  background: var(--tile-bg);
+  box-shadow: var(--shadow-tile);
 }
 
 .lotes-drawer__item-info {

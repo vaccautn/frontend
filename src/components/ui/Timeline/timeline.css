@@ -1,5 +1,5 @@
 .timeline {
-  background: var(--panel);
+  background: var(--card-bg);
   border-radius: var(--radius-lg);
   box-shadow: var(--shadow-card);
   padding: 18px 22px 20px;

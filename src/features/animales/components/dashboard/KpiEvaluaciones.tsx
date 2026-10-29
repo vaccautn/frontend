@@ -10,7 +10,8 @@ export function KpiEvaluaciones({ cantidad, loading }: Props) {
     <Box
       p="4"
       borderRadius="var(--radius-md)"
-      bg="var(--bg)"
+      bg="var(--tile-bg)"
+      boxShadow="var(--shadow-tile)"
       display="flex"
       flexDirection="column"
       gap="1">

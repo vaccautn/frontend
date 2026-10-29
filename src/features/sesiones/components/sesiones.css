@@ -109,7 +109,7 @@
   margin: 1rem 0 2rem;
   padding: 1.5rem 1.5rem 1rem;
   border-radius: var(--radius-lg);
-  background: var(--panel);
+  background: var(--card-bg);
   box-shadow: var(--shadow-card);
 }
 
@@ -124,7 +124,9 @@
 
 .sesiones-timeline__scroll {
   overflow-x: auto;
-  padding-bottom: 0.5rem;
+  /* Margen lateral para que el anillo de hover de las sesiones de los
+   * extremos no quede recortado. */
+  padding: 0 6px 0.5rem;
 }
 
 .sesiones-timeline__anios {
@@ -174,11 +176,13 @@
   font: inherit;
 }
 
+/* Alto para el círculo más grande (64px) agrandado en hover (×1.06) más su
+ * anillo de 4px: el scroll horizontal recorta lo que se pase. */
 .sesiones-timeline__circulo-zona {
   display: flex;
   align-items: center;
   justify-content: center;
-  height: 72px;
+  height: 84px;
 }
 
 .sesiones-timeline__circulo {
@@ -307,13 +311,12 @@
   gap: 0.75rem;
   padding: 2rem;
   border-radius: var(--radius-lg);
-  background: var(--panel);
+  background: var(--card-bg);
   box-shadow: var(--shadow-card);
 }
 
 .sesion-edit__backdrop {
   background: var(--backdrop);
-  backdrop-filter: blur(6px);
 }
 
 .sesion-edit__dialog {
@@ -515,7 +518,7 @@
   padding: 0;
   border: none;
   border-radius: var(--radius-lg);
-  background: var(--panel);
+  background: var(--card-bg);
   box-shadow: var(--shadow-card);
   color: var(--text-h);
   font: inherit;
@@ -571,10 +574,12 @@
   height: 100px;
 }
 
+/* Arriba a la izquierda: a la derecha tapaba la cabeza de la vaca de la
+ * ilustración sin foto. */
 .sesion-tarjeta__cc {
   position: absolute;
   top: 0.55rem;
-  right: 0.55rem;
+  left: 0.55rem;
   min-width: 2.2rem;
   padding: 0.15rem 0.6rem;
   border: 1px solid transparent;
@@ -710,7 +715,7 @@
   gap: 0.75rem;
   padding: 1.25rem 1.4rem;
   border-radius: var(--radius-lg);
-  background: var(--panel);
+  background: var(--card-bg);
   box-shadow: var(--shadow-card);
 }
 
@@ -1045,7 +1050,7 @@
   gap: 1.75rem;
   padding: 1.25rem 1.5rem;
   border-radius: var(--radius-lg);
-  background: var(--panel);
+  background: var(--card-bg);
   box-shadow: var(--shadow-card);
 }
 
@@ -1108,7 +1113,7 @@
 /* Lista: una tarjeta con la barra de herramientas arriba y la tabla abajo. */
 .carga-sesion__lista {
   border-radius: var(--radius-lg);
-  background: var(--panel);
+  background: var(--card-bg);
   box-shadow: var(--shadow-card);
   overflow: hidden;
 }

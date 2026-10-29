@@ -46,7 +46,8 @@ export function HistorialCriticos({ historial, loading }: Props) {
                 px="3"
                 py="2"
                 borderRadius="var(--radius-sm)"
-                bg="var(--bg)">
+                bg="var(--tile-bg)"
+                boxShadow="var(--shadow-tile)">
                 <Box
                   w="4px"
                   h="full"
