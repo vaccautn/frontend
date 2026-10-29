@@ -4,7 +4,7 @@ import { IconChevronDown, IconPencil, IconX } from "@tabler/icons-react";
 import { getImagenesEvaluacion } from "@/features/animales/services/animalesService";
 import type { EvaluacionCC, EvidenciaImagenRead } from "@/features/animales/types";
 import { formatFechaDeTimestamp } from "@/features/animales/utils/formatDate";
-import { nivelCC } from "@/features/animales/utils/ccColor";
+import { NIVEL_CC_HEX, nivelCC } from "@/features/animales/utils/ccColor";
 
 type AnimalEvaluacionesTableProps = {
   evaluaciones: EvaluacionCC[];
@@ -22,7 +22,24 @@ export function AnimalEvaluacionesTable({
   };
 
   return (
-    <div className="animal-evaluaciones-table__wrapper">
+    // Mismo estilo que la tabla de animales de Rodeo: tarjeta, resumen arriba
+    // y CC como número en el color del semáforo.
+    <div className="animales-table__wrapper animal-evaluaciones-table__wrapper">
+      <div className="animales-table__summary">
+        <div>
+          <span className="animales-table__summary-label">Evaluaciones registradas</span>
+          <strong>{evaluaciones.length}</strong>
+        </div>
+        <div>
+          <span className="animales-table__summary-label">Última evaluación</span>
+          <strong>
+            {evaluaciones.length > 0
+              ? formatFechaDeTimestamp(evaluaciones[0].fecha)
+              : "—"}
+          </strong>
+        </div>
+      </div>
+
       <Table.Root
         className="animales-table animal-evaluaciones-table"
         interactive>
@@ -57,11 +74,13 @@ export function AnimalEvaluacionesTable({
                       toggleRow(evaluacion.id);
                     }
                   }}>
-                  <Table.Cell>
-                    <span
-                      className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${nivelCC(evaluacion.valor_cc, evaluacion.fecha)}`}>
-                      {evaluacion.valor_cc}
-                    </span>
+                  <Table.Cell
+                    style={{
+                      fontWeight: 700,
+                      color:
+                        NIVEL_CC_HEX[nivelCC(evaluacion.valor_cc, evaluacion.fecha)],
+                    }}>
+                    {evaluacion.valor_cc.toFixed(1)}
                   </Table.Cell>
                   <Table.Cell>
                     {formatFechaDeTimestamp(evaluacion.fecha)}

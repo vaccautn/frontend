@@ -9,36 +9,36 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import {
-  // IconHome2,
-  IconChartBar,
   IconCalendarHeart,
-  IconMap,
+  IconClipboardText,
   IconMenu2,
-  IconChevronDown,
+  IconSelector,
   IconLogout,
 } from "@tabler/icons-react";
 import { getStoredUser, useAuth } from "@/features/auth";
+import { VaccaIsotipo } from "@/components/ui/VaccaIsotipo";
+import { VacaIcon } from "@/utils/icons";
 
+/** "PRODUCTOR" → "Productor". */
+const formatRol = (rol: string) =>
+  rol.charAt(0).toUpperCase() + rol.slice(1).toLowerCase();
+
+// Inicio no está en la lista: se llega con el logo de arriba.
 const navItems = [
-  // {
-  //   label: "Inicio",
-  //   to: "/dashboard",
-  //   icon: <IconHome2 size={20} stroke={1} />,
-  // },
   {
     label: "Rodeo",
     to: "/rodeo",
-    icon: <IconMap size={20} stroke={1} />,
+    icon: <VacaIcon size={20} />,
   },
   {
     label: "Sesiones",
     to: "/sesiones",
-    icon: <IconChartBar size={20} stroke={1} />,
+    icon: <IconClipboardText size={20} stroke={1.5} />,
   },
   {
     label: "Servicios",
     to: "/servicios",
-    icon: <IconCalendarHeart size={20} stroke={1} />,
+    icon: <IconCalendarHeart size={20} stroke={1.5} />,
   },
 ];
 
@@ -77,17 +77,25 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       className={`sidebar${isOpen ? "" : " sidebar--collapsed"}`}
       aria-label="Navegación principal">
       <div className="sidebar__top">
-        {isOpen && (
-          <div className="sidebar__brand">
-            <p>VACCA</p> <span>Gestión bovina</span>
-          </div>
-        )}
+        <NavLink
+          to="/inicio"
+          className="sidebar__brand"
+          aria-label="Vacca, ir al inicio"
+          title="Inicio">
+          <VaccaIsotipo size={32} />
+          {isOpen && (
+            <span className="sidebar__brand-texto">
+              <span className="vacca-wordmark">vacca</span>
+              <span className="sidebar__brand-lema">Gestión bovina</span>
+            </span>
+          )}
+        </NavLink>
         <IconButton
           aria-label={toggleLabel}
           title={toggleLabel}
           variant="ghost"
-          colorPalette="brand"
           size="md"
+          className="sidebar__toggle"
           onClick={onToggle}>
           <IconMenu2 size={24} stroke={1.75} />
         </IconButton>
@@ -123,57 +131,79 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       </nav>
 
       {user && (
-        <Menu.Root>
-          <Menu.Trigger asChild>
-            <button
-              type="button"
-              className="sidebar__user"
-              title={`${user.nombre} ${user.apellido} · ${user.rol}`}>
-              <Avatar.Root size="sm" colorPalette="brand">
-                <Avatar.Fallback>
-                  {getInitials(user.nombre, user.apellido)}
-                </Avatar.Fallback>
-              </Avatar.Root>
-              {isOpen && (
-                <>
-                  <div className="sidebar__user-info">
-                    <span className="sidebar__user-name">
+        <div className="sidebar__footer">
+          <Menu.Root
+            positioning={{
+              // Abierta: el menú sube y toma el ancho del botón. Colapsada: sale
+              // hacia la derecha, alineado con el avatar.
+              placement: isOpen ? "top" : "right-end",
+              sameWidth: isOpen,
+              gutter: 8,
+            }}>
+            <Menu.Trigger asChild>
+              <button
+                type="button"
+                className="sidebar__user"
+                aria-label={`Cuenta de ${user.nombre} ${user.apellido}`}
+                title={isOpen ? undefined : `${user.nombre} ${user.apellido}`}>
+                <Avatar.Root
+                  size="sm"
+                  variant="solid"
+                  colorPalette="brand"
+                  className="sidebar__avatar">
+                  <Avatar.Fallback>
+                    {getInitials(user.nombre, user.apellido)}
+                  </Avatar.Fallback>
+                </Avatar.Root>
+                {isOpen && (
+                  <>
+                    <div className="sidebar__user-info">
+                      <span className="sidebar__user-name">
+                        {user.nombre} {user.apellido}
+                      </span>
+                      <span className="sidebar__user-role">
+                        {formatRol(user.rol)}
+                      </span>
+                    </div>
+                    <IconSelector
+                      className="sidebar__user-caret"
+                      size={16}
+                      stroke={1.75}
+                    />
+                  </>
+                )}
+              </button>
+            </Menu.Trigger>
+            <Portal>
+              <Menu.Positioner>
+                <Menu.Content className="sidebar__user-menu">
+                  <div className="sidebar__user-menu-header">
+                    <strong>
                       {user.nombre} {user.apellido}
-                    </span>
-                    <span className="sidebar__user-role">{user.rol}</span>
+                    </strong>
+                    <span>{formatRol(user.rol)}</span>
                   </div>
-                  <IconChevronDown
-                    className="sidebar__user-caret"
-                    size={16}
-                    stroke={1.5}
-                  />
-                </>
-              )}
-            </button>
-          </Menu.Trigger>
-          <Portal>
-            <Menu.Positioner>
-              <Menu.Content className="sidebar__user-menu">
-                {/* <Menu.Item
-                  value="editar-perfil"
-                  onSelect={() => {
-                    // TODO: sin funcionalidad todavía, no existe la página de perfil.
-                  }}>
-                  <IconUserEdit stroke={1.5} size={18} />
-                  Editar perfil
-                </Menu.Item> */}
-                <Menu.Separator />
-                <Menu.Item
-                  value="cerrar-sesion"
-                  className="sidebar__user-menu-item--danger"
-                  onSelect={() => setIsLogoutConfirmOpen(true)}>
-                  <IconLogout stroke={1.5} size={18} />
-                  Cerrar sesión
-                </Menu.Item>
-              </Menu.Content>
-            </Menu.Positioner>
-          </Portal>
-        </Menu.Root>
+                  {/* <Menu.Item
+                    value="editar-perfil"
+                    onSelect={() => {
+                      // TODO: sin funcionalidad todavía, no existe la página de perfil.
+                    }}>
+                    <IconUserEdit stroke={1.5} size={18} />
+                    Editar perfil
+                  </Menu.Item> */}
+                  <Menu.Separator />
+                  <Menu.Item
+                    value="cerrar-sesion"
+                    className="sidebar__user-menu-item--danger"
+                    onSelect={() => setIsLogoutConfirmOpen(true)}>
+                    <IconLogout stroke={1.5} size={18} />
+                    Cerrar sesión
+                  </Menu.Item>
+                </Menu.Content>
+              </Menu.Positioner>
+            </Portal>
+          </Menu.Root>
+        </div>
       )}
 
       <Dialog.Root

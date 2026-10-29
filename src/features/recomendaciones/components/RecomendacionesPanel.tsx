@@ -1,16 +1,12 @@
-import { useEffect, useMemo, useState } from "react";
+import { useMemo, useState } from "react";
+import { Button } from "@chakra-ui/react";
 import {
-  Button,
-  Portal,
-  Select,
-  Spinner,
-  Table,
-  createListCollection,
-} from "@chakra-ui/react";
-import {
-  IconChevronDown,
+  IconAlertTriangle,
+  IconArrowsSplit,
+  IconCheck,
   IconCircleCheck,
-  IconPhoto,
+  IconClockPause,
+  IconVaccine,
   IconX,
 } from "@tabler/icons-react";
 import { toast } from "react-toastify";
@@ -18,27 +14,30 @@ import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
 import { formatFecha } from "@/features/animales/utils/formatDate";
 import { nivelCC } from "@/features/animales/utils/ccColor";
-import { getImagenesEvaluacion } from "@/features/animales/services/animalesService";
+import { EvaluacionFoto } from "@/features/animales/components/EvaluacionFoto";
 import { decidirRecomendaciones } from "../services/recomendacionesService";
 import type {
   AptitudVaca,
   RecomendacionRead,
   TipoRecomendacion,
 } from "../types";
+import { TIPO_RECOMENDACION_LABELS } from "../constants";
 import "./recomendaciones.css";
 
-/** Orden y nombres de las medidas. "Destete temporario" es el término del
- * cliente (el criterio de aceptación decía "temporal"). Coincide con el
- * orden alfabético con el que el backend devuelve las recomendaciones. */
-const MEDIDAS: { tipo: TipoRecomendacion; label: string }[] = [
-  { tipo: "DESTETE_PRECOZ", label: "Destete precoz" },
-  { tipo: "DESTETE_TEMPORARIO", label: "Destete temporario" },
-  { tipo: "TRATAMIENTO_HORMONAL", label: "Tratamiento hormonal" },
+/** Opciones del selector de cada tarjeta, en el orden en que se muestran. */
+const OPCIONES_MEDIDA: { tipo: TipoRecomendacion; label: string }[] = [
+  { tipo: "DESTETE_TEMPORARIO", label: "Temporario" },
+  { tipo: "DESTETE_PRECOZ", label: "Precoz" },
+  { tipo: "TRATAMIENTO_HORMONAL", label: "Hormonal" },
 ];
 
-const TIPO_LABELS: Record<TipoRecomendacion, string> = Object.fromEntries(
-  MEDIDAS.map(({ tipo, label }) => [tipo, label]),
-) as Record<TipoRecomendacion, string>;
+const TIPO_LABELS = TIPO_RECOMENDACION_LABELS;
+
+const ICONOS_MEDIDA: Record<TipoRecomendacion, typeof IconVaccine> = {
+  DESTETE_PRECOZ: IconArrowsSplit,
+  DESTETE_TEMPORARIO: IconClockPause,
+  TRATAMIENTO_HORMONAL: IconVaccine,
+};
 
 const caravanaDe = (vaca: AptitudVaca) =>
   vaca.animal.caravana ?? `#${vaca.animal.id}`;
@@ -93,9 +92,10 @@ export function RecomendacionesPanel({
   const elegirMedida = (vacaId: number, tipo: TipoRecomendacion) =>
     setSeleccion((current) => ({ ...current, [vacaId]: tipo }));
 
-  const incluyePrecoz = pendientes.some(
-    ({ vaca, recs }) => medidaElegida(vaca.animal.id, recs) === "DESTETE_PRECOZ",
-  );
+  const cantidadPrecoz = pendientes.filter(
+    ({ vaca, recs }) =>
+      medidaElegida(vaca.animal.id, recs) === "DESTETE_PRECOZ",
+  ).length;
 
   const aceptarTodas = async () => {
     if (pendientes.length === 0 || decidiendo) return;
@@ -125,14 +125,26 @@ export function RecomendacionesPanel({
     }
   };
 
+  // Con todo decidido alcanza con la sección de decididas, sin el título
+  // general de "Recomendaciones".
+  const soloDecididas =
+    !loading && !error && pendientes.length === 0 && decididas.length > 0;
+
   return (
-    <section className="animal-detail__section recomendaciones">
-      <div className="animal-detail__section-header">
-        <div>
-          <span className="animal-detail__section-eyebrow">Preservicio</span>
+    <section className="sesion-seccion recomendaciones">
+      {!soloDecididas && (
+        <div className="sesion-seccion__titulo">
           <h2>Recomendaciones</h2>
+          {!loading && !error && pendientes.length > 0 && (
+            <span>
+              {pendientes.length === 1
+                ? "1 animal"
+                : `${pendientes.length} animales`}{" "}
+              · valores sugeridos según su CC
+            </span>
+          )}
         </div>
-      </div>
+      )}
 
       {loading && <p className="recomendaciones__vacio">Cargando...</p>}
       {!loading && error && (
@@ -146,134 +158,169 @@ export function RecomendacionesPanel({
           {pendientes.length === 0 ? (
             // Con decisiones tomadas alcanza con el desplegable de abajo.
             decididas.length === 0 && (
-            <div className="recomendaciones__sin-pendientes">
-              <IconCircleCheck size={28} stroke={1.5} />
-              <div>
-                <strong>No hay recomendaciones para hacer</strong>
-                <p>
-                  {vacas.length === 0
-                    ? "Todavía no hay vacas evaluadas para analizar."
-                    : "Ninguna vaca evaluada necesita una medida de manejo."}
-                </p>
+              <div className="recomendaciones__sin-pendientes">
+                <IconCircleCheck size={28} stroke={1.5} />
+                <div>
+                  <strong>No hay recomendaciones para hacer</strong>
+                  <p>
+                    {vacas.length === 0
+                      ? "Todavía no hay vacas evaluadas para analizar."
+                      : "Ninguna vaca evaluada necesita una medida de manejo."}
+                  </p>
+                </div>
               </div>
-            </div>
             )
           ) : (
             <>
-              <p className="recomendaciones__subtitulo">
-                Los valores por defecto son recomendaciones para cada caso en
-                particular.
-              </p>
-              <div className="animal-evaluaciones-table__wrapper">
-                <Table.Root className="animales-table animal-evaluaciones-table">
-                  <Table.Header>
-                    <Table.Row>
-                      <Table.ColumnHeader className="recomendaciones__col-foto">
-                        Foto
-                      </Table.ColumnHeader>
-                      <Table.ColumnHeader>Animal</Table.ColumnHeader>
-                      <Table.ColumnHeader>Lote</Table.ColumnHeader>
-                      <Table.ColumnHeader>CC</Table.ColumnHeader>
-                      <Table.ColumnHeader className="recomendaciones__col-medida">
-                        Medida
-                      </Table.ColumnHeader>
-                    </Table.Row>
-                  </Table.Header>
-                  <Table.Body>
-                    {pendientes.map(({ vaca, recs }) => {
-                      const nivel = vaca.evaluacion
-                        ? nivelCC(vaca.evaluacion.valor_cc, vaca.evaluacion.fecha)
-                        : "normal";
-                      return (
-                        <Table.Row key={vaca.animal.id}>
-                          <Table.Cell className="recomendaciones__col-foto">
-                            <RecomendacionFoto
-                              evaluacionId={vaca.evaluacion?.id ?? null}
-                              caravana={caravanaDe(vaca)}
-                            />
-                          </Table.Cell>
-                          <Table.Cell>{caravanaDe(vaca)}</Table.Cell>
-                          <Table.Cell>{vaca.lote?.nombre ?? "Sin lote"}</Table.Cell>
-                          <Table.Cell>
-                            <span
-                              className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${nivel}`}>
-                              {vaca.evaluacion?.valor_cc ?? "—"}
-                            </span>
-                          </Table.Cell>
-                          <Table.Cell className="recomendaciones__col-medida">
-                            <MedidaSelect
-                              caravana={caravanaDe(vaca)}
-                              recs={recs}
-                              value={medidaElegida(vaca.animal.id, recs)}
-                              onChange={(tipo) => elegirMedida(vaca.animal.id, tipo)}
-                            />
-                          </Table.Cell>
-                        </Table.Row>
-                      );
-                    })}
-                  </Table.Body>
-                </Table.Root>
-              </div>
+              <ul className="sesion-tarjetas sesion-tarjetas--grandes">
+                {pendientes.map(({ vaca, recs }) => {
+                  const nivel = vaca.evaluacion
+                    ? nivelCC(vaca.evaluacion.valor_cc, vaca.evaluacion.fecha)
+                    : "normal";
+                  const elegida = medidaElegida(vaca.animal.id, recs);
+                  return (
+                    <li
+                      key={vaca.animal.id}
+                      className={`sesion-tarjeta sesion-tarjeta--${nivel}`}>
+                      <div className="sesion-tarjeta__media">
+                        <EvaluacionFoto
+                          evaluacionId={vaca.evaluacion?.id ?? null}
+                          caravana={caravanaDe(vaca)}
+                          ampliable
+                        />
+                        <span
+                          className={`sesion-tarjeta__cc sesion-tarjeta__cc--${nivel}`}>
+                          {vaca.evaluacion?.valor_cc ?? "—"}
+                        </span>
+                      </div>
+                      <div className="sesion-tarjeta__cuerpo">
+                        <strong className="sesion-tarjeta__caravana">
+                          {caravanaDe(vaca)}
+                        </strong>
+                        <span className="sesion-tarjeta__sub">
+                          {vaca.lote?.nombre ?? "Sin lote"}
+                        </span>
+                        <span className="sesion-tarjeta__label">Medida</span>
+                        <div
+                          className="sesion-tarjeta__opciones"
+                          role="radiogroup"
+                          aria-label={`Medida para ${caravanaDe(vaca)}`}>
+                          {OPCIONES_MEDIDA.map(({ tipo, label }) => {
+                            const disponible = recs.some(
+                              (r) => r.tipo === tipo,
+                            );
+                            return (
+                              <button
+                                key={tipo}
+                                type="button"
+                                role="radio"
+                                aria-checked={elegida === tipo}
+                                disabled={!disponible}
+                                title={
+                                  disponible
+                                    ? undefined
+                                    : "No aplica para esta CC"
+                                }
+                                className={`sesion-tarjeta__opcion${
+                                  elegida === tipo
+                                    ? " sesion-tarjeta__opcion--activa"
+                                    : ""
+                                }`}
+                                onClick={() =>
+                                  elegirMedida(vaca.animal.id, tipo)
+                                }>
+                                {label}
+                              </button>
+                            );
+                          })}
+                        </div>
+                        {elegida === "DESTETE_PRECOZ" && (
+                          <span className="sesion-tarjeta__aviso">
+                            <IconAlertTriangle size={14} stroke={1.75} />
+                            Pasa a "Vaca seca"
+                          </span>
+                        )}
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
 
               <div className="recomendaciones__acciones">
-                {incluyePrecoz && (
-                  <p className="recomendaciones__aviso">
-                    Al aceptar un destete precoz, la vaca pasa a la categoría
-                    "Vaca seca".
-                  </p>
-                )}
+                <span className="recomendaciones__resumen">
+                  {pendientes.length === 1
+                    ? "1 recomendación"
+                    : `${pendientes.length} recomendaciones`}
+                  {cantidadPrecoz > 0 &&
+                    ` · ${
+                      cantidadPrecoz === 1
+                        ? "1 destete precoz pasa"
+                        : `${cantidadPrecoz} destetes precoces pasan`
+                    } a "Vaca seca"`}
+                </span>
                 <Button
                   colorPalette="brand"
-                  size="sm"
+                  variant="outline"
+                  bg="var(--panel)"
                   loading={decidiendo}
                   onClick={aceptarTodas}>
-                  Aceptar
+                  Aceptar recomendaciones
                 </Button>
               </div>
             </>
           )}
 
           {decididas.length > 0 && (
-            <details
-              className="recomendaciones__plegable"
-              open={pendientes.length === 0}>
-              <summary>
-                <IconChevronDown
-                  size={16}
-                  stroke={1.75}
-                  className="recomendaciones__plegable-icono"
-                />
-                Recomendaciones decididas
-                <span className="recomendaciones__plegable-cantidad">
-                  {decididas.length}
-                </span>
-              </summary>
-              <div className="recomendaciones__decididas">
-                <div className="recomendaciones__decidida recomendaciones__decidida--header">
-                  <span>Animal</span>
-                  <span>Medida</span>
-                  <span>Estado</span>
-                  <span>Fecha</span>
-                </div>
-                {decididas.map(({ rec, vaca }) => (
-                  <div key={rec.id} className="recomendaciones__decidida">
-                    <strong>{caravanaDe(vaca)}</strong>
-                    <span>{TIPO_LABELS[rec.tipo]}</span>
-                    <span>
-                      <span
-                        className={`recomendaciones__estado recomendaciones__estado--${rec.estado}`}>
-                        {rec.estado === "ACEPTADA" ? "Aceptada" : "Rechazada"}
-                      </span>
-                    </span>
-                    <span className="recomendaciones__fecha">
-                      {rec.fecha_decision
-                        ? formatFecha(rec.fecha_decision.slice(0, 10))
-                        : "—"}
-                    </span>
-                  </div>
-                ))}
+            <div className="recomendaciones__decididas">
+              <div className="sesion-seccion__titulo">
+                <h2 className="recomendaciones__decididas-titulo">
+                  <IconCircleCheck size={20} stroke={1.75} />
+                  Recomendaciones decididas
+                </h2>
+                <span>{resumenDecididas(decididas.map(({ rec }) => rec))}</span>
               </div>
-            </details>
+              <ul className="sesion-tarjetas sesion-tarjetas--grandes">
+                {decididas.map(({ rec, vaca }) => {
+                  const nivel = vaca.evaluacion
+                    ? nivelCC(rec.valor_cc, vaca.evaluacion.fecha)
+                    : "normal";
+                  const IconoMedida = ICONOS_MEDIDA[rec.tipo];
+                  return (
+                    <li key={rec.id} className="sesion-tarjeta">
+                      <div className="sesion-tarjeta__media sesion-tarjeta__media--media">
+                        <EvaluacionFoto
+                          evaluacionId={rec.evaluacion_cc_id}
+                          caravana={caravanaDe(vaca)}
+                          ampliable
+                        />
+                        <span
+                          className={`sesion-tarjeta__cc sesion-tarjeta__cc--${nivel}`}>
+                          {rec.valor_cc}
+                        </span>
+                        <span
+                          className={`sesion-tarjeta__sello sesion-tarjeta__sello--${rec.estado}`}>
+                          {rec.estado === "ACEPTADA" ? (
+                            <IconCheck size={14} stroke={2.25} />
+                          ) : (
+                            <IconX size={14} stroke={2.25} />
+                          )}
+                          {rec.estado === "ACEPTADA" ? "Aceptada" : "Rechazada"}
+                        </span>
+                      </div>
+                      <div className="sesion-tarjeta__cuerpo">
+                        <strong className="sesion-tarjeta__caravana">
+                          {caravanaDe(vaca)}
+                        </strong>
+                        <span className="sesion-tarjeta__chip">
+                          <IconoMedida size={14} stroke={1.75} />
+                          {TIPO_LABELS[rec.tipo]}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
+              </ul>
+            </div>
           )}
         </>
       )}
@@ -281,152 +328,19 @@ export function RecomendacionesPanel({
   );
 }
 
-/** Desplegable de Chakra con las tres medidas; las que no aplican a la vaca
- * quedan deshabilitadas. */
-function MedidaSelect({
-  caravana,
-  recs,
-  value,
-  onChange,
-}: {
-  caravana: string;
-  recs: RecomendacionRead[];
-  value: TipoRecomendacion;
-  onChange: (tipo: TipoRecomendacion) => void;
-}) {
-  const collection = useMemo(
-    () =>
-      createListCollection({
-        items: MEDIDAS.map(({ tipo, label }) => {
-          const disponible = recs.some((r) => r.tipo === tipo);
-          return {
-            value: tipo,
-            label: disponible ? label : `${label} (no aplica)`,
-            disabled: !disponible,
-          };
-        }),
-        isItemDisabled: (item) => item.disabled,
-      }),
-    [recs],
+/** "3 aceptadas el 27/10/2026", "2 aceptadas · 1 rechazada", etc. La fecha
+ * solo se muestra si todas se decidieron el mismo día. */
+function resumenDecididas(recs: RecomendacionRead[]): string {
+  const aceptadas = recs.filter((r) => r.estado === "ACEPTADA").length;
+  const rechazadas = recs.length - aceptadas;
+  const partes = [
+    aceptadas > 0 && `${aceptadas} aceptada${aceptadas === 1 ? "" : "s"}`,
+    rechazadas > 0 && `${rechazadas} rechazada${rechazadas === 1 ? "" : "s"}`,
+  ].filter(Boolean);
+  const dias = new Set(
+    recs.map((r) => r.fecha_decision?.slice(0, 10)).filter(Boolean),
   );
-
-  return (
-    <Select.Root
-      collection={collection}
-      size="sm"
-      colorPalette="brand"
-      value={[value]}
-      onValueChange={(details) => {
-        const tipo = details.value[0] as TipoRecomendacion | undefined;
-        if (tipo) onChange(tipo);
-      }}
-      positioning={{ sameWidth: true }}>
-      <Select.HiddenSelect aria-label={`Medida para ${caravana}`} />
-      <Select.Control>
-        <Select.Trigger bg="var(--panel)">
-          <Select.ValueText />
-        </Select.Trigger>
-        <Select.IndicatorGroup>
-          <Select.Indicator />
-        </Select.IndicatorGroup>
-      </Select.Control>
-      <Portal>
-        <Select.Positioner>
-          <Select.Content>
-            {collection.items.map((item) => (
-              <Select.Item item={item} key={item.value}>
-                {item.label}
-                <Select.ItemIndicator />
-              </Select.Item>
-            ))}
-          </Select.Content>
-        </Select.Positioner>
-      </Portal>
-    </Select.Root>
-  );
-}
-
-function RecomendacionFoto({
-  evaluacionId,
-  caravana,
-}: {
-  evaluacionId: number | null;
-  caravana: string;
-}) {
-  const [url, setUrl] = useState<string | null>(null);
-  const [loading, setLoading] = useState(evaluacionId !== null);
-  const [ampliada, setAmpliada] = useState(false);
-
-  useEffect(() => {
-    if (!ampliada) return;
-    const cerrarConEscape = (event: KeyboardEvent) => {
-      if (event.key === "Escape") setAmpliada(false);
-    };
-    document.addEventListener("keydown", cerrarConEscape);
-    return () => document.removeEventListener("keydown", cerrarConEscape);
-  }, [ampliada]);
-
-  useEffect(() => {
-    // Sin evaluación no hay nada que buscar: el estado inicial (sin url,
-    // sin loading) ya refleja ese caso.
-    if (evaluacionId === null) return;
-    let isMounted = true;
-    setLoading(true);
-    getImagenesEvaluacion(evaluacionId)
-      .then((imagenes) => {
-        if (isMounted) setUrl(imagenes[0]?.url ?? null);
-      })
-      .catch(() => {
-        if (isMounted) setUrl(null);
-      })
-      .finally(() => {
-        if (isMounted) setLoading(false);
-      });
-    return () => {
-      isMounted = false;
-    };
-  }, [evaluacionId]);
-
-  if (loading || !url) {
-    return (
-      <div className="recomendaciones__foto">
-        {loading ? <Spinner size="xs" /> : <IconPhoto size={16} stroke={1.5} />}
-      </div>
-    );
-  }
-
-  return (
-    <>
-      <button
-        type="button"
-        className="recomendaciones__foto recomendaciones__foto--boton"
-        aria-label={`Ver foto de ${caravana} en pantalla completa`}
-        onClick={() => setAmpliada(true)}>
-        <img src={url} alt="" />
-      </button>
-      {ampliada && (
-        <Portal>
-          <div
-            className="animal-imagenes__lightbox"
-            onClick={() => setAmpliada(false)}>
-            <button
-              type="button"
-              className="animal-imagenes__lightbox-close"
-              aria-label="Cerrar"
-              onClick={(event) => {
-                event.stopPropagation();
-                setAmpliada(false);
-              }}>
-              <IconX size={20} stroke={1.75} />
-            </button>
-            <img
-              src={url}
-              alt={`Evaluación de ${caravana} en pantalla completa`}
-              onClick={(event) => event.stopPropagation()}
-            />
-          </div>
-        </Portal>
-      )}
-    </>
-  );
+  const fecha =
+    dias.size === 1 ? ` el ${formatFecha([...dias][0] as string)}` : "";
+  return partes.join(" · ") + fecha;
 }

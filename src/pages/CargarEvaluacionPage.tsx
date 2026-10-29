@@ -1,8 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
-import { Button, Dialog, Input, Portal, Table } from "@chakra-ui/react";
+import { Button, Dialog, Portal, Table } from "@chakra-ui/react";
 import { toast } from "react-toastify";
-import { IconTrash } from "@tabler/icons-react";
+import { IconCheck, IconChevronRight, IconTrash } from "@tabler/icons-react";
 import { getSesion } from "@/features/sesiones/services/sesionesService";
 import {
   getAnimalesAgrupadosPorLote,
@@ -29,12 +29,33 @@ import type {
   EvaluacionCC,
 } from "@/features/animales/types";
 import type { LoteOption } from "@/features/lotes/types";
-import { formatEventDate, localNaiveNow } from "@/utils/localDateTime";
+import { localNaiveNow } from "@/utils/localDateTime";
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
 import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
+import { nivelCC } from "@/features/animales/utils/ccColor";
+import { FechaInput } from "@/components/FechaInput";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
+
+type Vista = "todos" | "pendientes" | "evaluados";
+
+const VISTAS: { value: Vista; label: string }[] = [
+  { value: "todos", label: "Todos" },
+  { value: "pendientes", label: "Pendientes" },
+  { value: "evaluados", label: "Evaluados" },
+];
+
+/** "27 de octubre de 2026" a partir de un "YYYY-MM-DD..." (sin zona horaria:
+ * se arma la fecha al mediodía para que no cambie de día). */
+function fechaLarga(fecha: string): string {
+  const [anio, mes, dia] = fecha.slice(0, 10).split("-").map(Number);
+  return new Intl.DateTimeFormat("es-AR", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+  }).format(new Date(anio, mes - 1, dia, 12));
+}
 
 export function CargarEvaluacionesPage() {
   const { id } = useParams<{ id: string }>();
@@ -55,6 +76,7 @@ export function CargarEvaluacionesPage() {
   const [isDeletingSesion, setIsDeletingSesion] = useState(false);
   const [fechaSesionInput, setFechaSesionInput] = useState("");
   const [isActualizandoFecha, setIsActualizandoFecha] = useState(false);
+  const [vista, setVista] = useState<Vista>("todos");
 
   const [evaluacionesPersistidas, setEvaluacionesPersistidas] = useState<
     Map<number, EvaluacionCC>
@@ -267,19 +289,58 @@ export function CargarEvaluacionesPage() {
   if (loading) return <p>Cargando...</p>;
   if (!sesion) return <p>Sesión no encontrada.</p>;
 
+  const fechaGuardada = sesion.fecha_inicio.slice(0, 10);
+  const fechaCambiada = !!fechaSesionInput && fechaSesionInput !== fechaGuardada;
+
+  const animalesListados = gruposFiltrados.flatMap((grupo) =>
+    grupo.animales.map((animal) => ({ animal, lote: grupo.lote })),
+  );
+  const evaluadosListados = animalesListados.filter(({ animal }) =>
+    evaluacionesPersistidas.has(animal.id),
+  ).length;
+  const pendientesListados = animalesListados.length - evaluadosListados;
+  const porcentaje =
+    animalesListados.length > 0
+      ? Math.round((evaluadosListados / animalesListados.length) * 100)
+      : 0;
+  const filas = animalesListados.filter(({ animal }) => {
+    if (vista === "todos") return true;
+    const evaluado = evaluacionesPersistidas.has(animal.id);
+    return vista === "evaluados" ? evaluado : !evaluado;
+  });
+  const cantidadEvaluaciones = evaluacionesPersistidas.size;
+
   return (
-    <section>
-      <div className="section-header">
-        <div className="title-and-description">
-          <h1>
-            Cargando evaluación del {formatEventDate(sesion.fecha_inicio)}
-          </h1>
-          <p>
-            {evaluacionesPersistidas.size} evaluación(es) cargadas en esta
-            sesión.
-          </p>
+    <section className="carga-sesion">
+      <header className="carga-sesion__hero">
+        <div className="carga-sesion__titulo">
+          <span className="carga-sesion__eyebrow">
+            <span className="carga-sesion__pulso" aria-hidden="true" />
+            Sesión en carga
+          </span>
+          <h1>Evaluación del {fechaLarga(sesion.fecha_inicio)}</h1>
+          <div className="carga-sesion__fecha">
+            <label htmlFor="fecha-sesion">Fecha de la sesión</label>
+            <FechaInput
+              id="fecha-sesion"
+              aria-label="Fecha a la que pertenece la sesión"
+              className="carga-sesion__fecha-input"
+              max={hoyStr}
+              value={fechaSesionInput}
+              onChange={setFechaSesionInput}
+            />
+            {fechaCambiada && (
+              <Button
+                colorPalette="brand"
+                size="sm"
+                onClick={handleConfirmarFechaSesion}
+                loading={isActualizandoFecha}>
+                Guardar fecha
+              </Button>
+            )}
+          </div>
         </div>
-        <div className="sesion-detail__hero-actions">
+        <div className="carga-sesion__acciones">
           <button
             type="button"
             className="animal-detail__action animal-detail__action--danger"
@@ -287,107 +348,180 @@ export function CargarEvaluacionesPage() {
             <IconTrash size={16} stroke={1.5} />
             Eliminar sesión
           </button>
-          <Button
-            colorPalette="brand"
-            onClick={handleFinalizarCarga}
-            loading={isFinalizando}
-            loadingText="Guardando...">
-            Finalizar carga
-          </Button>
+          <span
+            title={
+              cantidadEvaluaciones === 0
+                ? "Cargá al menos una evaluación para finalizar."
+                : undefined
+            }>
+            <Button
+              colorPalette="brand"
+              size="lg"
+              onClick={handleFinalizarCarga}
+              loading={isFinalizando}
+              loadingText="Guardando..."
+              disabled={cantidadEvaluaciones === 0}>
+              <IconCheck size={18} stroke={2} />
+              Finalizar carga
+            </Button>
+          </span>
+        </div>
+      </header>
+
+      <div className="carga-sesion__progreso">
+        <div className="carga-sesion__progreso-numero">
+          <strong>{cantidadEvaluaciones}</strong>
+          <span>
+            {cantidadEvaluaciones === 1
+              ? "evaluación cargada"
+              : "evaluaciones cargadas"}
+          </span>
+        </div>
+        <div className="carga-sesion__progreso-detalle">
+          <div className="carga-sesion__progreso-texto">
+            <span>
+              {pendientesListados === 0 && animalesListados.length > 0
+                ? "Todos los animales de la lista están evaluados"
+                : `Faltan ${pendientesListados} de ${animalesListados.length} ${
+                    animalesListados.length === 1 ? "animal" : "animales"
+                  } de la lista`}
+            </span>
+            <strong>{porcentaje}%</strong>
+          </div>
+          <div
+            className="carga-sesion__barra"
+            role="progressbar"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={porcentaje}
+            aria-label="Animales de la lista evaluados">
+            <div style={{ width: `${porcentaje}%` }} />
+          </div>
         </div>
       </div>
 
-      <div className="cargar-evaluacion__fecha-sesion">
-        <div className="sesiones-filtros__campo">
-          <label
-            htmlFor="fecha-sesion"
-            className="cargar-evaluacion__fecha-label">
-            Fecha de la evaluación:
-          </label>
-          <Input
-            id="fecha-sesion"
-            type="date"
-            max={hoyStr}
-            value={fechaSesionInput}
-            onChange={(event) => setFechaSesionInput(event.target.value)}
-            aria-label="Fecha a la que pertenece la sesión"
-            className="animales-filtros__input"
+      <div className="carga-sesion__lista">
+        <div className="carga-sesion__toolbar">
+          <div className="carga-sesion__vistas" role="group" aria-label="Mostrar">
+            {VISTAS.map(({ value, label }) => (
+              <button
+                key={value}
+                type="button"
+                aria-pressed={vista === value}
+                data-activo={vista === value}
+                onClick={() => setVista(value)}>
+                {label}
+                <span className="carga-sesion__vistas-cantidad">
+                  {value === "todos"
+                    ? animalesListados.length
+                    : value === "evaluados"
+                      ? evaluadosListados
+                      : pendientesListados}
+                </span>
+              </button>
+            ))}
+          </div>
+          <AnimalesFiltros
+            caravanaInput={caravanaInput}
+            raza={raza}
+            estado={estado}
+            loteId={loteId}
+            categoriaLote={categoriaLote}
+            lotes={lotes}
+            loadingLotes={loadingLotes}
+            onCaravanaChange={setCaravanaInput}
+            onRazaChange={setRaza}
+            onEstadoChange={setEstado}
+            onLoteChange={setLoteId}
+            onCategoriaLoteChange={setCategoriaLote}
           />
         </div>
-        <Button
-          colorPalette="brand"
-          onClick={handleConfirmarFechaSesion}
-          loading={isActualizandoFecha}
-          disabled={
-            !fechaSesionInput ||
-            fechaSesionInput === sesion.fecha_inicio.slice(0, 10)
-          }>
-          Confirmar fecha
-        </Button>
-      </div>
 
-      <AnimalesFiltros
-        caravanaInput={caravanaInput}
-        raza={raza}
-        estado={estado}
-        loteId={loteId}
-        categoriaLote={categoriaLote}
-        lotes={lotes}
-        loadingLotes={loadingLotes}
-        onCaravanaChange={setCaravanaInput}
-        onRazaChange={setRaza}
-        onEstadoChange={setEstado}
-        onLoteChange={setLoteId}
-        onCategoriaLoteChange={setCategoriaLote}
-      />
-
-      <Table.Root
-        className="animales-table"
-        interactive
-        style={{
-          opacity: refetchingGrupos ? 0.6 : 1,
-          transition: "opacity 0.15s",
-        }}>
-        <Table.Header>
-          <Table.Row>
-            <Table.ColumnHeader>Caravana</Table.ColumnHeader>
-            <Table.ColumnHeader>Raza</Table.ColumnHeader>
-            <Table.ColumnHeader>Lote</Table.ColumnHeader>
-            <Table.ColumnHeader>Categoría del lote</Table.ColumnHeader>
-            <Table.ColumnHeader>Valor CC</Table.ColumnHeader>
-          </Table.Row>
-        </Table.Header>
-        <Table.Body>
-          {gruposFiltrados.length === 0 ? (
-            <Table.Row>
-              <Table.Cell colSpan={5}>
-                No se encontraron animales con los filtros aplicados.
-              </Table.Cell>
-            </Table.Row>
-          ) : (
-            gruposFiltrados.flatMap((grupo) =>
-              grupo.animales.map((animal) => (
-                <Table.Row
-                  key={animal.id}
-                  className="animales-table__row"
-                  onClick={() => setAnimalSeleccionado(animal)}>
-                  <Table.Cell>{animal.caravana ?? "—"}</Table.Cell>
-                  <Table.Cell>{animal.raza}</Table.Cell>
-                  <Table.Cell>{grupo.lote?.nombre ?? "Sin lote"}</Table.Cell>
-                  <Table.Cell>
-                    {grupo.lote
-                      ? (CATEGORIA_ANIMAL_LABELS[grupo.lote.categoria] ?? "—")
-                      : "—"}
-                  </Table.Cell>
-                  <Table.Cell>
-                    {evaluacionesPersistidas.get(animal.id)?.valor_cc ?? "—"}
+        <div
+          className="carga-sesion__tabla"
+          style={{
+            opacity: refetchingGrupos ? 0.6 : 1,
+            transition: "opacity 160ms",
+          }}>
+          <Table.Root className="animales-table" interactive>
+            <Table.Header>
+              <Table.Row>
+                <Table.ColumnHeader>Caravana</Table.ColumnHeader>
+                <Table.ColumnHeader>Raza</Table.ColumnHeader>
+                <Table.ColumnHeader>Lote</Table.ColumnHeader>
+                <Table.ColumnHeader>Categoría del lote</Table.ColumnHeader>
+                <Table.ColumnHeader>Condición corporal</Table.ColumnHeader>
+                <Table.ColumnHeader aria-label="Acción" />
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
+              {filas.length === 0 ? (
+                <Table.Row>
+                  <Table.Cell colSpan={6} className="carga-sesion__vacio">
+                    {vista === "pendientes" && animalesListados.length > 0
+                      ? "No quedan animales pendientes en la lista."
+                      : vista === "evaluados"
+                        ? "Todavía no hay animales evaluados en la lista."
+                        : "No se encontraron animales con los filtros aplicados."}
                   </Table.Cell>
                 </Table.Row>
-              )),
-            )
-          )}
-        </Table.Body>
-      </Table.Root>
+              ) : (
+                filas.map(({ animal, lote }) => {
+                  const evaluacion = evaluacionesPersistidas.get(animal.id);
+                  const caravana = animal.caravana ?? `#${animal.id}`;
+                  return (
+                    <Table.Row
+                      key={animal.id}
+                      className={`animales-table__row carga-sesion__fila${
+                        evaluacion ? " carga-sesion__fila--evaluada" : ""
+                      }`}
+                      tabIndex={0}
+                      role="button"
+                      aria-label={`${evaluacion ? "Editar" : "Evaluar"} a ${caravana}`}
+                      onClick={() => setAnimalSeleccionado(animal)}
+                      onKeyDown={(event) => {
+                        if (event.key === "Enter" || event.key === " ") {
+                          event.preventDefault();
+                          setAnimalSeleccionado(animal);
+                        }
+                      }}>
+                      <Table.Cell className="carga-sesion__caravana">
+                        {caravana}
+                      </Table.Cell>
+                      <Table.Cell>{animal.raza}</Table.Cell>
+                      <Table.Cell>{lote?.nombre ?? "Sin lote"}</Table.Cell>
+                      <Table.Cell>
+                        {lote
+                          ? (CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? "—")
+                          : "—"}
+                      </Table.Cell>
+                      <Table.Cell>
+                        {evaluacion ? (
+                          <span
+                            className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${nivelCC(
+                              evaluacion.valor_cc,
+                              evaluacion.fecha,
+                            )}`}>
+                            CC {evaluacion.valor_cc}
+                          </span>
+                        ) : (
+                          <span className="carga-sesion__sin-evaluar">
+                            Sin evaluar
+                          </span>
+                        )}
+                      </Table.Cell>
+                      <Table.Cell className="carga-sesion__accion">
+                        <span>{evaluacion ? "Editar" : "Evaluar"}</span>
+                        <IconChevronRight size={16} stroke={1.75} />
+                      </Table.Cell>
+                    </Table.Row>
+                  );
+                })
+              )}
+            </Table.Body>
+          </Table.Root>
+        </div>
+      </div>
 
       <RegistrarEvaluacionCCDialog
         animal={animalSeleccionado}

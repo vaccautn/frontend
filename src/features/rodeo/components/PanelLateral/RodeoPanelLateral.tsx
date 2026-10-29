@@ -22,6 +22,7 @@ type Props = {
   onClose: () => void;
   onClearSeleccion: () => void;
   onAgregarAnimal: () => void;
+  onImportarAnimales: () => void;
   onLoteHover?: (loteId: number | null) => void;
 };
 
@@ -37,6 +38,7 @@ export function RodeoPanelLateral({
   onClose,
   onClearSeleccion,
   onAgregarAnimal,
+  onImportarAnimales,
   onLoteHover,
 }: Props) {
   const { data, loading } = useAnimalesDashboard(lote?.id ?? null);
@@ -61,11 +63,7 @@ export function RodeoPanelLateral({
             loadingCriticos={loading}
           />
         ) : (
-          <RodeoResumenGeneral
-            totalLotes={lotes.length}
-            data={data}
-            loading={loading}
-          />
+          <RodeoResumenGeneral totalLotes={lotes.length} />
         )}
       </div>
 
@@ -88,6 +86,7 @@ export function RodeoPanelLateral({
         hasSel={lote !== null}
         onVerDashboard={onExpand}
         onAgregarAnimal={onAgregarAnimal}
+        onImportarAnimales={onImportarAnimales}
       />
     </aside>
   );

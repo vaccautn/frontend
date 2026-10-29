@@ -40,7 +40,10 @@ export function ServicioFaseBar(props: ProgresoProps | BreakdownProps) {
         <div className="servicio-fase-bar__leyenda">
           {segmentos.map((s) => (
             <span key={s.label} className="servicio-fase-bar__leyenda-item">
-              <span className="servicio-fase-bar__leyenda-dot" style={{ background: s.color }} />
+              <span
+                className="servicio-fase-bar__leyenda-dot"
+                style={{ background: s.color }}
+              />
               <b>{s.label}</b> {s.cantidad}
             </span>
           ))}
@@ -67,32 +70,41 @@ export function ServicioFaseBar(props: ProgresoProps | BreakdownProps) {
         <div className="servicio-fase-bar__segmentos">
           <div
             className="servicio-fase-bar__segmento servicio-fase-bar__segmento--cabeza"
-            style={{ width: `${(progreso.finCabeza / progreso.totalDias) * 100}%` }}>
+            style={{
+              width: `${(progreso.finCabeza / progreso.totalDias) * 100}%`,
+            }}>
             Cabeza
           </div>
           <div
             className="servicio-fase-bar__segmento servicio-fase-bar__segmento--cuerpo"
-            style={{ width: `${((progreso.finCuerpo - progreso.finCabeza) / progreso.totalDias) * 100}%` }}>
+            style={{
+              width: `${((progreso.finCuerpo - progreso.finCabeza) / progreso.totalDias) * 100}%`,
+            }}>
             Cuerpo
           </div>
           <div
             className="servicio-fase-bar__segmento servicio-fase-bar__segmento--cola"
-            style={{ width: `${((progreso.totalDias - progreso.finCuerpo) / progreso.totalDias) * 100}%` }}>
+            style={{
+              width: `${((progreso.totalDias - progreso.finCuerpo) / progreso.totalDias) * 100}%`,
+            }}>
             Cola
           </div>
         </div>
-        <div className="servicio-fase-bar__marcador" style={{ left: `${progresoPct}%` }} />
+        <div
+          className="servicio-fase-bar__marcador"
+          style={{ left: `${progresoPct}%` }}
+        />
       </div>
 
       <div className="servicio-fase-bar__fechas">
         <span>{formatFecha(fechaInicio)}</span>
         <span>{formatFecha(fechaFin)}</span>
       </div>
-
+      {/* 
       <p className="servicio-fase-bar__caption">
-        Las preñeces hasta el {formatFecha(progreso.fechaFinCabeza)} cuentan como cabeza. Quedan{" "}
+        Las preñeces hasta el {formatFecha(progreso.fechaFinCabeza)} cuentan como cabeza. Quedan
         {progreso.diasRestantes} {progreso.diasRestantes === 1 ? "día" : "días"}.
-      </p>
+      </p> */}
     </div>
   );
 }

@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { EvolucionPunto } from "@/features/animales/types";
+import { CHART_TOOLTIP_STYLE } from "./chartTooltip";
 
 type Props = {
   evolucion: EvolucionPunto[];
@@ -93,12 +94,7 @@ export function DashboardEvolucion({ evolucion, loading }: Props) {
             <Tooltip
               formatter={(value: number) => [value.toFixed(2), "Promedio CC"]}
               labelFormatter={formatMesLargo}
-              contentStyle={{
-                background: "var(--panel)",
-                border: "1px solid var(--border)",
-                borderRadius: 6,
-                fontSize: 13,
-              }}
+              contentStyle={CHART_TOOLTIP_STYLE}
             />
             <Line
               type="monotone"

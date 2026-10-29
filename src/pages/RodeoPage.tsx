@@ -22,7 +22,7 @@ export function RodeoPage() {
     refetch: refetchRecomendaciones,
   } = useRecomendaciones();
 
-  const [mode, setMode] = useState<RodeoMode>("docked");
+  const [mode, setMode] = useState<RodeoMode>("full");
   const [loteSeleccionadoId, setLoteSeleccionadoId] = useState<number | null>(null);
   const [loteHoverId, setLoteHoverId] = useState<number | null>(null);
 
@@ -88,6 +88,7 @@ export function RodeoPage() {
             onClose={() => setMode("closed")}
             onClearSeleccion={handleDeselect}
             onAgregarAnimal={() => navigate("/rodeo/nuevo")}
+            onImportarAnimales={() => navigate("/rodeo/importar")}
           />
         )}
         {mode === "closed" && (
@@ -107,9 +108,7 @@ export function RodeoPage() {
             onCategoriaLoteChange={setCategoriaLote}
             onVolverAlMapa={() => setMode("docked")}
             onAgregarAnimal={() => navigate("/rodeo/nuevo")}
-            movimientos={movimientos}
-            cargandoRecomendaciones={cargandoRecomendaciones}
-            onRefrescarRecomendaciones={refetchRecomendaciones}
+            onImportarAnimales={() => navigate("/rodeo/importar")}
           />
         )}
       </div>

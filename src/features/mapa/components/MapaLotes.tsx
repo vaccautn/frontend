@@ -33,7 +33,7 @@ import type { LoteOption } from "@/features/lotes/types";
 
 import {
   useMapaCapas,
-  geoJsonFormat,
+  escribirPoligonoGeoJSON,
   PROYECCION_MAPA,
   PROYECCION_DATOS,
   type TipoCapaBase,
@@ -202,10 +202,7 @@ export function MapaLotes({
       if (kmzFeature) {
         const geom = kmzFeature.getGeometry();
         if (geom instanceof OlPolygon) {
-          const geomGeoJSON = geoJsonFormat.writeGeometryObject(geom, {
-            dataProjection: PROYECCION_DATOS,
-            featureProjection: PROYECCION_MAPA,
-          }) as GeoJSON.Polygon;
+          const geomGeoJSON = escribirPoligonoGeoJSON(geom);
           setPoligonoKmzSeleccionado({
             feature: kmzFeature,
             geom: geomGeoJSON,
@@ -296,10 +293,7 @@ export function MapaLotes({
     draw.on("drawend", (evento) => {
       const geometria = evento.feature.getGeometry();
       if (!geometria) return;
-      const geomGeoJSON = geoJsonFormat.writeGeometryObject(geometria, {
-        dataProjection: PROYECCION_DATOS,
-        featureProjection: PROYECCION_MAPA,
-      }) as GeoJSON.Polygon;
+      const geomGeoJSON = escribirPoligonoGeoJSON(geometria);
       setPoligonoPendiente(geomGeoJSON);
       detenerInteracciones();
     });
@@ -320,10 +314,7 @@ export function MapaLotes({
       const propiedades = feature?.get("propiedades") as LotePotreroPropiedades | undefined;
       const geometria = feature?.getGeometry();
       if (!feature || !propiedades || !geometria) return;
-      const geom = geoJsonFormat.writeGeometryObject(geometria, {
-        dataProjection: PROYECCION_DATOS,
-        featureProjection: PROYECCION_MAPA,
-      }) as GeoJSON.Polygon;
+      const geom = escribirPoligonoGeoJSON(geometria);
       try {
         await guardarGeometriaLote(propiedades.id, { geom });
         toast.success(`Lote "${propiedades.nombre}" actualizado.`);

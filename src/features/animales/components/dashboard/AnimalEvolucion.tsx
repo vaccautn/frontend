@@ -10,6 +10,7 @@ import {
   ResponsiveContainer,
 } from "recharts";
 import type { EvaluacionPunto } from "@/features/animales/types";
+import { CHART_TOOLTIP_STYLE } from "./chartTooltip";
 
 type Props = {
   evolucion: EvaluacionPunto[];
@@ -86,12 +87,7 @@ export function AnimalEvolucion({ evolucion, loading }: Props) {
                   year: "numeric",
                 })
               }
-              contentStyle={{
-                background: "var(--panel)",
-                border: "1px solid var(--border)",
-                borderRadius: 6,
-                fontSize: 13,
-              }}
+              contentStyle={CHART_TOOLTIP_STYLE}
             />
             <Line
               type="monotone"

@@ -3,6 +3,7 @@ import { getAccessToken } from "@/features/auth";
 import type {
   DashboardSesionData,
   PaginatedSesionesResumenResponse,
+  SesionCapturaConResumen,
   SesionCapturaCreatePayload,
   SesionCapturaRead,
   SesionCapturaUpdatePayload,
@@ -27,6 +28,25 @@ export function getSesionesConResumen(
     `/sesiones-captura/${qs ? `?${qs}` : ""}`,
     token,
   );
+}
+
+/** Todas las sesiones que cumplen los filtros (para la línea de tiempo):
+ * recorre las páginas del endpoint de a 100, que es el máximo que acepta. */
+export async function getTodasLasSesionesConResumen(
+  params: SesionListParams = {},
+): Promise<SesionCapturaConResumen[]> {
+  const todas: SesionCapturaConResumen[] = [];
+  let offset: number | null = 0;
+  while (offset !== null) {
+    const pagina: PaginatedSesionesResumenResponse = await getSesionesConResumen({
+      ...params,
+      limit: 100,
+      offset,
+    });
+    todas.push(...pagina.items);
+    offset = pagina.has_more ? pagina.next_offset : null;
+  }
+  return todas;
 }
 
 export function getSesionActiva(
