@@ -7,8 +7,9 @@ const MESES = [
   "jul", "ago", "sep", "oct", "nov", "dic",
 ];
 
-// Diámetro del círculo según la cantidad de evaluaciones (escala por raíz
-// cuadrada: el área es proporcional a la cantidad).
+// Diámetro del círculo según la cantidad de evaluaciones, en escala
+// logarítmica: con cientos de evaluaciones las sesiones chicas siguen siendo
+// legibles y las grandes no se disparan.
 const DIAMETRO_MIN = 34;
 const DIAMETRO_MAX = 64;
 
@@ -38,7 +39,7 @@ export function SesionesTimeline({ sesiones, seleccionadaId, onSeleccionar }: Pr
   const maxCount = Math.max(1, ...sesiones.map((s) => s.evaluaciones_count));
   const diametro = (count: number) =>
     DIAMETRO_MIN +
-    (DIAMETRO_MAX - DIAMETRO_MIN) * Math.sqrt(count / maxCount);
+    (DIAMETRO_MAX - DIAMETRO_MIN) * (Math.log1p(count) / Math.log1p(maxCount));
 
   // Lo más reciente queda a la derecha: se arranca mostrando ese extremo.
   useEffect(() => {
