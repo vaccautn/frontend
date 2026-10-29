@@ -719,6 +719,21 @@
   box-shadow: var(--shadow-card);
 }
 
+/* Se elevan al pasar el mouse, como el resto de los tableros (solo con
+ * mouse, no en touch). Vale para el detalle de la sesión y para Inicio. */
+@media (hover: hover) {
+  .sesion-dashboard__card {
+    transition:
+      transform 220ms var(--ease-out),
+      box-shadow 220ms var(--ease-out);
+  }
+
+  .sesion-dashboard__card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-raised);
+  }
+}
+
 .sesion-dashboard__card h3 {
   margin: 0;
   color: var(--text-h);
