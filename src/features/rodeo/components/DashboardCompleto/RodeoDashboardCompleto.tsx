@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Box, Button } from "@chakra-ui/react";
-import { IconArrowBackUp, IconPlus, IconStack2 } from "@tabler/icons-react";
+import { IconArrowBackUp, IconStack2 } from "@tabler/icons-react";
+import { AgregarAnimalMenu } from "@/features/animales/components/AgregarAnimalMenu";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import { LotesDrawer } from "@/features/lotes/components/LotesDrawer";
 import type { LoteOption } from "@/features/lotes/types";
@@ -41,6 +42,7 @@ type Props = {
   onCategoriaLoteChange: (value: CategoriaAnimal | null) => void;
   onVolverAlMapa: () => void;
   onAgregarAnimal: () => void;
+  onImportarAnimales: () => void;
   movimientos: Movimiento[];
   cargandoRecomendaciones: boolean;
   onRefrescarRecomendaciones: () => void;
@@ -59,6 +61,7 @@ export function RodeoDashboardCompleto({
   onCategoriaLoteChange,
   onVolverAlMapa,
   onAgregarAnimal,
+  onImportarAnimales,
   movimientos,
   cargandoRecomendaciones,
   onRefrescarRecomendaciones,
@@ -161,7 +164,14 @@ export function RodeoDashboardCompleto({
               loteNombre={lote?.nombre}
               onClear={onClearSeleccion}
             />
-            <h1>Gestión de animales</h1>
+            <div className="rodeo-dashboard-full__titulo">
+              <h1>Gestión de animales</h1>
+              <AgregarAnimalMenu
+                placement="bottom-start"
+                onAgregar={onAgregarAnimal}
+                onImportar={onImportarAnimales}
+              />
+            </div>
           </div>
           <div className="rodeo-dashboard-full__header-acciones">
             <Button
@@ -177,10 +187,6 @@ export function RodeoDashboardCompleto({
               onClick={() => setIsLotesDrawerOpen(true)}>
               <IconStack2 size={18} stroke={1.5} />
               Lotes
-            </Button>
-            <Button colorPalette="brand" onClick={onAgregarAnimal}>
-              <IconPlus size={18} stroke={1.5} />
-              Agregar animal
             </Button>
           </div>
         </div>

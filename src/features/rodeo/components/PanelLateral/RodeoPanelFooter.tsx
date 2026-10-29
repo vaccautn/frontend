@@ -1,20 +1,19 @@
 import { Button } from "@chakra-ui/react";
-import {
-  IconArrowRight,
-  IconArrowsMaximize,
-  IconPlus,
-} from "@tabler/icons-react";
+import { IconArrowRight, IconArrowsMaximize } from "@tabler/icons-react";
+import { AgregarAnimalMenu } from "@/features/animales/components/AgregarAnimalMenu";
 
 type Props = {
   hasSel: boolean;
   onVerDashboard: () => void;
   onAgregarAnimal: () => void;
+  onImportarAnimales: () => void;
 };
 
 export function RodeoPanelFooter({
   hasSel,
   onVerDashboard,
   onAgregarAnimal,
+  onImportarAnimales,
 }: Props) {
   return (
     <div className="rodeo-panel__footer">
@@ -29,10 +28,11 @@ export function RodeoPanelFooter({
             Ver dashboard
             <IconArrowsMaximize size={16} />
           </Button>
-          <Button flex="1" colorPalette="brand" onClick={onAgregarAnimal}>
-            <IconPlus size={16} />
-            Agregar animal
-          </Button>
+          <AgregarAnimalMenu
+            placement="top-end"
+            onAgregar={onAgregarAnimal}
+            onImportar={onImportarAnimales}
+          />
         </>
       )}
     </div>

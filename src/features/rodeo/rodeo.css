@@ -342,7 +342,8 @@
   padding: 14px 22px;
   border-top: 1px solid var(--border);
   display: flex;
-  gap: 8px;
+  align-items: center;
+  gap: 10px;
   flex: 0 0 auto;
   position: sticky;
   bottom: 0;
@@ -377,6 +378,18 @@
   font-size: 28px;
   font-weight: 800;
   margin: 4px 0 0;
+}
+
+/* Título + CTA de agregar animales al lado, a mano. */
+.rodeo-dashboard-full__titulo {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-top: 4px;
+}
+
+.rodeo-dashboard-full__titulo h1 {
+  margin: 0;
 }
 
 .rodeo-dashboard-full__header-acciones {

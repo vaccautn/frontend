@@ -18,6 +18,7 @@ import { ServicioDetailPage } from "@/pages/ServicioDetailPage";
 import { CrearReservicioPage } from "@/pages/CrearReservicioPage";
 import ServicioNuevoPage from "@/pages/ServicioNuevoPage";
 import { RedirectAnimalDetail } from "./RedirectAnimalDetail";
+import { ImportarAnimalesPage } from "@/pages/ImportarAnimalesPage";
 
 export const router = createBrowserRouter([
   // Si ya estas logeado la ruta publica te lleva directo al dashboard
@@ -41,6 +42,7 @@ export const router = createBrowserRouter([
             element: <RodeoPage />,
             children: [{ path: "nuevo", element: <AnimalesNuevoPage /> }],
           },
+          { path: "/rodeo/importar", element: <ImportarAnimalesPage /> },
           { path: "/rodeo/:id", element: <AnimalDetailPage /> },
           { path: "/animales", element: <Navigate to="/rodeo" replace /> },
           { path: "/animales/nuevo", element: <Navigate to="/rodeo/nuevo" replace /> },
