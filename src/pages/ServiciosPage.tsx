@@ -96,13 +96,16 @@ export function ServiciosPage() {
   return (
     <section>
       <div className="section-header">
-        <div className="title-and-description">
+        <div className="titulo-con-accion">
           <h1>Servicios</h1>
+          <Button
+            colorPalette="brand"
+            className="boton-agregar"
+            onClick={() => navigate("/servicios/nuevo")}>
+            Planificar servicio
+            <IconPlus size={18} stroke={2.25} />
+          </Button>
         </div>
-        <Button colorPalette="brand" onClick={() => navigate("/servicios/nuevo")}>
-          <IconPlus size={18} stroke={1.5} />
-          Planificar servicio
-        </Button>
       </div>
 
       {dashboard.error && <p className="status-message error">{dashboard.error}</p>}

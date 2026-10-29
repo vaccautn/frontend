@@ -732,7 +732,7 @@
   font-size: 0.88rem;
 }
 
-/* Cobertura: anillo en azul acero (neutro, no es semáforo). */
+/* Cobertura: anillo en el marrón de indicadores neutros (no es semáforo). */
 .sesion-dashboard__cobertura {
   display: flex;
   justify-content: center;

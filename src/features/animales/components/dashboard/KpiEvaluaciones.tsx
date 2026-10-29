@@ -8,6 +8,7 @@ type Props = {
 export function KpiEvaluaciones({ cantidad, loading }: Props) {
   return (
     <Box
+      className="animal-dashboard__tarjeta"
       p="4"
       borderRadius="var(--radius-md)"
       bg="var(--tile-bg)"
@@ -28,7 +29,7 @@ export function KpiEvaluaciones({ cantidad, loading }: Props) {
       {loading ? (
         <Skeleton height="2rem" width="4rem" />
       ) : (
-        <Text fontSize="2rem" fontWeight="800" lineHeight="1" color="var(--azul-acero)">
+        <Text fontSize="2rem" fontWeight="800" lineHeight="1" color="var(--marron-cuero)">
           {cantidad}
         </Text>
       )}

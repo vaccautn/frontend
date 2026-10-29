@@ -1593,3 +1593,18 @@
 .evaluacion-foto--ampliable {
   cursor: zoom-in;
 }
+
+/* Tarjetas del resumen del animal: se elevan al pasar el mouse, como las de
+ * Inicio (solo con mouse, no en touch). */
+@media (hover: hover) {
+  .animal-dashboard__tarjeta {
+    transition:
+      transform 220ms var(--ease-out),
+      box-shadow 220ms var(--ease-out);
+  }
+
+  .animal-dashboard__tarjeta:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-raised);
+  }
+}

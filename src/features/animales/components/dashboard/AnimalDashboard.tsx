@@ -72,6 +72,7 @@ export function AnimalDashboard({ data, loading, error }: Props) {
 
       <SimpleGrid columns={{ base: 1, md: 2 }} gap="4">
         <Box
+          className="animal-dashboard__tarjeta"
           p="3"
           borderRadius="var(--radius-md)"
           bg="var(--tile-bg)"
@@ -79,6 +80,7 @@ export function AnimalDashboard({ data, loading, error }: Props) {
           <AnimalEvolucion evolucion={data?.evolucion ?? []} loading={loading} />
         </Box>
         <Box
+          className="animal-dashboard__tarjeta"
           p="3"
           borderRadius="var(--radius-md)"
           bg="var(--tile-bg)"

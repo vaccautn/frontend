@@ -361,6 +361,9 @@
   overflow-y: auto;
   box-sizing: border-box;
   clip-path: inset(0 round var(--radius-lg) var(--radius-lg) 0 0);
+  /* Sin rebote al llegar arriba o abajo: el rebote desplazaba la hoja y la
+   * esquina superior izquierda perdía el redondeo. */
+  overscroll-behavior: none;
   /* Sin scrollbar-width/scrollbar-color: personalizarla obliga a una barra
    * fija con su propia columna, que corta la esquina superior derecha. Así
    * queda la barra flotante del sistema. */
