@@ -109,9 +109,6 @@ export function RodeoPage() {
             onVolverAlMapa={() => setMode("docked")}
             onAgregarAnimal={() => navigate("/rodeo/nuevo")}
             onImportarAnimales={() => navigate("/rodeo/importar")}
-            movimientos={movimientos}
-            cargandoRecomendaciones={cargandoRecomendaciones}
-            onRefrescarRecomendaciones={refetchRecomendaciones}
           />
         )}
       </div>

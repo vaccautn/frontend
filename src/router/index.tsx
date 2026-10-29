@@ -5,7 +5,7 @@ import AppLayout from "@/components/layout/AppLayout";
 import LoginPage from "@/pages/LoginPage";
 // import RegisterPage from "@/pages/RegisterPage";
 
-import { DashboardPage } from "@/pages/Dashboard";
+import { InicioPage } from "@/pages/InicioPage";
 import { RodeoPage } from "@/pages/RodeoPage";
 import { AnimalDetailPage } from "@/pages/AnimalDetailPage";
 import { SesionesPage } from "@/pages/SesionesPage";
@@ -36,7 +36,7 @@ export const router = createBrowserRouter([
       {
         element: <AppLayout />,
         children: [
-          { path: "/dashboard", element: <DashboardPage /> },
+          { path: "/inicio", element: <InicioPage /> },
           {
             path: "/rodeo",
             element: <RodeoPage />,
@@ -72,7 +72,7 @@ export const router = createBrowserRouter([
     ],
   },
 
-  { path: "/", element: <Navigate to="/rodeo" replace /> },
-  // 404 -> Deberia haber una pag de 404 en vez de rodeo
-  { path: "*", element: <Navigate to="/rodeo" replace /> },
+  { path: "/", element: <Navigate to="/inicio" replace /> },
+  // 404 -> Deberia haber una pag de 404 en vez de inicio
+  { path: "*", element: <Navigate to="/inicio" replace /> },
 ]);

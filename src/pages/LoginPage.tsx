@@ -65,7 +65,7 @@ function LoginPage() {
 
       saveSession(response.access_token, response.token_type, response.user);
       refreshSession();
-      navigate("/rodeo");
+      navigate("/inicio");
     } catch (error) {
       if (error instanceof ApiError) {
         setFormError(normalizeBackendDetail(error.detail));

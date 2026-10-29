@@ -63,11 +63,7 @@ export function RodeoPanelLateral({
             loadingCriticos={loading}
           />
         ) : (
-          <RodeoResumenGeneral
-            totalLotes={lotes.length}
-            data={data}
-            loading={loading}
-          />
+          <RodeoResumenGeneral totalLotes={lotes.length} />
         )}
       </div>
 

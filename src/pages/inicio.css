@@ -1,0 +1,81 @@
+.inicio {
+  display: flex;
+  flex-direction: column;
+  gap: 2.75rem;
+}
+
+.inicio__header h1 {
+  margin: 4px 0 0;
+}
+
+.inicio__fecha {
+  color: var(--verde-vacca);
+  font-size: 0.8rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.inicio__seccion {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.inicio__seccion-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 1rem;
+  flex-wrap: wrap;
+}
+
+.inicio__seccion-header h2 {
+  margin: 0;
+  color: var(--text-h);
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.inicio__seccion-meta {
+  margin-top: 2px;
+  color: var(--text);
+  font-size: 0.88rem;
+}
+
+/* Resumen y movimientos arriba; los dos gráficos abajo. */
+.inicio__rodeo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.inicio__vacio {
+  padding: 2.5rem 2rem;
+  border-radius: var(--radius-lg);
+  background: rgba(23, 38, 28, 0.035);
+  color: var(--text);
+  text-align: center;
+}
+
+/* Las tarjetas se elevan al pasar el mouse (solo con mouse, no en touch). */
+@media (hover: hover) {
+  .inicio .rodeo-dashboard-full__card,
+  .inicio .sesion-dashboard__card {
+    transition:
+      transform 220ms var(--ease-out),
+      box-shadow 220ms var(--ease-out);
+  }
+
+  .inicio .rodeo-dashboard-full__card:hover,
+  .inicio .sesion-dashboard__card:hover {
+    transform: translateY(-4px);
+    box-shadow: var(--shadow-raised);
+  }
+}
+
+@media (max-width: 900px) {
+  .inicio__rodeo {
+    grid-template-columns: 1fr;
+  }
+}
