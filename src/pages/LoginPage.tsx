@@ -14,6 +14,7 @@ import {
   type LoginValues,
 } from "../features/auth";
 import AuthTextField from "../features/auth/components/AuthTextField";
+import { VaccaIsotipo } from "@/components/ui/VaccaIsotipo";
 import { ApiError } from "../services/httpClient";
 
 function LoginPage() {
@@ -79,6 +80,13 @@ function LoginPage() {
   return (
     <main className="auth-shell">
       <section className="auth-panel" aria-labelledby="login-title">
+        <div className="auth-brand">
+          <VaccaIsotipo size={56} />
+          <span className="auth-brand__texto">
+            <span className="vacca-wordmark">vacca</span>
+            <span className="auth-brand__lema">Gestión bovina</span>
+          </span>
+        </div>
         <div className="panel-heading">
           {/*<p className="eyebrow">Acceso de productores</p>*/}
           <h1 id="login-title">Iniciar sesión</h1>

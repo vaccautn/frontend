@@ -143,6 +143,16 @@ h3 {
   text-wrap: balance;
 }
 
+/* Logotipo: "vacca" en minúscula, Manrope 800 con tracking cerrado. El
+ * tamaño lo pone cada uso. */
+.vacca-wordmark {
+  font-family: var(--heading);
+  font-weight: 800;
+  letter-spacing: -0.05em;
+  line-height: 0.95;
+  color: var(--verde-bosque);
+}
+
 ::selection {
   background: var(--verde-pastel);
   color: var(--text-h);

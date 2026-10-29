@@ -21,6 +21,30 @@
   transform: translateY(-8vh);
 }
 
+.auth-brand {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 36px;
+}
+
+.auth-brand__texto {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.auth-brand .vacca-wordmark {
+  font-size: 34px;
+}
+
+.auth-brand__lema {
+  font-size: 13px;
+  font-weight: 600;
+  color: var(--verde-vacca);
+  line-height: 1;
+}
+
 .login-panel {
   display: grid;
   gap: 18px;
