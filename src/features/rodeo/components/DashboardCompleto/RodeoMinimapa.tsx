@@ -1,5 +1,5 @@
 import { useRef } from "react";
-import { IconArrowsMaximize } from "@tabler/icons-react";
+import { IconArrowsMaximize, IconStack2 } from "@tabler/icons-react";
 import { useMapaCapas } from "@/features/mapa/hooks/useMapaCapas";
 import type { LotePotreroFeature } from "@/features/mapa/types";
 import { LeyendaCarga } from "@/features/mapa/components/LeyendaCarga";
@@ -9,6 +9,7 @@ type Props = {
   loteSeleccionadoId: number | null;
   onLoteClick: (loteId: number) => void;
   onAbrirMapa: () => void;
+  onAbrirLotes: () => void;
 };
 
 const FIT_PADDING: [number, number, number, number] = [20, 20, 20, 20];
@@ -18,6 +19,7 @@ export function RodeoMinimapa({
   loteSeleccionadoId,
   onLoteClick,
   onAbrirMapa,
+  onAbrirLotes,
 }: Props) {
   const mapDivRef = useRef<HTMLDivElement | null>(null);
 
@@ -37,7 +39,15 @@ export function RodeoMinimapa({
 
       <button
         type="button"
-        className="rodeo-minimapa__abrir"
+        className="rodeo-minimapa__boton rodeo-minimapa__lotes"
+        onClick={onAbrirLotes}>
+        <IconStack2 size={14} stroke={1.75} />
+        Lotes
+      </button>
+
+      <button
+        type="button"
+        className="rodeo-minimapa__boton rodeo-minimapa__abrir"
         onClick={onAbrirMapa}>
         <IconArrowsMaximize size={14} stroke={1.75} />
         Abrir mapa

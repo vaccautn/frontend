@@ -60,15 +60,13 @@
 
 /* Las tarjetas se elevan al pasar el mouse (solo con mouse, no en touch). */
 @media (hover: hover) {
-  .inicio .rodeo-dashboard-full__card,
-  .inicio .sesion-dashboard__card {
+  .inicio .rodeo-dashboard-full__card {
     transition:
       transform 220ms var(--ease-out),
       box-shadow 220ms var(--ease-out);
   }
 
-  .inicio .rodeo-dashboard-full__card:hover,
-  .inicio .sesion-dashboard__card:hover {
+  .inicio .rodeo-dashboard-full__card:hover {
     transform: translateY(-4px);
     box-shadow: var(--shadow-raised);
   }

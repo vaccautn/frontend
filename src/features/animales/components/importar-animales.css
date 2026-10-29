@@ -523,11 +523,11 @@
 
 /* Tiles con el color de lo que significan. */
 .importar__resumen div[data-tono="total"] {
-  background: var(--info-bg);
+  background: var(--orange-bg);
 }
 
 .importar__resumen div[data-tono="total"] strong {
-  color: var(--azul-acero);
+  color: var(--marron-cuero);
 }
 
 .importar__resumen div[data-tono="ok"] {

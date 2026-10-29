@@ -39,6 +39,10 @@ export const CATEGORIAS_POR_SEXO: Record<"MACHO" | "HEMBRA", readonly string[]> 
   MACHO: ["TERNERO", "NOVILLITO", "NOVILLO", "TORITO", "TORO"],
 };
 
+/** Categorías de vaca: las únicas que van a la evaluación de condición
+ * corporal. */
+export const CATEGORIAS_VACA: readonly string[] = ["VACA_SECA", "VACA_LACTANDO"];
+
 export const ESTADO_ANIMAL_LABELS: Record<string, string> = {
   ACTIVO: "Activo",
   INACTIVO: "Inactivo",

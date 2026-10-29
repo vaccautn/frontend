@@ -32,7 +32,10 @@ import type { LoteOption } from "@/features/lotes/types";
 import { localNaiveNow } from "@/utils/localDateTime";
 import { normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
-import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
+import {
+  CATEGORIA_ANIMAL_LABELS,
+  CATEGORIAS_VACA,
+} from "@/features/animales/constants";
 import { nivelCC } from "@/features/animales/utils/ccColor";
 import { FechaInput } from "@/components/FechaInput";
 import "@/features/animales/components/animales.css";
@@ -128,9 +131,20 @@ export function CargarEvaluacionesPage() {
 
   // El backend no filtra por categoría de lote, así que se aplica acá sobre
   // los grupos ya cargados (cada grupo trae su lote completo, con categoría).
+  // Solo se listan vacas: son las únicas que se evalúan por condición
+  // corporal.
   const gruposFiltrados = useMemo(() => {
-    if (!categoriaLote) return grupos;
-    return grupos.filter((grupo) => grupo.lote?.categoria === categoriaLote);
+    const delLote = categoriaLote
+      ? grupos.filter((grupo) => grupo.lote?.categoria === categoriaLote)
+      : grupos;
+    return delLote
+      .map((grupo) => ({
+        ...grupo,
+        animales: grupo.animales.filter((animal) =>
+          CATEGORIAS_VACA.includes(animal.categoria),
+        ),
+      }))
+      .filter((grupo) => grupo.animales.length > 0);
   }, [grupos, categoriaLote]);
 
   const hoyStr = useMemo(() => localNaiveNow().slice(0, 10), []);

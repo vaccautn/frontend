@@ -97,7 +97,6 @@ export function RodeoPage() {
         {mode === "full" && (
           <RodeoDashboardCompleto
             features={features}
-            lote={loteSeleccionado}
             loteSeleccionadoId={loteSeleccionadoId}
             onLoteClick={handleLoteClick}
             onClearSeleccion={handleDeselect}

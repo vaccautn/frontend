@@ -37,16 +37,19 @@ export function ServicioFaseBar(props: ProgresoProps | BreakdownProps) {
             </div>
           ))}
         </div>
+        {/* La referencia solo lista los segmentos con animales. */}
         <div className="servicio-fase-bar__leyenda">
-          {segmentos.map((s) => (
-            <span key={s.label} className="servicio-fase-bar__leyenda-item">
-              <span
-                className="servicio-fase-bar__leyenda-dot"
-                style={{ background: s.color }}
-              />
-              <b>{s.label}</b> {s.cantidad}
-            </span>
-          ))}
+          {segmentos
+            .filter((s) => s.cantidad > 0)
+            .map((s) => (
+              <span key={s.label} className="servicio-fase-bar__leyenda-item">
+                <span
+                  className="servicio-fase-bar__leyenda-dot"
+                  style={{ background: s.color }}
+                />
+                <b>{s.label}</b> {s.cantidad}
+              </span>
+            ))}
         </div>
       </div>
     );
