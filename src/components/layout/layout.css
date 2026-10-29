@@ -555,7 +555,8 @@
     flex-direction: column;
     align-items: baseline !important;
 
-    button {
+    /* El CTA circular de agregar conserva su tamaño. */
+    button:not(.boton-agregar) {
       width: 100%;
     }
   }

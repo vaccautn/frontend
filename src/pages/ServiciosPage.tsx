@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
-import { Button } from "@chakra-ui/react";
-import { IconPlus } from "@tabler/icons-react";
+import { IconCalendarHeart } from "@tabler/icons-react";
+import { BotonAgregar } from "@/components/ui/BotonAgregar";
 import { useServiciosFiltros } from "@/features/servicios/hooks/useServiciosFiltros";
 import { useServiciosDashboard } from "@/features/servicios/hooks/useServiciosDashboard";
 import { pendientesPorServicio } from "@/features/servicios/utils/servicioEstado";
@@ -98,13 +98,11 @@ export function ServiciosPage() {
       <div className="section-header">
         <div className="titulo-con-accion">
           <h1>Servicios</h1>
-          <Button
-            colorPalette="brand"
-            className="boton-agregar"
-            onClick={() => navigate("/servicios/nuevo")}>
-            Planificar servicio
-            <IconPlus size={18} stroke={2.25} />
-          </Button>
+          <BotonAgregar
+            icono={<IconCalendarHeart size={22} stroke={1.75} />}
+            label="Planificar servicio"
+            onClick={() => navigate("/servicios/nuevo")}
+          />
         </div>
       </div>
 

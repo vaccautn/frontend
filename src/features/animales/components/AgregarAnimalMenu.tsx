@@ -1,9 +1,6 @@
 import { Menu, Portal } from "@chakra-ui/react";
-import {
-  IconFileSpreadsheet,
-  IconPlus,
-  IconSquareRoundedPlus,
-} from "@tabler/icons-react";
+import { IconFileSpreadsheet, IconSquareRoundedPlus } from "@tabler/icons-react";
+import { BotonAgregar } from "@/components/ui/BotonAgregar";
 import { VacaIcon } from "@/utils/icons";
 import "./agregar-animal-menu.css";
 
@@ -25,16 +22,7 @@ export function AgregarAnimalMenu({
   return (
     <Menu.Root positioning={{ placement, gutter: 10 }}>
       <Menu.Trigger asChild>
-        <button
-          type="button"
-          className="agregar-animal__trigger"
-          aria-label="Agregar animales"
-          title="Agregar animales">
-          <VacaIcon size={24} />
-          <span className="agregar-animal__mas" aria-hidden="true">
-            <IconPlus size={11} stroke={3.5} />
-          </span>
-        </button>
+        <BotonAgregar icono={<VacaIcon size={24} />} label="Agregar animales" />
       </Menu.Trigger>
       <Portal>
         <Menu.Positioner>

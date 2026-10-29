@@ -11,7 +11,8 @@ import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
 import { useNavigate, useSearchParams } from "react-router-dom";
 import { toast } from "react-toastify";
-import { IconPlus } from "@tabler/icons-react";
+import { IconClipboardText } from "@tabler/icons-react";
+import { BotonAgregar } from "@/components/ui/BotonAgregar";
 import { SesionesFiltros } from "../features/sesiones/components/SesionesFiltros";
 import { SesionesTimeline } from "@/features/sesiones/components/SesionesTimeline";
 import { SesionDetalle } from "@/features/sesiones/components/SesionDetalle";
@@ -109,14 +110,12 @@ export function SesionesPage() {
       <div className="section-header">
         <div className="titulo-con-accion">
           <h1>Sesiones de evaluación</h1>
-          <Button
-            colorPalette="brand"
-            className="boton-agregar"
+          <BotonAgregar
+            icono={<IconClipboardText size={22} stroke={1.75} />}
+            label="Iniciar sesión de evaluación"
             onClick={handleIniciarSesion}
-            loading={isStarting}>
-            Iniciar sesión de evaluación
-            <IconPlus size={18} stroke={2.25} />
-          </Button>
+            loading={isStarting}
+          />
         </div>
       </div>
 
