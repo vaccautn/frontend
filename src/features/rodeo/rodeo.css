@@ -386,12 +386,6 @@
   margin: 0;
 }
 
-.rodeo-dashboard-full__header-acciones {
-  display: flex;
-  gap: 10px;
-  flex-shrink: 0;
-}
-
 .rodeo-dashboard-full__card-header {
   display: flex;
   align-items: center;
@@ -665,10 +659,20 @@
   z-index: 10;
 }
 
+/* Botones flotantes del minimapa: Lotes arriba a la derecha, Abrir mapa
+ * abajo a la derecha. */
+.rodeo-minimapa__lotes {
+  top: 10px;
+  right: 10px;
+}
+
 .rodeo-minimapa__abrir {
-  position: absolute;
   right: 10px;
   bottom: 10px;
+}
+
+.rodeo-minimapa__boton {
+  position: absolute;
   background: var(--panel);
   border: none;
   border-radius: var(--radius-full);
@@ -679,6 +683,18 @@
   display: flex;
   align-items: center;
   gap: 5px;
+  color: var(--text-h);
   cursor: pointer;
   z-index: 10;
+  transition:
+    background 160ms var(--ease-out),
+    transform 160ms var(--ease-out);
+}
+
+.rodeo-minimapa__boton:hover {
+  background: var(--bg);
+}
+
+.rodeo-minimapa__boton:active {
+  transform: scale(0.96);
 }

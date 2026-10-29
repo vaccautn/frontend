@@ -1,6 +1,4 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
-import { Button } from "@chakra-ui/react";
-import { IconArrowBackUp, IconStack2 } from "@tabler/icons-react";
 import { AgregarAnimalMenu } from "@/features/animales/components/AgregarAnimalMenu";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import { LotesDrawer } from "@/features/lotes/components/LotesDrawer";
@@ -15,16 +13,13 @@ import type {
 } from "@/features/animales/types";
 import type {
   LotePotreroFeature,
-  LotePotreroPropiedades,
 } from "@/features/mapa/types";
 import { useCcPorAnimal } from "../../hooks/useCcPorAnimal";
-import { RodeoBreadcrumb } from "../RodeoBreadcrumb";
 import { RodeoMinimapa } from "./RodeoMinimapa";
 import { RodeoLoteSelector } from "./RodeoLoteSelector";
 
 type Props = {
   features: LotePotreroFeature[];
-  lote: LotePotreroPropiedades | null;
   loteSeleccionadoId: number | null;
   onLoteClick: (loteId: number) => void;
   onClearSeleccion: () => void;
@@ -40,7 +35,6 @@ type Props = {
 
 export function RodeoDashboardCompleto({
   features,
-  lote,
   loteSeleccionadoId,
   onLoteClick,
   onClearSeleccion,
@@ -128,35 +122,13 @@ export function RodeoDashboardCompleto({
     <div className="rodeo-dashboard-full">
       <div className="rodeo-dashboard-full__inner">
         <div className="rodeo-dashboard-full__header">
-          <div>
-            <RodeoBreadcrumb
-              loteNombre={lote?.nombre}
-              onClear={onClearSeleccion}
+          <div className="rodeo-dashboard-full__titulo">
+            <h1>Gestión de animales</h1>
+            <AgregarAnimalMenu
+              placement="bottom-start"
+              onAgregar={onAgregarAnimal}
+              onImportar={onImportarAnimales}
             />
-            <div className="rodeo-dashboard-full__titulo">
-              <h1>Gestión de animales</h1>
-              <AgregarAnimalMenu
-                placement="bottom-start"
-                onAgregar={onAgregarAnimal}
-                onImportar={onImportarAnimales}
-              />
-            </div>
-          </div>
-          <div className="rodeo-dashboard-full__header-acciones">
-            <Button
-              variant="outline"
-              bg="var(--panel)"
-              onClick={onVolverAlMapa}>
-              <IconArrowBackUp size={18} stroke={1.5} />
-              Volver al mapa
-            </Button>
-            <Button
-              variant="outline"
-              bg="var(--panel)"
-              onClick={() => setIsLotesDrawerOpen(true)}>
-              <IconStack2 size={18} stroke={1.5} />
-              Lotes
-            </Button>
           </div>
         </div>
 
@@ -174,6 +146,7 @@ export function RodeoDashboardCompleto({
             loteSeleccionadoId={loteSeleccionadoId}
             onLoteClick={onLoteClick}
             onAbrirMapa={onVolverAlMapa}
+            onAbrirLotes={() => setIsLotesDrawerOpen(true)}
           />
           <div className="rodeo-dashboard-full__tabla-card">
             <div className="rodeo-dashboard-full__tabla-header">
