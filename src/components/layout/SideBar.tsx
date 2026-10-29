@@ -9,40 +9,36 @@ import {
   Tooltip,
 } from "@chakra-ui/react";
 import {
-  // IconHome2,
-  IconChartBar,
   IconCalendarHeart,
-  IconMap,
+  IconClipboardText,
   IconMenu2,
   IconSelector,
   IconLogout,
 } from "@tabler/icons-react";
 import { getStoredUser, useAuth } from "@/features/auth";
+import { VaccaIsotipo } from "@/components/ui/VaccaIsotipo";
+import { VacaIcon } from "@/utils/icons";
 
 /** "PRODUCTOR" → "Productor". */
 const formatRol = (rol: string) =>
   rol.charAt(0).toUpperCase() + rol.slice(1).toLowerCase();
 
+// Inicio no está en la lista: se llega con el logo de arriba.
 const navItems = [
-  // {
-  //   label: "Inicio",
-  //   to: "/dashboard",
-  //   icon: <IconHome2 size={20} stroke={1} />,
-  // },
   {
     label: "Rodeo",
     to: "/rodeo",
-    icon: <IconMap size={20} stroke={1} />,
+    icon: <VacaIcon size={20} />,
   },
   {
     label: "Sesiones",
     to: "/sesiones",
-    icon: <IconChartBar size={20} stroke={1} />,
+    icon: <IconClipboardText size={20} stroke={1.5} />,
   },
   {
     label: "Servicios",
     to: "/servicios",
-    icon: <IconCalendarHeart size={20} stroke={1} />,
+    icon: <IconCalendarHeart size={20} stroke={1.5} />,
   },
 ];
 
@@ -81,17 +77,25 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       className={`sidebar${isOpen ? "" : " sidebar--collapsed"}`}
       aria-label="Navegación principal">
       <div className="sidebar__top">
-        {isOpen && (
-          <div className="sidebar__brand">
-            <p>VACCA</p> <span>Gestión bovina</span>
-          </div>
-        )}
+        <NavLink
+          to="/inicio"
+          className="sidebar__brand"
+          aria-label="Vacca, ir al inicio"
+          title="Inicio">
+          <VaccaIsotipo size={32} />
+          {isOpen && (
+            <span className="sidebar__brand-texto">
+              <span className="vacca-wordmark">vacca</span>
+              <span className="sidebar__brand-lema">Gestión bovina</span>
+            </span>
+          )}
+        </NavLink>
         <IconButton
           aria-label={toggleLabel}
           title={toggleLabel}
           variant="ghost"
-          colorPalette="brand"
           size="md"
+          className="sidebar__toggle"
           onClick={onToggle}>
           <IconMenu2 size={24} stroke={1.75} />
         </IconButton>

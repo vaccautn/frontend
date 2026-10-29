@@ -89,7 +89,7 @@ const config = defineConfig({
       dialog: {
         slots: slotsDe("dialog"),
         base: {
-          backdrop: { bg: "var(--backdrop)", backdropFilter: "blur(6px)" },
+          backdrop: { bg: "var(--backdrop)" },
           content: {
             borderRadius: "var(--radius-lg)",
             boxShadow: "var(--shadow-overlay)",
@@ -99,7 +99,7 @@ const config = defineConfig({
       drawer: {
         slots: slotsDe("drawer"),
         base: {
-          backdrop: { bg: "var(--backdrop)", backdropFilter: "blur(6px)" },
+          backdrop: { bg: "var(--backdrop)" },
         },
       },
       menu: {
@@ -168,6 +168,11 @@ const config = defineConfig({
         // Texto por defecto de los componentes de Chakra: verde muy oscuro
         // (--text-h) en vez de negro, para bajar el contraste.
         fg: { value: "var(--text-h)" },
+        // Fondo de diálogos, menús, popovers y calendarios: el blanco roto
+        // de la app.
+        bg: {
+          panel: { value: "var(--panel)" },
+        },
         // La paleta por defecto es gris (botones "Cancelar" neutros), pero el
         // anillo de foco es siempre el verde de la marca.
         gray: {
