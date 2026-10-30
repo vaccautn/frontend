@@ -22,7 +22,6 @@
 }
 
 .analisis-video__encabezado p,
-.analisis-video__trabajo p,
 .analisis-video__nota {
   margin-bottom: 0;
   color: var(--text);
@@ -74,43 +73,82 @@
   color: var(--marron-cuero);
 }
 
-.analisis-video__trabajos {
+.analisis-video__estado,
+.analisis-video__progreso {
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
-}
-
-.analisis-video__trabajo {
-  display: flex;
-  flex-direction: column;
-  gap: 0.45rem;
-  padding: 0.9rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
-  color: var(--text);
-}
-
-.analisis-video__trabajo-titulo {
-  display: flex;
-  flex-wrap: wrap;
-  justify-content: space-between;
   gap: 0.5rem;
-  color: var(--text-h);
 }
 
-.analisis-video__resultado {
+.analisis-video__estado,
+.analisis-video__progreso {
+  width: 100%;
+  color: var(--text-h);
+  font-size: 0.92rem;
+  font-weight: 600;
+}
+
+.analisis-video__error {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
+  justify-content: space-between;
+  padding: 0.65rem 0.8rem;
   gap: 0.6rem;
-  padding-top: 0.5rem;
-  border-top: 1px solid var(--border);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--warning-bg);
+  color: var(--marron-cuero);
   font-size: 0.9rem;
 }
 
-.analisis-video__resultado a {
-  color: var(--accent-strong);
-  font-weight: 600;
+.analisis-video__barra {
+  position: relative;
+  width: 100%;
+  height: 0.3rem;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--border);
+}
+
+.analisis-video__barra::after {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 38%;
+  border-radius: inherit;
+  background: var(--accent-strong);
+  content: "";
+  animation: analisis-video-progreso 1.5s ease-in-out infinite;
+}
+
+.analisis-video__acciones {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+}
+
+@keyframes analisis-video-progreso {
+  from {
+    transform: translateX(-105%);
+  }
+  to {
+    transform: translateX(270%);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .analisis-video__barra::after {
+    animation: none;
+    transform: translateX(80%);
+  }
+}
+
+.analisis-video__estado {
+  min-width: 0;
+}
+
+.analisis-video__error .analisis-video__acciones {
+  flex-shrink: 0;
 }
 
 @media (max-width: 640px) {

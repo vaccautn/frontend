@@ -20,6 +20,10 @@ import {
   subirAnalisisVideo,
   validarArchivoVideo,
 } from "@/features/sesiones/services/analisisVideoService";
+import {
+  mensajeEstadoAnalisis,
+  seleccionarAnalisisVisible,
+} from "@/features/sesiones/services/analisisVideoUtils";
 import { crearAnalisisVideoRecovery } from "@/features/sesiones/services/analisisVideoRecovery";
 import type { AnalisisVideoRecovery } from "@/features/sesiones/services/analisisVideoRecovery";
 import type { AnalisisVideo } from "@/features/sesiones/types/analisisVideo";
@@ -37,28 +41,6 @@ type Props = {
 };
 
 const ESPERA_POLL_MS = 4000;
-const ETIQUETAS_ESTADO: Record<string, string> = {
-  ENVIANDO: "Enviando al servicio de análisis",
-  EN_COLA: "En cola",
-  PROCESANDO: "Procesando video",
-  IMPORTANDO: "Importando imágenes y resultados",
-  COMPLETADO: "Análisis completado",
-  ERROR: "Análisis con error",
-};
-
-const ETIQUETAS_CC: Record<string, string> = {
-  APLICADA: "CC importada",
-  CONSERVADA: "CC manual conservada",
-  SIN_CC: "CC pendiente",
-};
-
-const ETIQUETAS_IMAGEN: Record<string, string> = {
-  PENDIENTE: "Imagen pendiente",
-  GUARDADA: "Imagen guardada",
-  SIN_IMAGEN: "Sin imagen",
-  ERROR: "Error al guardar la imagen",
-};
-
 function mensajeError(error: unknown): string {
   if (error instanceof ApiError) {
     if (error.status === 409) {
@@ -135,6 +117,11 @@ export function AnalisisVideoSesion({
   }, [onRegistrarRefrescoEntradas, onResultadosActualizados, sesionId, usuarioId]);
 
   const activo = analisisActivo(analisis);
+  const analisisVisible = seleccionarAnalisisVisible(analisis);
+  const erroresRetenidos = analisis.filter(
+    (item) => puedeResolverAnalisis(item) && item.id !== analisisVisible?.id,
+  );
+  const discrepancia = analisis.find((item) => item.discrepancia);
   const resultadosYaAplicados = hayResultadosVideoAplicados(analisis);
   const errorArchivo = archivo ? validarArchivoVideo(archivo) : null;
   const clavePendiente = hayClaveReintento(sesionId, usuarioId);
@@ -266,7 +253,6 @@ export function AnalisisVideoSesion({
       {!ordenDisponible && <p className="analisis-video__alerta">No se puede enviar el video porque hay ingresos históricos sin orden verificable.</p>}
       {entradasCount === 0 && <p className="analisis-video__nota">Registrá al menos un ingreso ordenado antes de cargar un video.</p>}
       {resultadosYaAplicados && <p className="analisis-video__alerta">Ya hay resultados de video aplicados en esta sesión. El backend no admite otro análisis de video.</p>}
-      {activo && <p className="analisis-video__nota">Hay un análisis en curso o un error retenido. Se bloquea otro envío hasta que termine o se resuelva.</p>}
       {activo?.estado === "ENVIANDO" && !clavePendiente && <p className="analisis-video__alerta">Este navegador no conserva la clave del envío pendiente. No se puede reenviar con seguridad; el estado se seguirá consultando sin crear otro trabajo.</p>}
 
       <div className="analisis-video__carga">
@@ -301,7 +287,17 @@ export function AnalisisVideoSesion({
         <Button colorPalette="brand" onClick={enviar} disabled={!puedeEnviar} loading={enviando} loadingText="Enviando video...">
           {enviando ? "Enviando video..." : reintentarRechazoAdmision ? "Reintentar admisión del mismo video" : puedeReenviarEnvioIncierto ? "Reintentar el mismo envío" : "Enviar video"}
         </Button>
-        <p className="analisis-video__nota">La carga se envía al backend. El video original no se archiva; las imágenes importadas quedan privadas y accesibles mediante enlaces protegidos.</p>
+        {enviando && (
+          <div className="analisis-video__progreso" role="status" aria-live="polite">
+            <span>Subiendo video…</span>
+            <div
+              className="analisis-video__barra"
+              role="progressbar"
+              aria-label="Subiendo video"
+              aria-valuetext="Progreso indeterminado"
+            />
+          </div>
+        )}
       </div>
 
       {error && <p className="analisis-video__alerta" role="alert">{error}</p>}
@@ -318,38 +314,36 @@ export function AnalisisVideoSesion({
           </Button>
         </div>
       )}
-      <div className="analisis-video__trabajos" aria-live="polite">
-        <h3>Estado de los análisis</h3>
-        {cargando ? <p>Recuperando análisis guardados...</p> : analisis.length === 0 ? <p>Todavía no hay videos enviados para esta sesión.</p> : analisis.map((item) => (
-          <article className="analisis-video__trabajo" key={item.id}>
-            <div className="analisis-video__trabajo-titulo">
-              <strong>{ETIQUETAS_ESTADO[item.estado] ?? item.estado}</strong>
-              <span>{item.entradas_count} ingresos del snapshot</span>
+      {!cargando && analisisVisible && !enviando && (
+        <div className="analisis-video__estado" role="status" aria-live="polite">
+          <span>{mensajeEstadoAnalisis(analisisVisible)}</span>
+          {!["COMPLETADO", "ERROR"].includes(analisisVisible.estado) &&
+            !(analisisVisible.estado === "IMPORTANDO" && analisisVisible.error_code) && (
+              <div
+                className="analisis-video__barra"
+                role="progressbar"
+                aria-label="Estado del análisis de video"
+                aria-valuetext="Progreso indeterminado"
+              />
+            )}
+          {analisisVisible.estado === "ERROR" && (
+            <div className="analisis-video__acciones">
+              {puedeReintentarAnalisis(analisisVisible) && <Button size="sm" onClick={() => void accionar(analisisVisible, "retry")} loading={accionId === analisisVisible.id}>Reintentar</Button>}
+              {puedeResolverAnalisis(analisisVisible) && <Button size="sm" variant="outline" onClick={() => void accionar(analisisVisible, "resolve")} loading={accionId === analisisVisible.id}>Resolver error</Button>}
             </div>
-            {item.estado === "ENVIANDO" && <p>La admisión puede estar pendiente. Para reenviar, elegí el mismo archivo: se reutiliza la misma clave de idempotencia.</p>}
-            {item.error_code === "ia_admision_rechazada" && item.limpieza === "RETENIDA" && <p>El servicio IA rechazó la admisión. Volvé a seleccionar el mismo archivo para reintentar con su clave; también podés resolver el error retenido.</p>}
-            {item.estado === "IMPORTANDO" && <p>El backend incorpora imágenes y CC pendientes; las CC manuales existentes se conservan.</p>}
-            {item.estado === "ERROR" && <p>El análisis no se considera exitoso. Los resultados aplicados previamente se conservan. Código: {item.error_code ?? "sin detalle"}.</p>}
-            {item.pasajes_count !== null && <span>{item.pasajes_count} {item.pasajes_count === 1 ? "pasaje detectado" : "pasajes detectados"}</span>}
-            {item.unresolved_count > 0 && <span>{item.unresolved_count} pasajes sin resolución</span>}
-            <span>{item.aplicados_count} resultados importados</span>
-            {item.discrepancia && <p className="analisis-video__alerta">La cantidad de pasajes no coincide con los ingresos. Revisá las advertencias; el sistema conserva posiciones y no reasigna animales automáticamente.</p>}
-            {item.animales_sin_pasaje.length > 0 && <p>Animales sin pasaje: {item.animales_sin_pasaje.join(", ")}.</p>}
-            {item.pasajes_sin_asignar.length > 0 && <p>Pasajes extra sin animal asignado: {item.pasajes_sin_asignar.join(", ")}.</p>}
-            {item.advertencias.map((advertencia, index) => <p key={`${item.id}-warning-${index}`}>{advertencia}</p>)}
-            {item.resultados.map((resultado) => (
-              <div className="analisis-video__resultado" key={`${item.id}-${resultado.sequence}`}>
-                <span>Posición {resultado.posicion} · {ETIQUETAS_CC[resultado.cc_estado] ?? resultado.cc_estado}</span>
-                {!resultado.imagen_url && <span>{ETIQUETAS_IMAGEN[resultado.imagen_estado] ?? resultado.imagen_estado}</span>}
-                {resultado.motivo && <span>{resultado.motivo}</span>}
-                {resultado.imagen_url && <a href={resultado.imagen_url} target="_blank" rel="noreferrer">Ver imagen importada</a>}
-              </div>
-            ))}
-            {puedeReintentarAnalisis(item) && <Button size="sm" onClick={() => void accionar(item, "retry")} loading={accionId === item.id}>Reintentar análisis guardado</Button>}
-            {puedeResolverAnalisis(item) && <Button size="sm" variant="outline" onClick={() => void accionar(item, "resolve")} loading={accionId === item.id}>Resolver error y liberar sesión</Button>}
-          </article>
-        ))}
-      </div>
+          )}
+        </div>
+      )}
+      {discrepancia && <p className="analisis-video__alerta">La cantidad detectada no coincide con los ingresos de la sesión.</p>}
+      {erroresRetenidos.map((item) => (
+        <div className="analisis-video__error" key={item.id}>
+          <span>{mensajeEstadoAnalisis(item)}</span>
+          <div className="analisis-video__acciones">
+            {puedeReintentarAnalisis(item) && <Button size="sm" onClick={() => void accionar(item, "retry")} loading={accionId === item.id}>Reintentar</Button>}
+            {puedeResolverAnalisis(item) && <Button size="sm" variant="outline" onClick={() => void accionar(item, "resolve")} loading={accionId === item.id}>Resolver error</Button>}
+          </div>
+        </div>
+      ))}
     </section>
   );
 }

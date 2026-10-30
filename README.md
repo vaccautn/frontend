@@ -61,17 +61,17 @@ directamente a IA ni a R2.
 
 1. Registrá y ordená los ingresos de los animales en la sesión.
 2. Elegí un archivo MP4 o MOV de hasta 50 MiB y enviá el video.
-3. El panel recupera los trabajos guardados y actualiza sus estados. Si la
-conexión se interrumpe durante el envío, volvé a seleccionar el mismo archivo
-para reintentar con la misma clave idempotente.
+3. La interfaz muestra el estado actual con un mensaje breve y una barra de
+   progreso indeterminada; al completar, confirma que los resultados están en
+   la sesión. Si la conexión se interrumpe durante el envío, volvé a seleccionar
+   el mismo archivo para reintentar con la misma clave idempotente.
 
-El backend asocia pasajes según el snapshot ordenado de ingresos. Los pasajes
-extra, animales sin pasaje, imágenes ausentes y discrepancias se informan sin
-compactar posiciones ni bloquear automáticamente todos los resultados. Las CC
-manuales prevalecen; si no hay CC importada, el ingreso permanece pendiente.
-Un error terminal se muestra como error, no como éxito: se puede reintentar el
-mismo análisis guardado o resolverlo explícitamente. Resolver es irreversible,
-libera el bloqueo de la sesión y conserva los resultados y artefactos retenidos.
+El backend asocia pasajes según el snapshot ordenado de ingresos. Si la cantidad
+detectada difiere de los ingresos, la interfaz muestra un aviso breve; los
+resultados y las CC manuales siguen disponibles en la sesión. Un error terminal
+se muestra como error, no como éxito: se puede reintentar el mismo análisis
+guardado o resolverlo explícitamente. Resolver es irreversible, libera el
+bloqueo de la sesión y conserva los resultados y artefactos retenidos.
 Si IA rechazó la admisión antes de crear un trabajo, el reintento vuelve a enviar
 el mismo archivo con la clave original; los errores de importación con un trabajo
 ya creado usan la acción de reintento del análisis guardado.

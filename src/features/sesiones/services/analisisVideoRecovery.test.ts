@@ -24,10 +24,12 @@ import {
   esMismoArchivoReintento,
   hayResultadosVideoAplicados,
   hayClaveReintento,
+  mensajeEstadoAnalisis,
   obtenerClaveReintento,
   puedeIniciarCarga,
   puedeResolverAnalisis,
   puedeReintentarAnalisis,
+  seleccionarAnalisisVisible,
   validarArchivoVideo,
 } from "./analisisVideoUtils.ts";
 import type { AnalisisVideo, AnalisisVideoList } from "../types/analisisVideo.ts";
@@ -77,6 +79,25 @@ function analisis(overrides: Partial<AnalisisVideo> = {}): AnalisisVideo {
 function list(items: AnalisisVideo[]): AnalisisVideoList {
   return { items };
 }
+
+test("video status presentation prefers active work and keeps compact Spanish messages", () => {
+  const completed = analisis({ id: "done", estado: "COMPLETADO", limpieza: "RESUELTA" });
+  const processing = analisis({ id: "active", estado: "PROCESANDO" });
+  assert.equal(seleccionarAnalisisVisible([]), undefined);
+  assert.equal(seleccionarAnalisisVisible([completed, processing]), processing);
+  assert.equal(seleccionarAnalisisVisible([completed]), completed);
+  assert.equal(mensajeEstadoAnalisis(analisis({ estado: "EN_COLA" })), "Esperando procesamiento…");
+  assert.equal(mensajeEstadoAnalisis(processing), "Analizando video…");
+  assert.equal(
+    mensajeEstadoAnalisis(completed),
+    "Análisis completado. Resultados disponibles en la sesión.",
+  );
+  assert.equal(
+    mensajeEstadoAnalisis(analisis({ estado: "IMPORTANDO", error_code: "storage_error" })),
+    "No se pudo guardar un resultado. El análisis sigue en curso.",
+  );
+  assert.doesNotMatch(mensajeEstadoAnalisis(analisis({ estado: "ERROR", error_code: "private_code" })), /private_code/);
+});
 
 function evaluacion(overrides: Partial<EvaluacionCC> = {}): EvaluacionCC {
   return {

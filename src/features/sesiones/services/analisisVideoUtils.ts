@@ -37,6 +37,41 @@ export function analisisActivo<T extends { estado: string }>(
   );
 }
 
+export function seleccionarAnalisisVisible<T extends { estado: string }>(
+  items: T[],
+): T | undefined {
+  return analisisActivo(items) ?? items[0];
+}
+
+export function mensajeEstadoAnalisis(item: {
+  estado: string;
+  limpieza: string;
+  error_code?: string | null;
+}): string {
+  switch (item.estado) {
+    case "ENVIANDO":
+      return "Esperando confirmación del envío…";
+    case "EN_COLA":
+      return "Esperando procesamiento…";
+    case "PROCESANDO":
+      return "Analizando video…";
+    case "IMPORTANDO":
+      return item.error_code
+        ? "No se pudo guardar un resultado. El análisis sigue en curso."
+        : "Guardando resultados…";
+    case "COMPLETADO":
+      return "Análisis completado. Resultados disponibles en la sesión.";
+    case "ERROR":
+      return item.error_code === "ia_admision_rechazada" && item.limpieza === "RETENIDA"
+        ? "No se pudo iniciar el análisis. Seleccioná el mismo video para reintentar o resolvé el error."
+        : item.limpieza === "RETENIDA"
+          ? "No se pudo completar el análisis. Podés reintentarlo o resolver el error."
+          : "No se pudo completar el análisis.";
+    default:
+      return "Consultando el estado del análisis…";
+  }
+}
+
 export function puedeReintentarAnalisis(item: {
   estado: string;
   limpieza: string;
