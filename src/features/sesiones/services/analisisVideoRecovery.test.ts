@@ -32,7 +32,11 @@ import {
   seleccionarAnalisisVisible,
   validarArchivoVideo,
 } from "./analisisVideoUtils.ts";
-import type { AnalisisVideo, AnalisisVideoList } from "../types/analisisVideo.ts";
+import type {
+  AnalisisVideo,
+  AnalisisVideoCompleto,
+  AnalisisVideoList,
+} from "../types/analisisVideo.ts";
 import type { EntradasSesionRead, EvaluacionCC } from "../../animales/types/animales.ts";
 
 function crearStorage(): Storage {
@@ -55,7 +59,7 @@ function crearArchivo(
   return new File([content], name, options);
 }
 
-function analisis(overrides: Partial<AnalisisVideo> = {}): AnalisisVideo {
+function analisis(overrides: Partial<AnalisisVideoCompleto> = {}): AnalisisVideoCompleto {
   return {
     id: "analysis-1",
     sesion_id: 7,
@@ -378,6 +382,13 @@ test("resolve is allowed for every retained error; job retry excludes only admis
   assert.equal(puedeResolverAnalisis(rejected), true);
   assert.equal(analisisActivo([rejected]), rejected);
   assert.equal(puedeResolverAnalisis(processingFailure), true);
+  const restrictedAdmission = {
+    estado: "ENVIANDO",
+    limpieza: "PENDIENTE",
+    acceso_restringido: true,
+  };
+  assert.equal(puedeResolverAnalisis(restrictedAdmission), true);
+  assert.equal(puedeReintentarAnalisis(restrictedAdmission), false);
   assert.equal(puedeReintentarAnalisis(rejected), false);
   assert.equal(puedeReintentarAnalisis(processingFailure), true);
   const noKey = crearStorage();

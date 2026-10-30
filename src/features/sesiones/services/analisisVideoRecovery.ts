@@ -93,7 +93,9 @@ export function crearAnalisisVideoRecovery({
     async ({ items }) => {
       onItems(items);
       const snapshot = items
-        .map((item) => `${item.id}:${item.estado}:${item.limpieza}:${item.aplicados_count}`)
+        .map((item) =>
+          `${item.id}:${item.estado}:${item.limpieza}:${item.acceso_restringido ? item.resultados_aplicados : item.aplicados_count}`,
+        )
         .join("|");
       if (snapshot !== lastSnapshot) {
         lastSnapshot = snapshot;
@@ -101,7 +103,9 @@ export function crearAnalisisVideoRecovery({
           items.some(
             (item) =>
               ["IMPORTANDO", "COMPLETADO"].includes(item.estado) ||
-              item.aplicados_count > 0,
+              (item.acceso_restringido
+                ? item.resultados_aplicados
+                : item.aplicados_count > 0),
           )
         ) {
           markRefreshDirty();

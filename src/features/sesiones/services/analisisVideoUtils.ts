@@ -87,8 +87,14 @@ export function puedeReintentarAnalisis(item: {
 export function puedeResolverAnalisis(item: {
   estado: string;
   limpieza: string;
+  acceso_restringido?: boolean;
 }): boolean {
-  return item.estado === "ERROR" && item.limpieza === "RETENIDA";
+  return (
+    (item.estado === "ERROR" && item.limpieza === "RETENIDA") ||
+    (item.acceso_restringido === true &&
+      item.estado === "ENVIANDO" &&
+      item.limpieza === "PENDIENTE")
+  );
 }
 
 type PendingVideoUpload = {
@@ -296,8 +302,12 @@ export function puedeIniciarCarga(params: {
   );
 }
 
-export function hayResultadosVideoAplicados(items: Array<{ aplicados_count: number }>): boolean {
-  return items.some((item) => item.aplicados_count > 0);
+export function hayResultadosVideoAplicados(
+  items: Array<{ aplicados_count?: number; resultados_aplicados?: boolean }>,
+): boolean {
+  return items.some(
+    (item) => item.resultados_aplicados === true || (item.aplicados_count ?? 0) > 0,
+  );
 }
 
 export function iniciarPollingSecuencial<T>(

@@ -74,7 +74,11 @@ guardado o resolverlo explícitamente. Resolver es irreversible, libera el
 bloqueo de la sesión y conserva los resultados y artefactos retenidos.
 Si IA rechazó la admisión antes de crear un trabajo, el reintento vuelve a enviar
 el mismo archivo con la clave original; los errores de importación con un trabajo
-ya creado usan la acción de reintento del análisis guardado.
+ya creado usan la acción de reintento del análisis guardado. Si se pierde
+`sessionStorage` mientras el backend conserva un trabajo `ENVIANDO` sin `ia_job_id`,
+el creador recupera la clave durable desde la vista completa del listado, selecciona
+el archivo y lo reenvía; backend valida su SHA-256 y responde `409` si el contenido
+no coincide. La clave no aparece en las proyecciones de acceso restringido.
 La clave del navegador se conserva tras una respuesta incierta y solo se elimina
 al recibir una respuesta de admisión confirmada, resolver explícitamente el error
 retenido si la clave está vinculada a ese análisis, o descartar la clave de forma
@@ -82,8 +86,33 @@ explícita si no se pudo establecer esa relación;
 los análisis históricos no alteran esa clave. Si ya se aplicó al menos un
 resultado, el backend no permite otro video para esa sesión. Los errores resueltos
 sin resultados aplicados no bloquean por sí solos un nuevo análisis.
+Si se revoca acceso a un animal del snapshot, el propietario ve únicamente el estado
+mínimo y puede resolver un error retenido o abandonar una admisión incierta `ENVIANDO`
+sin `ia_job_id`; no puede reintentar ni consultar datos del snapshot, resultados o
+imágenes. Resolver esa admisión no afirma que IA haya rechazado el video ni que sus
+artefactos remotos se hayan borrado.
 El video fuente no se archiva; las imágenes importadas se consultan mediante URL
 firmada protegida por el backend.
+
+### Prueba renderizada del flujo en Edge
+
+Con Vite disponible en `http://127.0.0.1:5173`, una instalación existente de
+`playwright-core` y Microsoft Edge, ejecutar desde PowerShell:
+
+```powershell
+$env:PLAYWRIGHT_MODULE_PATH = "C:\ruta\a\playwright-core\index.mjs"
+$env:VACCA_FRONTEND_E2E_URL = "http://127.0.0.1:5173"
+pnpm test:video:browser
+```
+
+La prueba crea un contexto de navegador nuevo, usa un usuario de fixture y archivos
+sintéticos, e intercepta todas las solicitudes `/api/`; no contacta el backend, IA ni
+R2. No agrega una dependencia de producción: `PLAYWRIGHT_MODULE_PATH` apunta a una
+instalación de Playwright ya disponible en el entorno. También verifica la recuperación
+de la clave tras limpiar `sessionStorage`, el error restringido y su resolución, la
+limpieza de errores de polling sin borrar errores de acciones, la preservación del
+diálogo manual durante un refresco y el bloqueo de una segunda carga después de aplicar
+resultados.
 
 ---
 

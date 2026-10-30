@@ -9,6 +9,7 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "test:video": "node --experimental-strip-types --test src/features/sesiones/services/analisisVideoRecovery.test.ts",
+    "test:video:browser": "node --test scripts/session-video.browser.test.mjs",
     "preview": "vite preview"
   },
   "dependencies": {

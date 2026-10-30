@@ -10,10 +10,22 @@ export type ResultadoVideo = {
   motivo: string | null;
 };
 
-export type AnalisisVideo = {
+type AnalisisVideoCore = {
   id: string;
   sesion_id: number;
   estado: string;
+  error_code: string | null;
+  limpieza: string;
+};
+
+export type AnalisisVideoAccesoRestringido = AnalisisVideoCore & {
+  acceso_restringido: true;
+  resultados_aplicados: boolean;
+};
+
+export type AnalisisVideoCompleto = AnalisisVideoCore & {
+  acceso_restringido?: false;
+  recovery_key?: string | null;
   entradas_count: number;
   pasajes_count: number | null;
   unresolved_count: number;
@@ -22,10 +34,10 @@ export type AnalisisVideo = {
   animales_sin_pasaje: number[];
   pasajes_sin_asignar: number[];
   advertencias: string[];
-  error_code: string | null;
-  limpieza: string;
   error_limpieza: string | null;
   resultados: ResultadoVideo[];
 };
+
+export type AnalisisVideo = AnalisisVideoCompleto | AnalisisVideoAccesoRestringido;
 
 export type AnalisisVideoList = { items: AnalisisVideo[] };
