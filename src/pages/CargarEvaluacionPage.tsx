@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Dialog, Portal, Table } from "@chakra-ui/react";
 import { toast } from "react-toastify";
@@ -27,12 +27,15 @@ import type {
   AnimalLoteGroup,
   EvaluacionCC,
 } from "@/features/animales/types";
+import type { EntradasSesionRead } from "@/features/animales/types";
 import type { LoteOption } from "@/features/lotes/types";
 import { localNaiveNow } from "@/utils/localDateTime";
-import { normalizeBackendDetail } from "@/features/auth";
+import { getStoredUser, normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
 import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 import { nivelCC } from "@/features/animales/utils/ccColor";
+import { AnalisisVideoSesion } from "@/features/sesiones/components/AnalisisVideoSesion";
+import { aplicarEntradasVideoRefrescadas } from "@/features/sesiones/services/analisisVideoRecovery";
 import { FechaInput } from "@/components/FechaInput";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
@@ -60,6 +63,7 @@ export function CargarEvaluacionesPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const sesionId = Number(id);
+  const usuarioId = getStoredUser()?.id ?? 0;
 
   const [sesion, setSesion] = useState<SesionCapturaRead | null>(null);
   const [grupos, setGrupos] = useState<AnimalLoteGroup[]>([]);
@@ -68,6 +72,7 @@ export function CargarEvaluacionesPage() {
   const [animalSeleccionado, setAnimalSeleccionado] = useState<Animal | null>(
     null,
   );
+  const animalSeleccionadoRef = useRef<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [refetchingGrupos, setRefetchingGrupos] = useState(false);
   const [isFinalizando, setIsFinalizando] = useState(false);
@@ -80,6 +85,53 @@ export function CargarEvaluacionesPage() {
   const [evaluacionesPersistidas, setEvaluacionesPersistidas] = useState<
     Map<number, EvaluacionCC>
   >(new Map());
+  const [entradasSesion, setEntradasSesion] = useState<EntradasSesionRead>({
+    orden_disponible: false,
+    items: [],
+  });
+  const requestVideoEntriesRefreshRef = useRef<(() => Promise<void>) | null>(null);
+  const sesionActualRef = useRef(sesionId);
+
+  useEffect(() => {
+    sesionActualRef.current = sesionId;
+  }, [sesionId]);
+
+  const refrescarEntradasVideo = useCallback(async () => {
+    const entradas = await getEntradasSesion(sesionId);
+    if (sesionActualRef.current !== sesionId) return;
+    aplicarEntradasVideoRefrescadas(
+      entradas,
+      animalSeleccionadoRef.current !== null,
+      setEntradasSesion,
+      setEvaluacionesPersistidas,
+    );
+  }, [sesionId]);
+
+  const seleccionarAnimal = (animal: Animal | null) => {
+    animalSeleccionadoRef.current = animal;
+    setAnimalSeleccionado(animal);
+  };
+
+  const handleCerrarDialogEvaluacion = () => {
+    seleccionarAnimal(null);
+    const requestRefresh = requestVideoEntriesRefreshRef.current;
+    if (requestRefresh) {
+      void requestRefresh().catch(() => {
+        // The recovery panel keeps the request pending and exposes its retry action.
+      });
+    } else {
+      void refrescarEntradasVideo().catch(() =>
+        toast.error("No se pudieron actualizar los ingresos. Volvé a cargar la sesión."),
+      );
+    }
+  };
+
+  const registrarRefrescoEntradasVideo = useCallback(
+    (request: (() => Promise<void>) | null) => {
+      requestVideoEntriesRefreshRef.current = request;
+    },
+    [],
+  );
 
   const {
     caravanaInput,
@@ -103,16 +155,28 @@ export function CargarEvaluacionesPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getSesion(sesionId), getEntradasSesion(sesionId)])
-      .then(([sesionData, entradasData]) => {
+    Promise.allSettled([getSesion(sesionId), getEntradasSesion(sesionId)])
+      .then(([sesionResult, entradasResult]) => {
+        if (sesionActualRef.current !== sesionId) return;
+        if (sesionResult.status === "rejected") {
+          toast.error("No se pudo cargar la sesión.");
+          return;
+        }
+        const sesionData = sesionResult.value;
         setSesion(sesionData);
         setFechaSesionInput(sesionData.fecha_inicio.slice(0, 10));
-        setEvaluacionesPersistidas(
-          new Map(entradasData.items.map((item) => [item.animal_id, item])),
-        );
+        if (entradasResult.status === "fulfilled") {
+          setEntradasSesion(entradasResult.value);
+          setEvaluacionesPersistidas(
+            new Map(entradasResult.value.items.map((item) => [item.animal_id, item])),
+          );
+        } else {
+          toast.error("No se pudieron cargar los ingresos. Se intentará recuperarlos automáticamente.");
+        }
       })
-      .catch(() => toast.error("No se pudo cargar la sesión."))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (sesionActualRef.current === sesionId) setLoading(false);
+      });
   }, [sesionId]);
 
   // Los mismos filtros que la página de animales (caravana, raza, estado,
@@ -400,6 +464,16 @@ export function CargarEvaluacionesPage() {
         </div>
       </div>
 
+      <AnalisisVideoSesion
+        key={`${usuarioId}-${sesionId}`}
+        sesionId={sesionId}
+        sesionAbierta={sesion.estado === "ABIERTA"}
+        ordenDisponible={entradasSesion.orden_disponible}
+        entradasCount={entradasSesion.items.filter((item) => item.estado !== "ANULADA").length}
+        onResultadosActualizados={refrescarEntradasVideo}
+        onRegistrarRefrescoEntradas={registrarRefrescoEntradasVideo}
+      />
+
       <div className="carga-sesion__lista">
         <div className="carga-sesion__toolbar">
           <div className="carga-sesion__vistas" role="group" aria-label="Mostrar">
@@ -479,11 +553,11 @@ export function CargarEvaluacionesPage() {
                       tabIndex={0}
                       role="button"
                       aria-label={`${evaluacion ? "Editar" : "Evaluar"} a ${caravana}`}
-                      onClick={() => setAnimalSeleccionado(animal)}
+                      onClick={() => seleccionarAnimal(animal)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          setAnimalSeleccionado(animal);
+                          seleccionarAnimal(animal);
                         }
                       }}>
                       <Table.Cell>
@@ -544,7 +618,7 @@ export function CargarEvaluacionesPage() {
             : null
         }
         fechaBase={fechaEvaluacionBase}
-        onClose={() => setAnimalSeleccionado(null)}
+        onClose={handleCerrarDialogEvaluacion}
         onGuardar={handleGuardarEvaluacion}
         onEvaluacionActualizada={(evaluacion) =>
           setEvaluacionesPersistidas((prev) =>

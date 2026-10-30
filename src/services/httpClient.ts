@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
+  import.meta.env?.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
 
 type ApiErrorBody = {
   detail?: string | { message?: string; sesion_id?: number };
@@ -188,12 +188,14 @@ export async function postFormData<TResponse>(
   path: string,
   formData: FormData,
   accessToken?: string | null,
+  extraHeaders: Record<string, string> = {},
 ): Promise<TResponse> {
   const headers: Record<string, string> = {};
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
   }
+  Object.assign(headers, extraHeaders);
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",

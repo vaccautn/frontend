@@ -8,6 +8,7 @@
     "build": "tsc -b && vite build",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "test:video": "node --experimental-strip-types --test src/features/sesiones/services/analisisVideoRecovery.test.ts",
     "preview": "vite preview"
   },
   "dependencies": {

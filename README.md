@@ -15,6 +15,7 @@
 | `pnpm preview`    | Previsualiza el build de producción localmente       |
 | `pnpm lint`       | Ejecuta el linter (ESLint)                           |
 | `pnpm type-check` | Verifica los tipos de TypeScript sin compilar        |
+| `pnpm test:video` | Ejecuta pruebas de reglas de la integración de video |
 
 ## Ingresos de animales en una sesión
 
@@ -48,7 +49,41 @@ no se reordenan a partir de fechas o IDs. El GET indica `orden_disponible: false
 si incluye filas históricas sin ordinal. Una sesión histórica vacía puede aceptar
 nuevos ingresos. El downgrade de la migración se rechaza si existen CC pendientes
 u órdenes nuevas; se deben resolver explícitamente antes de volver al esquema
-anterior. Esta entrega no implementa carga ni procesamiento de video.
+anterior.
+
+## Análisis de video en una sesión
+
+La carga está disponible en la página de evaluación de una sesión abierta. Antes
+de probarla, el backend debe tener aplicada la migración de análisis de video y
+el servicio IA debe estar ejecutándose en loopback según la configuración del
+backend. El navegador solo se comunica con la API autenticada; no sube archivos
+directamente a IA ni a R2.
+
+1. Registrá y ordená los ingresos de los animales en la sesión.
+2. Elegí un archivo MP4 o MOV de hasta 50 MiB y enviá el video.
+3. El panel recupera los trabajos guardados y actualiza sus estados. Si la
+conexión se interrumpe durante el envío, volvé a seleccionar el mismo archivo
+para reintentar con la misma clave idempotente.
+
+El backend asocia pasajes según el snapshot ordenado de ingresos. Los pasajes
+extra, animales sin pasaje, imágenes ausentes y discrepancias se informan sin
+compactar posiciones ni bloquear automáticamente todos los resultados. Las CC
+manuales prevalecen; si no hay CC importada, el ingreso permanece pendiente.
+Un error terminal se muestra como error, no como éxito: se puede reintentar el
+mismo análisis guardado o resolverlo explícitamente. Resolver es irreversible,
+libera el bloqueo de la sesión y conserva los resultados y artefactos retenidos.
+Si IA rechazó la admisión antes de crear un trabajo, el reintento vuelve a enviar
+el mismo archivo con la clave original; los errores de importación con un trabajo
+ya creado usan la acción de reintento del análisis guardado.
+La clave del navegador se conserva tras una respuesta incierta y solo se elimina
+al recibir una respuesta de admisión confirmada, resolver explícitamente el error
+retenido si la clave está vinculada a ese análisis, o descartar la clave de forma
+explícita si no se pudo establecer esa relación;
+los análisis históricos no alteran esa clave. Si ya se aplicó al menos un
+resultado, el backend no permite otro video para esa sesión. Los errores resueltos
+sin resultados aplicados no bloquean por sí solos un nuevo análisis.
+El video fuente no se archiva; las imágenes importadas se consultan mediante URL
+firmada protegida por el backend.
 
 ---
 
