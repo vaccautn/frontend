@@ -24,7 +24,10 @@ export function SesionEvaluacionesCards({ titulo, evaluaciones, onEdit }: Props)
       </div>
       <ul className="sesion-tarjetas">
         {evaluaciones.map((evaluacion) => {
-          const nivel = nivelCC(evaluacion.valor_cc, evaluacion.fecha);
+          const nivel =
+            evaluacion.valor_cc === null
+              ? "pendiente"
+              : nivelCC(evaluacion.valor_cc, evaluacion.fecha);
           const caravana = getAnimalRfidLabel(evaluacion.animal_rfid);
           return (
             <li key={evaluacion.id}>
@@ -36,7 +39,9 @@ export function SesionEvaluacionesCards({ titulo, evaluaciones, onEdit }: Props)
                 <div className="sesion-tarjeta__media">
                   <EvaluacionFoto evaluacionId={evaluacion.id} caravana={caravana} />
                   <span className={`sesion-tarjeta__cc sesion-tarjeta__cc--${nivel}`}>
-                    {evaluacion.valor_cc}
+                    {evaluacion.valor_cc === null
+                      ? "Pendiente de CC"
+                      : evaluacion.valor_cc}
                   </span>
                 </div>
                 <div className="sesion-tarjeta__cuerpo">

@@ -6,8 +6,7 @@ import { IconCheck, IconChevronRight, IconTrash } from "@tabler/icons-react";
 import { getSesion } from "@/features/sesiones/services/sesionesService";
 import {
   getAnimalesAgrupadosPorLote,
-  getEvaluacionesCc,
-  FotoRechazadaError,
+  getEntradasSesion,
   registrarEvaluacionCCCompleta,
   updateEvaluacionCcEnSesion,
 } from "@/features/animales/services/animalesService";
@@ -43,7 +42,7 @@ type Vista = "todos" | "pendientes" | "evaluados";
 const VISTAS: { value: Vista; label: string }[] = [
   { value: "todos", label: "Todos" },
   { value: "pendientes", label: "Pendientes" },
-  { value: "evaluados", label: "Evaluados" },
+  { value: "evaluados", label: "Registrados" },
 ];
 
 /** "27 de octubre de 2026" a partir de un "YYYY-MM-DD..." (sin zona horaria:
@@ -104,12 +103,12 @@ export function CargarEvaluacionesPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getSesion(sesionId), getEvaluacionesCc({ sesionId })])
-      .then(([sesionData, evaluacionesData]) => {
+    Promise.all([getSesion(sesionId), getEntradasSesion(sesionId)])
+      .then(([sesionData, entradasData]) => {
         setSesion(sesionData);
         setFechaSesionInput(sesionData.fecha_inicio.slice(0, 10));
         setEvaluacionesPersistidas(
-          new Map(evaluacionesData.map((item) => [item.animal_id, item])),
+          new Map(entradasData.items.map((item) => [item.animal_id, item])),
         );
       })
       .catch(() => toast.error("No se pudo cargar la sesión."))
@@ -184,8 +183,8 @@ export function CargarEvaluacionesPage() {
             existente.id,
             sesionId,
             {
-              valor_cc: data.valorCc,
               observaciones: data.observaciones,
+              ...(data.valorCc !== null ? { valor_cc: data.valorCc } : {}),
             },
           );
           setEvaluacionesPersistidas((prev) =>
@@ -209,7 +208,6 @@ export function CargarEvaluacionesPage() {
             sesionId,
             animalId,
             valorCc: data.valorCc,
-            valorCcInferido: data.valorCcInferido,
             escalaMin: data.escalaMin,
             escalaMax: data.escalaMax,
             observaciones: data.observaciones,
@@ -225,8 +223,12 @@ export function CargarEvaluacionesPage() {
         } else {
           toast.success(
             data.files.length > 0
-              ? `Evaluación registrada e imágenes subidas correctamente. Condición corporal detectada: ${evaluacion.valor_cc}.`
-              : "Evaluación registrada.",
+              ? evaluacion.valor_cc == null
+                ? "Ingreso registrado e imágenes subidas. La evaluación sigue pendiente de CC."
+                : `Ingreso registrado e imágenes subidas. CC registrada: ${evaluacion.valor_cc}.`
+              : evaluacion.valor_cc == null
+                ? "Ingreso registrado como pendiente de CC."
+                : "Ingreso y evaluación registrados.",
           );
         }
         return true;
@@ -234,9 +236,7 @@ export function CargarEvaluacionesPage() {
         toast.error(
           error instanceof ApiError
             ? normalizeBackendDetail(error.detail)
-            : error instanceof FotoRechazadaError
-              ? error.message
-              : "No se pudo registrar la evaluación. Probá nuevamente.",
+            : "No se pudo registrar la evaluación. Probá nuevamente.",
         );
         return false;
       }
@@ -373,15 +373,15 @@ export function CargarEvaluacionesPage() {
           <strong>{cantidadEvaluaciones}</strong>
           <span>
             {cantidadEvaluaciones === 1
-              ? "evaluación cargada"
-              : "evaluaciones cargadas"}
+              ? "ingreso registrado"
+              : "ingresos registrados"}
           </span>
         </div>
         <div className="carga-sesion__progreso-detalle">
           <div className="carga-sesion__progreso-texto">
             <span>
               {pendientesListados === 0 && animalesListados.length > 0
-                ? "Todos los animales de la lista están evaluados"
+                ? "Todos los animales de la lista tienen un ingreso registrado"
                 : `Faltan ${pendientesListados} de ${animalesListados.length} ${
                     animalesListados.length === 1 ? "animal" : "animales"
                   } de la lista`}
@@ -446,6 +446,7 @@ export function CargarEvaluacionesPage() {
           <Table.Root className="animales-table" interactive>
             <Table.Header>
               <Table.Row>
+                <Table.ColumnHeader>Ingreso</Table.ColumnHeader>
                 <Table.ColumnHeader>Caravana</Table.ColumnHeader>
                 <Table.ColumnHeader>Raza</Table.ColumnHeader>
                 <Table.ColumnHeader>Lote</Table.ColumnHeader>
@@ -457,7 +458,7 @@ export function CargarEvaluacionesPage() {
             <Table.Body>
               {filas.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={6} className="carga-sesion__vacio">
+                  <Table.Cell colSpan={7} className="carga-sesion__vacio">
                     {vista === "pendientes" && animalesListados.length > 0
                       ? "No quedan animales pendientes en la lista."
                       : vista === "evaluados"
@@ -485,6 +486,13 @@ export function CargarEvaluacionesPage() {
                           setAnimalSeleccionado(animal);
                         }
                       }}>
+                      <Table.Cell>
+                        {evaluacion?.orden_entrada != null
+                          ? `#${evaluacion.orden_entrada}`
+                          : evaluacion
+                            ? "Orden histórico desconocido"
+                            : "—"}
+                      </Table.Cell>
                       <Table.Cell className="carga-sesion__caravana">
                         {caravana}
                       </Table.Cell>
@@ -496,13 +504,17 @@ export function CargarEvaluacionesPage() {
                           : "—"}
                       </Table.Cell>
                       <Table.Cell>
-                        {evaluacion ? (
+                        {evaluacion?.valor_cc != null ? (
                           <span
                             className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${nivelCC(
                               evaluacion.valor_cc,
                               evaluacion.fecha,
                             )}`}>
                             CC {evaluacion.valor_cc}
+                          </span>
+                        ) : evaluacion ? (
+                          <span className="carga-sesion__sin-evaluar">
+                            Pendiente de CC
                           </span>
                         ) : (
                           <span className="carga-sesion__sin-evaluar">

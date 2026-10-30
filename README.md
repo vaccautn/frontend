@@ -16,6 +16,40 @@
 | `pnpm lint`       | Ejecuta el linter (ESLint)                           |
 | `pnpm type-check` | Verifica los tipos de TypeScript sin compilar        |
 
+## Ingresos de animales en una sesión
+
+La página de carga usa los endpoints autenticados:
+
+| Método | Ruta | Uso |
+|---|---|---|
+| `POST` | `/api/sesiones-captura/{sesion_id}/entradas` | Registrar un animal y recibir su orden asignado por el servidor |
+| `GET` | `/api/sesiones-captura/{sesion_id}/entradas` | Recuperar los ingresos y sus órdenes guardados |
+
+Ejemplo de alta pendiente:
+
+```json
+{
+  "animal_id": 42,
+  "valor_cc": null,
+  "observaciones": "Pendiente de evaluación"
+}
+```
+
+El `POST` devuelve `201` para un ingreso nuevo y `200` al reintentar un animal ya
+registrado; el reintento no cambia la CC ni el orden existentes. El ordinal es
+asignado en backend, no por la lista filtrada de la interfaz. `valor_cc` puede ser
+`null` en estado `BORRADOR` se muestra como **Pendiente de CC**; una evaluación
+`ANULADA` también puede conservar `null`. Solo `CONFIRMADA` requiere una CC entera
+entre 1 y 5. Registrar esa CC confirma el borrador sin cambiar su orden. La CC
+manual existente nunca se reemplaza al adjuntar imágenes.
+
+Las evaluaciones anteriores al orden persistido conservan `orden_entrada: null` y
+no se reordenan a partir de fechas o IDs. El GET indica `orden_disponible: false`
+si incluye filas históricas sin ordinal. Una sesión histórica vacía puede aceptar
+nuevos ingresos. El downgrade de la migración se rechaza si existen CC pendientes
+u órdenes nuevas; se deben resolver explícitamente antes de volver al esquema
+anterior. Esta entrega no implementa carga ni procesamiento de video.
+
 ---
 
 ## Estructura de Carpetas
