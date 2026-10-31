@@ -46,3 +46,8 @@ _tmp_*
 *.sw?
 
 .claude
+# Playwright
+test-results/
+playwright-report/
+playwright/.cache/
+e2e/.auth/
