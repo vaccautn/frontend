@@ -51,7 +51,7 @@ export function EditarEvaluacionDialog({
   onDelete,
 }: EditarEvaluacionDialogProps) {
   const animalRfid = getAnimalRfidLabel(evaluacion.animal_rfid);
-  const [valorCc, setValorCc] = useState(evaluacion.valor_cc);
+  const [valorCc, setValorCc] = useState<number | null>(evaluacion.valor_cc);
   const [observaciones, setObservaciones] = useState(evaluacion.observaciones);
   const [formError, setFormError] = useState("");
   const [pending, setPending] = useState(false);
@@ -110,7 +110,7 @@ export function EditarEvaluacionDialog({
     setPending(true);
     try {
       const refreshed = await onSubmit({
-        valor_cc: valorCc,
+        ...(valorCc !== null ? { valor_cc: valorCc } : {}),
         observaciones,
       });
       if (!refreshed) return;
@@ -226,7 +226,7 @@ export function EditarEvaluacionDialog({
                           className="animal-evaluacion__valor-trigger"
                           disabled={pending}
                           aria-label="Seleccionar valor de CC">
-                          <span>{valorCc}</span>
+                          <span>{valorCc ?? "Sin CC (pendiente)"}</span>
                           <IconChevronDown
                             className="animal-evaluacion__valor-caret"
                             size={16}
@@ -238,7 +238,7 @@ export function EditarEvaluacionDialog({
                         <Menu.Positioner>
                           <Menu.Content className="animal-evaluacion__valor-menu">
                             <Menu.RadioItemGroup
-                              value={String(valorCc)}
+                              value={String(valorCc ?? "")}
                               onValueChange={(details) =>
                                 setValorCc(Number(details.value))
                               }>
