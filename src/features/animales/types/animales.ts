@@ -60,10 +60,10 @@ export type AnimalLoteGroup = {
   animales: Animal[];
 };
 
+/** El sexo no se manda: el backend lo deduce de la categoría. */
 export type RegisterAnimalPayload = {
   caravana: string;
   raza: string;
-  sexo: string;
   categoria: string;
   fecha_nacimiento: string;
   lote_id: number | null;
@@ -72,7 +72,7 @@ export type RegisterAnimalPayload = {
 export type UpdateAnimalPayload = {
   caravana?: string;
   raza?: string;
-  sexo?: string;
+  categoria?: string;
   fecha_nacimiento?: string;
   estado?: EstadoAnimal;
   observacion?: string;
@@ -80,6 +80,9 @@ export type UpdateAnimalPayload = {
 };
 
 export type AnimalListParams = {
+  /** Fecha de alta: momentos ISO, `alta_desde` incluido y `alta_hasta` excluido. */
+  alta_desde?: string;
+  alta_hasta?: string;
   estado?: EstadoFiltro;
   sexo?: SexoAnimal;
   raza?: string;

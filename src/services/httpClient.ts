@@ -184,6 +184,38 @@ export async function deleteRequest(
   }
 }
 
+/** POST con JSON que devuelve un archivo (p. ej. un Excel generado). */
+export async function postJsonBlob<TPayload>(
+  path: string,
+  payload: TPayload,
+  accessToken?: string | null,
+): Promise<Blob> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  avisarSiSesionVencida(response, accessToken);
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
+    throw new ApiError(
+      response.status,
+      body.detail ?? "No se pudo completar la operación. Probá nuevamente.",
+    );
+  }
+
+  return response.blob();
+}
+
 export async function postFormData<TResponse>(
   path: string,
   formData: FormData,
