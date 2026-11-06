@@ -11,7 +11,10 @@
     "preview": "vite preview",
     "test": "vitest run",
     "test:watch": "vitest",
-    "test:e2e": "playwright test"
+    "test:e2e": "playwright test",
+    "test:video": "node --experimental-strip-types --test src/features/sesiones/services/analisisVideoRecovery.test.ts",
+    "test:video:browser": "node --test scripts/session-video.browser.test.mjs"
+
   },
   "dependencies": {
     "@chakra-ui/react": "^3.36.0",

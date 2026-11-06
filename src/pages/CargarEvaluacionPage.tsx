@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Dialog, Portal, Table } from "@chakra-ui/react";
 import { toast } from "react-toastify";
@@ -6,8 +6,7 @@ import { IconCheck, IconChevronRight, IconTrash } from "@tabler/icons-react";
 import { getSesion } from "@/features/sesiones/services/sesionesService";
 import {
   getAnimalesAgrupadosPorLote,
-  getEvaluacionesCc,
-  FotoRechazadaError,
+  getEntradasSesion,
   registrarEvaluacionCCCompleta,
   updateEvaluacionCcEnSesion,
 } from "@/features/animales/services/animalesService";
@@ -28,15 +27,18 @@ import type {
   AnimalLoteGroup,
   EvaluacionCC,
 } from "@/features/animales/types";
+import type { EntradasSesionRead } from "@/features/animales/types";
 import type { LoteOption } from "@/features/lotes/types";
 import { localNaiveNow } from "@/utils/localDateTime";
-import { normalizeBackendDetail } from "@/features/auth";
+import { getStoredUser, normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
 import {
   CATEGORIA_ANIMAL_LABELS,
   CATEGORIAS_VACA,
 } from "@/features/animales/constants";
 import { nivelCC } from "@/features/animales/utils/ccColor";
+import { AnalisisVideoSesion } from "@/features/sesiones/components/AnalisisVideoSesion";
+import { aplicarEntradasVideoRefrescadas } from "@/features/sesiones/services/analisisVideoRecovery";
 import { FechaInput } from "@/components/FechaInput";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
@@ -46,7 +48,7 @@ type Vista = "todos" | "pendientes" | "evaluados";
 const VISTAS: { value: Vista; label: string }[] = [
   { value: "todos", label: "Todos" },
   { value: "pendientes", label: "Pendientes" },
-  { value: "evaluados", label: "Evaluados" },
+  { value: "evaluados", label: "Registrados" },
 ];
 
 /** "27 de octubre de 2026" a partir de un "YYYY-MM-DD..." (sin zona horaria:
@@ -64,6 +66,7 @@ export function CargarEvaluacionesPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const sesionId = Number(id);
+  const usuarioId = getStoredUser()?.id ?? 0;
 
   const [sesion, setSesion] = useState<SesionCapturaRead | null>(null);
   const [grupos, setGrupos] = useState<AnimalLoteGroup[]>([]);
@@ -72,6 +75,7 @@ export function CargarEvaluacionesPage() {
   const [animalSeleccionado, setAnimalSeleccionado] = useState<Animal | null>(
     null,
   );
+  const animalSeleccionadoRef = useRef<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [refetchingGrupos, setRefetchingGrupos] = useState(false);
   const [isFinalizando, setIsFinalizando] = useState(false);
@@ -84,6 +88,53 @@ export function CargarEvaluacionesPage() {
   const [evaluacionesPersistidas, setEvaluacionesPersistidas] = useState<
     Map<number, EvaluacionCC>
   >(new Map());
+  const [entradasSesion, setEntradasSesion] = useState<EntradasSesionRead>({
+    orden_disponible: false,
+    items: [],
+  });
+  const requestVideoEntriesRefreshRef = useRef<(() => Promise<void>) | null>(null);
+  const sesionActualRef = useRef(sesionId);
+
+  useEffect(() => {
+    sesionActualRef.current = sesionId;
+  }, [sesionId]);
+
+  const refrescarEntradasVideo = useCallback(async () => {
+    const entradas = await getEntradasSesion(sesionId);
+    if (sesionActualRef.current !== sesionId) return;
+    aplicarEntradasVideoRefrescadas(
+      entradas,
+      animalSeleccionadoRef.current !== null,
+      setEntradasSesion,
+      setEvaluacionesPersistidas,
+    );
+  }, [sesionId]);
+
+  const seleccionarAnimal = (animal: Animal | null) => {
+    animalSeleccionadoRef.current = animal;
+    setAnimalSeleccionado(animal);
+  };
+
+  const handleCerrarDialogEvaluacion = () => {
+    seleccionarAnimal(null);
+    const requestRefresh = requestVideoEntriesRefreshRef.current;
+    if (requestRefresh) {
+      void requestRefresh().catch(() => {
+        // The recovery panel keeps the request pending and exposes its retry action.
+      });
+    } else {
+      void refrescarEntradasVideo().catch(() =>
+        toast.error("No se pudieron actualizar los ingresos. Volvé a cargar la sesión."),
+      );
+    }
+  };
+
+  const registrarRefrescoEntradasVideo = useCallback(
+    (request: (() => Promise<void>) | null) => {
+      requestVideoEntriesRefreshRef.current = request;
+    },
+    [],
+  );
 
   const {
     caravanaInput,
@@ -107,16 +158,28 @@ export function CargarEvaluacionesPage() {
 
   useEffect(() => {
     setLoading(true);
-    Promise.all([getSesion(sesionId), getEvaluacionesCc({ sesionId })])
-      .then(([sesionData, evaluacionesData]) => {
+    Promise.allSettled([getSesion(sesionId), getEntradasSesion(sesionId)])
+      .then(([sesionResult, entradasResult]) => {
+        if (sesionActualRef.current !== sesionId) return;
+        if (sesionResult.status === "rejected") {
+          toast.error("No se pudo cargar la sesión.");
+          return;
+        }
+        const sesionData = sesionResult.value;
         setSesion(sesionData);
         setFechaSesionInput(sesionData.fecha_inicio.slice(0, 10));
-        setEvaluacionesPersistidas(
-          new Map(evaluacionesData.map((item) => [item.animal_id, item])),
-        );
+        if (entradasResult.status === "fulfilled") {
+          setEntradasSesion(entradasResult.value);
+          setEvaluacionesPersistidas(
+            new Map(entradasResult.value.items.map((item) => [item.animal_id, item])),
+          );
+        } else {
+          toast.error("No se pudieron cargar los ingresos. Se intentará recuperarlos automáticamente.");
+        }
       })
-      .catch(() => toast.error("No se pudo cargar la sesión."))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (sesionActualRef.current === sesionId) setLoading(false);
+      });
   }, [sesionId]);
 
   // Los mismos filtros que la página de animales (caravana, raza, estado,
@@ -198,8 +261,8 @@ export function CargarEvaluacionesPage() {
             existente.id,
             sesionId,
             {
-              valor_cc: data.valorCc,
               observaciones: data.observaciones,
+              ...(data.valorCc !== null ? { valor_cc: data.valorCc } : {}),
             },
           );
           setEvaluacionesPersistidas((prev) =>
@@ -223,7 +286,6 @@ export function CargarEvaluacionesPage() {
             sesionId,
             animalId,
             valorCc: data.valorCc,
-            valorCcInferido: data.valorCcInferido,
             escalaMin: data.escalaMin,
             escalaMax: data.escalaMax,
             observaciones: data.observaciones,
@@ -239,8 +301,12 @@ export function CargarEvaluacionesPage() {
         } else {
           toast.success(
             data.files.length > 0
-              ? `Evaluación registrada e imágenes subidas correctamente. Condición corporal detectada: ${evaluacion.valor_cc}.`
-              : "Evaluación registrada.",
+              ? evaluacion.valor_cc == null
+                ? "Ingreso registrado e imágenes subidas. La evaluación sigue pendiente de CC."
+                : `Ingreso registrado e imágenes subidas. CC registrada: ${evaluacion.valor_cc}.`
+              : evaluacion.valor_cc == null
+                ? "Ingreso registrado como pendiente de CC."
+                : "Ingreso y evaluación registrados.",
           );
         }
         return true;
@@ -248,9 +314,7 @@ export function CargarEvaluacionesPage() {
         toast.error(
           error instanceof ApiError
             ? normalizeBackendDetail(error.detail)
-            : error instanceof FotoRechazadaError
-              ? error.message
-              : "No se pudo registrar la evaluación. Probá nuevamente.",
+            : "No se pudo registrar la evaluación. Probá nuevamente.",
         );
         return false;
       }
@@ -387,15 +451,15 @@ export function CargarEvaluacionesPage() {
           <strong>{cantidadEvaluaciones}</strong>
           <span>
             {cantidadEvaluaciones === 1
-              ? "evaluación cargada"
-              : "evaluaciones cargadas"}
+              ? "ingreso registrado"
+              : "ingresos registrados"}
           </span>
         </div>
         <div className="carga-sesion__progreso-detalle">
           <div className="carga-sesion__progreso-texto">
             <span>
               {pendientesListados === 0 && animalesListados.length > 0
-                ? "Todos los animales de la lista están evaluados"
+                ? "Todos los animales de la lista tienen un ingreso registrado"
                 : `Faltan ${pendientesListados} de ${animalesListados.length} ${
                     animalesListados.length === 1 ? "animal" : "animales"
                   } de la lista`}
@@ -413,6 +477,16 @@ export function CargarEvaluacionesPage() {
           </div>
         </div>
       </div>
+
+      <AnalisisVideoSesion
+        key={`${usuarioId}-${sesionId}`}
+        sesionId={sesionId}
+        sesionAbierta={sesion.estado === "ABIERTA"}
+        ordenDisponible={entradasSesion.orden_disponible}
+        entradasCount={entradasSesion.items.filter((item) => item.estado !== "ANULADA").length}
+        onResultadosActualizados={refrescarEntradasVideo}
+        onRegistrarRefrescoEntradas={registrarRefrescoEntradasVideo}
+      />
 
       <div className="carga-sesion__lista">
         <div className="carga-sesion__toolbar">
@@ -460,6 +534,7 @@ export function CargarEvaluacionesPage() {
           <Table.Root className="animales-table" interactive>
             <Table.Header>
               <Table.Row>
+                <Table.ColumnHeader>Ingreso</Table.ColumnHeader>
                 <Table.ColumnHeader>Caravana</Table.ColumnHeader>
                 <Table.ColumnHeader>Raza</Table.ColumnHeader>
                 <Table.ColumnHeader>Lote</Table.ColumnHeader>
@@ -471,7 +546,7 @@ export function CargarEvaluacionesPage() {
             <Table.Body>
               {filas.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={6} className="carga-sesion__vacio">
+                  <Table.Cell colSpan={7} className="carga-sesion__vacio">
                     {vista === "pendientes" && animalesListados.length > 0
                       ? "No quedan animales pendientes en la lista."
                       : vista === "evaluados"
@@ -492,13 +567,20 @@ export function CargarEvaluacionesPage() {
                       tabIndex={0}
                       role="button"
                       aria-label={`${evaluacion ? "Editar" : "Evaluar"} a ${caravana}`}
-                      onClick={() => setAnimalSeleccionado(animal)}
+                      onClick={() => seleccionarAnimal(animal)}
                       onKeyDown={(event) => {
                         if (event.key === "Enter" || event.key === " ") {
                           event.preventDefault();
-                          setAnimalSeleccionado(animal);
+                          seleccionarAnimal(animal);
                         }
                       }}>
+                      <Table.Cell>
+                        {evaluacion?.orden_entrada != null
+                          ? `#${evaluacion.orden_entrada}`
+                          : evaluacion
+                            ? "Orden histórico desconocido"
+                            : "—"}
+                      </Table.Cell>
                       <Table.Cell className="carga-sesion__caravana">
                         {caravana}
                       </Table.Cell>
@@ -510,13 +592,17 @@ export function CargarEvaluacionesPage() {
                           : "—"}
                       </Table.Cell>
                       <Table.Cell>
-                        {evaluacion ? (
+                        {evaluacion?.valor_cc != null ? (
                           <span
                             className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${nivelCC(
                               evaluacion.valor_cc,
                               evaluacion.fecha,
                             )}`}>
                             CC {evaluacion.valor_cc}
+                          </span>
+                        ) : evaluacion ? (
+                          <span className="carga-sesion__sin-evaluar">
+                            Pendiente de CC
                           </span>
                         ) : (
                           <span className="carga-sesion__sin-evaluar">
@@ -546,7 +632,7 @@ export function CargarEvaluacionesPage() {
             : null
         }
         fechaBase={fechaEvaluacionBase}
-        onClose={() => setAnimalSeleccionado(null)}
+        onClose={handleCerrarDialogEvaluacion}
         onGuardar={handleGuardarEvaluacion}
         onEvaluacionActualizada={(evaluacion) =>
           setEvaluacionesPersistidas((prev) =>

@@ -99,7 +99,8 @@ export type EvaluacionCC = {
   animal_rfid: string | null;
   usuario_id: number;
   fecha: string;
-  valor_cc: number;
+  valor_cc: number | null;
+  orden_entrada: number | null;
   escala_min: number;
   escala_max: number;
   observaciones: string;
@@ -118,6 +119,18 @@ export type RegisterEvaluacionCCPayload = {
   fecha?: string;
 };
 
+export type RegistrarEntradaSesionPayload = {
+  animal_id: number;
+  valor_cc?: number | null;
+  observaciones?: string;
+  fecha?: string;
+};
+
+export type EntradasSesionRead = {
+  orden_disponible: boolean;
+  items: EvaluacionCC[];
+};
+
 export type UpdateEvaluacionCCPayload = {
   animal_id?: number;
   valor_cc?: number;
@@ -128,8 +141,8 @@ export type UpdateEvaluacionCCPayload = {
 };
 
 export type UpdateEvaluacionCCSesionPayload = {
-  valor_cc: number;
-  observaciones: string;
+  valor_cc?: number;
+  observaciones?: string;
 };
 
 export type EvidenciaImagenRead = {
@@ -146,10 +159,7 @@ export type EvidenciaImagenRead = {
 export interface RegistrarEvaluacionCCParams {
   sesionId?: number;
   animalId: number;
-  valorCc: number;
-  /** true si `valorCc` es un provisorio a la espera de la inferencia por foto
-   * (no lo eligió el usuario). */
-  valorCcInferido?: boolean;
+  valorCc: number | null;
   escalaMin: number;
   escalaMax: number;
   observaciones: string;

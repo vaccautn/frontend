@@ -43,7 +43,7 @@ type EvaluacionCCItemProps = {
 
 export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProps) {
   const [isEditing, setIsEditing] = useState(false);
-  const [nextValue, setNextValue] = useState(evaluacion.valor_cc);
+  const [nextValue, setNextValue] = useState<number | null>(evaluacion.valor_cc);
   const [isSaving, setIsSaving] = useState(false);
 
   const [imagenes, setImagenes] = useState<EvidenciaImagenRead[]>([]);
@@ -105,7 +105,10 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
 
     setIsSaving(true);
     try {
-      await updateEvaluacionCc(evaluacion.id, { valor_cc: nextValue });
+      await updateEvaluacionCc(
+        evaluacion.id,
+        nextValue !== null ? { valor_cc: nextValue } : {},
+      );
       await onUpdated();
       toast.success("Evaluación de condición corporal actualizada.");
       setIsEditing(false);
@@ -176,7 +179,7 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
   return (
     <article className="animal-evaluaciones__item">
       <div
-        className={`animal-evaluaciones__item-header animal-evaluaciones__item-header--cc-${evaluacion.valor_cc}`}>
+        className={`animal-evaluaciones__item-header animal-evaluaciones__item-header--cc-${evaluacion.valor_cc ?? "pendiente"}`}>
         {isEditing ? (
           <div className="animal-evaluaciones__edit">
             <Menu.Root>
@@ -186,7 +189,7 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
                   className="animal-evaluacion__valor-trigger animal-evaluaciones__edit-trigger"
                   aria-label="Editar valor de CC"
                   disabled={isSaving}>
-                  <span>CC {nextValue}</span>
+                  <span>{nextValue === null ? "Sin CC (pendiente)" : `CC ${nextValue}`}</span>
                   <IconChevronDown size={16} stroke={1.5} />
                 </button>
               </Menu.Trigger>
@@ -224,7 +227,7 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
           </div>
         ) : (
           <div className="animal-evaluaciones__value">
-            <strong>CC: {String(evaluacion.valor_cc)}</strong>
+            <strong>{evaluacion.valor_cc === null ? "Pendiente de CC" : `CC: ${evaluacion.valor_cc}`}</strong>
             <button
               type="button"
               className="animal-evaluaciones__edit-trigger-btn"

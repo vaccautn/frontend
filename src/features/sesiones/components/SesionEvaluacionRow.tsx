@@ -26,8 +26,8 @@ export function SesionEvaluacionRow({ evaluacion, onEdit, onDelete }: SesionEval
           <h2 id={tituloId}>{animalRfid}</h2>
         </div>
         <div className="sesion-evaluacion__actions">
-          <strong className="sesion-evaluacion__valor" aria-label={`Condición corporal ${evaluacion.valor_cc}`}>
-            CC {evaluacion.valor_cc}
+          <strong className="sesion-evaluacion__valor" aria-label={evaluacion.valor_cc === null ? "Pendiente de condición corporal" : `Condición corporal ${evaluacion.valor_cc}`}>
+            {evaluacion.valor_cc === null ? "Pendiente de CC" : `CC ${evaluacion.valor_cc}`}
           </strong>
           <Button
             size="sm"
