@@ -20,12 +20,12 @@ import {
 } from "@/features/animales/utils/animalesValidation";
 import { normalizeBackendDetail, useAuth } from "@/features/auth";
 import {
-  CATEGORIA_ANIMAL_LABELS,
   CATEGORIAS_ANIMAL,
-  CATEGORIAS_POR_SEXO,
   RAZAS,
   SEXOS,
+  sexoDeCategoria,
 } from "@/features/animales/constants";
+import { normalizarCaravana } from "@/features/animales/utils/caravana";
 import type { LoteOption } from "@/features/lotes/types";
 import { SelectOpciones } from "@/components/SelectOpciones";
 import { toast } from "react-toastify";
@@ -82,18 +82,8 @@ function AnimalesNuevoPage() {
     (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setField(field, event.target.value);
 
-  // Cambiar el sexo invalida la categoría elegida (HEMBRA y MACHO tienen
-  // categorías disjuntas en el backend), así que se limpia junto con el sexo.
-  const updateSexo = (sexo: string) => {
-    setValues((current) => ({ ...current, sexo, categoria: "" }));
-    setErrors((current) => ({ ...current, sexo: undefined, categoria: undefined }));
-    setFormError("");
-  };
-
-  const categoriasDisponibles =
-    values.sexo === "MACHO" || values.sexo === "HEMBRA"
-      ? CATEGORIAS_POR_SEXO[values.sexo]
-      : [];
+  // El sexo no se elige: se deduce de la categoría.
+  const sexo = SEXOS.find((s) => s.value === sexoDeCategoria(values.categoria));
 
   const toggleCreatingLote = () => {
     setIsCreatingLote((current) => !current);
@@ -151,9 +141,8 @@ function AnimalesNuevoPage() {
       }
 
       await registerAnimal({
-        caravana: values.caravana.trim(),
+        caravana: normalizarCaravana(values.caravana),
         raza: values.raza,
-        sexo: values.sexo,
         categoria: values.categoria,
         fecha_nacimiento: values.fecha_nacimiento,
         lote_id: loteId,
@@ -220,7 +209,11 @@ function AnimalesNuevoPage() {
                   <Input
                     value={values.caravana}
                     onChange={updateField("caravana")}
+                    placeholder="AB123 0001"
                   />
+                  <Field.HelperText>
+                    CUIG y número de animal, o los 15 dígitos de la caravana electrónica.
+                  </Field.HelperText>
                   <Field.ErrorText>{errors.caravana}</Field.ErrorText>
                 </Field.Root>
 
@@ -236,42 +229,20 @@ function AnimalesNuevoPage() {
                   <Field.ErrorText>{errors.raza}</Field.ErrorText>
                 </Field.Root>
 
-                <Field.Root invalid={!!errors.sexo}>
-                  <Field.Label>Sexo</Field.Label>
-                  <SelectOpciones
-                    aria-label="Sexo"
-                    placeholder="Seleccioná el sexo"
-                    opciones={[...SEXOS]}
-                    value={values.sexo}
-                    onChange={updateSexo}
-                  />
-                  <Field.ErrorText>{errors.sexo}</Field.ErrorText>
-                </Field.Root>
-
                 <Field.Root invalid={!!errors.categoria}>
                   <Field.Label>Categoría</Field.Label>
                   <SelectOpciones
                     aria-label="Categoría"
-                    disabled={!values.sexo}
-                    placeholder={
-                      values.sexo
-                        ? "Seleccioná una categoría"
-                        : "Elegí el sexo primero"
-                    }
-                    opciones={categoriasDisponibles.map((value) => ({
-                      value,
-                      label: CATEGORIA_ANIMAL_LABELS[value] ?? value,
-                    }))}
+                    placeholder="Seleccioná una categoría"
+                    opciones={[...CATEGORIAS_ANIMAL]}
                     value={values.categoria}
-                    onChange={(categoria) => {
-                      setValues((current) => ({ ...current, categoria }));
-                      setErrors((current) => ({
-                        ...current,
-                        categoria: undefined,
-                      }));
-                      setFormError("");
-                    }}
+                    onChange={(categoria) => setField("categoria", categoria)}
                   />
+                  <Field.HelperText>
+                    {sexo
+                      ? `Sexo: ${sexo.label} ${sexo.symbol} (sale de la categoría)`
+                      : "El sexo sale de la categoría."}
+                  </Field.HelperText>
                   <Field.ErrorText>{errors.categoria}</Field.ErrorText>
                 </Field.Root>
 

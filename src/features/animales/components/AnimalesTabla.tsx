@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Table } from "@chakra-ui/react";
 import type { Animal } from "../types";
 import type { LoteFiltroOption } from "./AnimalesFiltros";
-import { formatFecha } from "../utils/formatDate";
+import { formatFecha, formatMomento } from "../utils/formatDate";
 import { nivelCC, type NivelCC } from "../utils/ccColor";
 import { CATEGORIA_ANIMAL_LABELS } from "../constants";
 
@@ -19,8 +19,10 @@ function colorPorNivelCC(valorCc: number, fechaCc: string | null): string {
   return NIVEL_COLORS[nivelCC(valorCc, fechaCc ?? new Date().toISOString())];
 }
 
+// Ordenada por fecha de alta, la más reciente arriba (así la devuelve el backend).
 const COLUMNAS = [
   "Caravana",
+  "Alta",
   "Raza",
   "Sexo",
   "Fecha de nacimiento",
@@ -122,6 +124,7 @@ export function AnimalesTabla({
                   onClick={() => navigate(`/rodeo/${animal.id}`)}
                   onKeyDown={(event) => handleRowKeyDown(event, animal)}>
                   <Table.Cell>{animal.caravana ?? "—"}</Table.Cell>
+                  <Table.Cell className="animales-table__alta">{formatMomento(animal.creado_en)}</Table.Cell>
                   <Table.Cell>{animal.raza}</Table.Cell>
                   <Table.Cell>{animal.sexo}</Table.Cell>
                   <Table.Cell>

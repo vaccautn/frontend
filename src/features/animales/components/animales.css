@@ -1608,3 +1608,57 @@
     box-shadow: var(--shadow-raised);
   }
 }
+
+/* ── Filtro por fecha de alta ── */
+.animales-filtros__dropdown--alta {
+  flex-basis: 220px;
+  justify-content: flex-start;
+}
+
+.animales-filtros__dropdown--alta span {
+  flex: 1;
+  text-align: left;
+}
+
+.animales-filtros__dropdown-icono {
+  flex-shrink: 0;
+  color: var(--text);
+}
+
+.animales-filtros__dropdown--alta[data-activo] {
+  border-color: var(--success-border);
+  background: color-mix(in srgb, var(--success-bg) 45%, var(--panel));
+}
+
+.animales-filtros__dropdown--alta[data-activo] .animales-filtros__dropdown-icono {
+  color: var(--accent-strong);
+}
+
+.animales-table__alta {
+  color: var(--text);
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+}
+
+.rango-alta {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.rango-alta__ayuda {
+  color: var(--text);
+  font-size: 0.9rem;
+}
+
+.rango-alta__campos {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.75rem;
+}
+
+@media (max-width: 520px) {
+  .rango-alta__campos {
+    grid-template-columns: 1fr;
+  }
+}

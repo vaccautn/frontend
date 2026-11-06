@@ -78,6 +78,12 @@ function buildAnimalSearchParams(params: AnimalListParams): URLSearchParams {
   if (params.lote_id !== undefined) {
     searchParams.set("lote_id", params.lote_id.toString());
   }
+  if (params.alta_desde) {
+    searchParams.set("alta_desde", params.alta_desde);
+  }
+  if (params.alta_hasta) {
+    searchParams.set("alta_hasta", params.alta_hasta);
+  }
 
   return searchParams;
 }

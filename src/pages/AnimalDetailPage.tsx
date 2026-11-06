@@ -32,13 +32,16 @@ import {
 } from "@/features/animales/services/animalesService";
 import { useAnimalDashboard } from "@/features/animales/hooks/useAnimalDashboard";
 import { AnimalDashboard } from "@/features/animales/components/dashboard/AnimalDashboard";
-import { formatFecha } from "@/features/animales/utils/formatDate";
+import { formatFecha, formatMomento } from "@/features/animales/utils/formatDate";
 import {
   CATEGORIA_ANIMAL_LABELS,
+  CATEGORIAS_ANIMAL,
   RAZAS,
   SEXOS,
   ESTADOS_FILTRO,
+  sexoDeCategoria,
 } from "@/features/animales/constants";
+import { normalizarCaravana } from "@/features/animales/utils/caravana";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import type { LoteOption } from "@/features/lotes/types";
 import {
@@ -169,7 +172,7 @@ export function AnimalDetailPage() {
     setEditValues({
       caravana: animal.caravana ?? "",
       raza: animal.raza,
-      sexo: animal.sexo,
+      categoria: animal.categoria,
       fecha_nacimiento: animal.fecha_nacimiento ?? "",
       estado: animal.estado,
       observacion: animal.observacion ?? "",
@@ -208,16 +211,16 @@ export function AnimalDetailPage() {
     event.preventDefault();
     if (isSavingDetails || !editValues || !animal) return;
 
-    const nextErrors = validateRodeoEditarForm(editValues);
+    const nextErrors = validateRodeoEditarForm(editValues, animal.caravana ?? "");
     setEditErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
     setIsSavingDetails(true);
     try {
       const updated = await updateAnimal(animal.id, {
-        caravana: editValues.caravana.trim(),
+        caravana: normalizarCaravana(editValues.caravana),
         raza: editValues.raza,
-        sexo: editValues.sexo,
+        categoria: editValues.categoria,
         fecha_nacimiento: editValues.fecha_nacimiento,
         estado: editValues.estado as EstadoAnimal,
         observacion: editValues.observacion.trim(),
@@ -345,14 +348,14 @@ export function AnimalDetailPage() {
                 <Field.ErrorText>{editErrors.raza}</Field.ErrorText>
               </Field.Root>
 
-              <Field.Root invalid={!!editErrors.sexo}>
-                <Field.Label>Sexo</Field.Label>
+              <Field.Root invalid={!!editErrors.categoria}>
+                <Field.Label>Categoría</Field.Label>
                 <NativeSelect.Root>
                   <NativeSelect.Field
-                    value={editValues.sexo}
-                    onChange={updateEditField("sexo")}>
-                    <option value="">Seleccioná el sexo</option>
-                    {SEXOS.map(({ value, label }) => (
+                    value={editValues.categoria}
+                    onChange={updateEditField("categoria")}>
+                    <option value="">Seleccioná la categoría</option>
+                    {CATEGORIAS_ANIMAL.map(({ value, label }) => (
                       <option key={value} value={value}>
                         {label}
                       </option>
@@ -360,7 +363,13 @@ export function AnimalDetailPage() {
                   </NativeSelect.Field>
                   <NativeSelect.Indicator />
                 </NativeSelect.Root>
-                <Field.ErrorText>{editErrors.sexo}</Field.ErrorText>
+                <Field.HelperText>
+                  Sexo:{" "}
+                  {SEXOS.find((s) => s.value === sexoDeCategoria(editValues.categoria))?.label ??
+                    "—"}{" "}
+                  (sale de la categoría)
+                </Field.HelperText>
+                <Field.ErrorText>{editErrors.categoria}</Field.ErrorText>
               </Field.Root>
 
               <Field.Root invalid={!!editErrors.fecha_nacimiento}>
@@ -468,6 +477,10 @@ export function AnimalDetailPage() {
                       label: "Observación",
                       valor: animal.observacion,
                       vacio: "Sin observaciones",
+                    },
+                    {
+                      label: "Fecha de alta",
+                      valor: formatMomento(animal.creado_en),
                     },
                   ]}
                 />

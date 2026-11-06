@@ -15,6 +15,9 @@
 | `pnpm preview`    | Previsualiza el build de producción localmente       |
 | `pnpm lint`       | Ejecuta el linter (ESLint)                           |
 | `pnpm type-check` | Verifica los tipos de TypeScript sin compilar        |
+| `pnpm test`       | Tests unitarios y de componentes (Vitest + Testing Library) |
+| `pnpm test:watch` | Lo mismo, en modo watch                              |
+| `pnpm test:e2e`   | Tests end-to-end con Playwright contra el stack real (ver `e2e/README.md`) |
 
 ---
 

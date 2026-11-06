@@ -1,52 +1,47 @@
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { Button, FileUpload } from "@chakra-ui/react";
+import { Button, FileUpload, Spinner } from "@chakra-ui/react";
 import {
   IconAlertTriangle,
   IconArrowLeft,
-  IconCalendarEvent,
-  IconCategory,
   IconCircleCheck,
   IconCircleX,
   IconCloudUpload,
-  IconDna,
-  IconDownload,
   IconFileSpreadsheet,
-  IconGenderBigender,
-  IconStack2,
-  IconTag,
   IconX,
 } from "@tabler/icons-react";
+import { toast } from "react-toastify";
 import { getLotes } from "@/features/lotes/services/lotesService";
+import type { LoteOption } from "@/features/lotes/types";
+import { ApiError } from "@/services/httpClient";
 import {
-  CATEGORIAS_ANIMAL,
-  CATEGORIAS_POR_SEXO,
-} from "@/features/animales/constants";
+  analizarPlanilla,
+  confirmarImportacion,
+  descargarArchivoErrores,
+} from "@/features/animales/services/importacionService";
+import type {
+  AnalisisImportacion,
+  ResultadoImportacion as Resultado,
+} from "@/features/animales/types/importacion";
 import {
   COLUMNAS_IMPORTACION,
   TAMANO_MAX_PLANILLA,
   TIPOS_ACEPTADOS,
-  descargarPlantilla,
-  leerPlanilla,
-  revisarFilas,
-  ubicarColumnas,
-  type ClaveColumna,
-  type TablaImportada,
+  armarArchivoErrores,
+  armarConfirmacion,
+  consultasPendientes,
+  type Decisiones,
 } from "@/features/animales/utils/importacionAnimales";
+import { PasosImportacion } from "@/features/animales/components/importacion/PasosImportacion";
+import { FormatoArchivo } from "@/features/animales/components/importacion/FormatoArchivo";
+import { ConsultaCard } from "@/features/animales/components/importacion/ConsultaCard";
+import { TablaRevision } from "@/features/animales/components/importacion/TablaRevision";
+import { ConfirmarImportacionDialog } from "@/features/animales/components/importacion/ConfirmarImportacionDialog";
+import { ResultadoImportacion } from "@/features/animales/components/importacion/ResultadoImportacion";
 import "@/features/animales/components/animales.css";
 import "@/features/animales/components/importar-animales.css";
 
-const PASOS = ["Prepará la planilla", "Subí el archivo", "Revisá e importá"];
-
-// Cada columna con su ícono; el color sale de data-columna en el CSS.
-const ICONOS_COLUMNA: Record<ClaveColumna, typeof IconTag> = {
-  caravana: IconTag,
-  sexo: IconGenderBigender,
-  categoria: IconCategory,
-  lote: IconStack2,
-  fecha_nacimiento: IconCalendarEvent,
-  raza: IconDna,
-};
+type Fase = "inicio" | "analizando" | "revision" | "importando" | "resultado";
 
 function formatTamano(bytes: number) {
   return bytes < 1024 * 1024
@@ -54,80 +49,114 @@ function formatTamano(bytes: number) {
     : `${(bytes / 1024 / 1024).toFixed(1)} MB`;
 }
 
-/** Propuesta de interfaz para importar animales desde CSV o Excel. Lee y
- * valida el archivo en el navegador; todavía no envía nada al backend. */
+function mensajeDeError(error: unknown, porDefecto: string) {
+  return error instanceof ApiError ? error.detail : porDefecto;
+}
+
+/** Importar animales desde CSV o Excel. El backend lee y valida el archivo
+ * (analizar), el productor resuelve las dudas y el backend vuelve a validar
+ * todo al importar (confirmar). Ver backend/docs/routers/importacion.md. */
 export function ImportarAnimalesPage() {
   const navigate = useNavigate();
+  const [fase, setFase] = useState<Fase>("inicio");
   const [archivo, setArchivo] = useState<File | null>(null);
-  const [tabla, setTabla] = useState<TablaImportada | null>(null);
-  const [leyendo, setLeyendo] = useState(false);
+  const [analisis, setAnalisis] = useState<AnalisisImportacion | null>(null);
   const [errorArchivo, setErrorArchivo] = useState("");
-  const [lotes, setLotes] = useState<string[]>([]);
-  const [soloErrores, setSoloErrores] = useState(false);
+  const [decisiones, setDecisiones] = useState<Decisiones>({});
+  const [lotes, setLotes] = useState<LoteOption[]>([]);
+  const [lotesError, setLotesError] = useState(false);
+  const [dialogoAbierto, setDialogoAbierto] = useState(false);
+  const [resultado, setResultado] = useState<Resultado | null>(null);
+  const [descargando, setDescargando] = useState(false);
 
-  useEffect(() => {
+  const cargarLotes = useCallback(() => {
     getLotes()
-      .then((data) => setLotes(data.map((lote) => lote.nombre)))
-      .catch(() => {
-        /* sin lotes no se valida que existan; el resto de la revisión sigue */
-      });
+      .then((data) => {
+        setLotes(data);
+        setLotesError(false);
+      })
+      .catch(() => setLotesError(true));
   }, []);
 
-  const elegirArchivo = async (nuevo: File) => {
-    setArchivo(nuevo);
-    setTabla(null);
+  useEffect(cargarLotes, [cargarLotes]);
+
+  // Mientras se importa, avisar antes de cerrar o recargar la página.
+  useEffect(() => {
+    if (fase !== "importando") return;
+    const avisar = (event: BeforeUnloadEvent) => event.preventDefault();
+    window.addEventListener("beforeunload", avisar);
+    return () => window.removeEventListener("beforeunload", avisar);
+  }, [fase]);
+
+  const reiniciar = () => {
+    setFase("inicio");
+    setArchivo(null);
+    setAnalisis(null);
     setErrorArchivo("");
-    setSoloErrores(false);
-    setLeyendo(true);
+    setDecisiones({});
+    setResultado(null);
+  };
+
+  const elegirArchivo = async (nuevo: File) => {
+    reiniciar();
+    setArchivo(nuevo);
+    setFase("analizando");
     try {
-      const leida = await leerPlanilla(nuevo);
-      if (leida.encabezados.length === 0) {
-        setErrorArchivo("El archivo está vacío.");
-      } else {
-        setTabla(leida);
-      }
-    } catch {
-      setErrorArchivo(
-        "No pudimos leer el archivo. Revisá que sea un CSV o un Excel (.xlsx) válido.",
-      );
-    } finally {
-      setLeyendo(false);
+      setAnalisis(await analizarPlanilla(nuevo));
+      setFase("revision");
+    } catch (error) {
+      setErrorArchivo(mensajeDeError(error, "No pudimos analizar el archivo. Probá nuevamente."));
+      setFase("inicio");
     }
   };
 
-  const quitarArchivo = () => {
-    setArchivo(null);
-    setTabla(null);
-    setErrorArchivo("");
+  const filasPorNumero = useMemo(
+    () => new Map((analisis?.filas ?? []).map((fila) => [fila.numero, fila])),
+    [analisis],
+  );
+  const confirmacion = useMemo(
+    () => (analisis ? armarConfirmacion(analisis, decisiones) : null),
+    [analisis, decisiones],
+  );
+  const pendientes = analisis ? consultasPendientes(analisis.consultas, decisiones).length : 0;
+  const conFilas = !!analisis && analisis.filas.length > 0;
+  const aImportar = confirmacion ? confirmacion.payload.filas.length - confirmacion.sinResolver.length : 0;
+  const pasoActual = !archivo ? 0 : conFilas || fase === "resultado" ? 2 : 1;
+
+  const importar = async () => {
+    if (!confirmacion) return;
+    setDialogoAbierto(false);
+    setFase("importando");
+    try {
+      const respuesta = await confirmarImportacion(confirmacion.payload);
+      setResultado(respuesta);
+      setFase("resultado");
+      const cargados = respuesta.creados + respuesta.actualizados + respuesta.reactivados;
+      if (cargados > 0) {
+        toast.success(`Se importaron ${cargados} ${cargados === 1 ? "animal" : "animales"}.`);
+      }
+      cargarLotes();
+    } catch (error) {
+      toast.error(mensajeDeError(error, "No se pudo completar la importación. Probá nuevamente."));
+      setFase("revision");
+    }
   };
 
-  // Columnas encontradas y, si están todas, la revisión de cada fila.
-  const { posiciones, faltantes, filas } = useMemo(() => {
-    if (!tabla) return { posiciones: null, faltantes: [], filas: [] };
-    const ubicadas = ubicarColumnas(tabla.encabezados);
-    const sinColumna = COLUMNAS_IMPORTACION.filter(
-      (columna) => ubicadas[columna.clave] < 0,
-    );
-    return {
-      posiciones: ubicadas,
-      faltantes: sinColumna,
-      filas: sinColumna.length === 0 ? revisarFilas(tabla, lotes) : [],
-    };
-  }, [tabla, lotes]);
-  const listas = filas.filter((fila) => fila.errores.length === 0).length;
-  const conErrores = filas.length - listas;
-  const filasVisibles = soloErrores
-    ? filas.filter((fila) => fila.errores.length > 0)
-    : filas;
-
-  const pasoActual = !archivo ? 0 : filas.length > 0 ? 2 : 1;
+  const descargarErrores = async () => {
+    if (!analisis || !resultado) return;
+    setDescargando(true);
+    try {
+      await descargarArchivoErrores(armarArchivoErrores(analisis, resultado));
+    } catch (error) {
+      toast.error(mensajeDeError(error, "No se pudo generar el archivo con errores."));
+    } finally {
+      setDescargando(false);
+    }
+  };
 
   return (
     <section className="importar">
-      <Button
-        variant="ghost"
-        className="importar__volver"
-        onClick={() => navigate("/rodeo")}>
+      <Button variant="ghost" className="importar__volver" onClick={() => navigate("/rodeo")}>
         <IconArrowLeft size={16} stroke={1.5} />
         Volver al rodeo
       </Button>
@@ -136,95 +165,24 @@ export function ImportarAnimalesPage() {
         <div className="importar__hero-texto">
           <span className="importar__eyebrow">Rodeo</span>
           <h1>Importar animales</h1>
-          <p>
-            Subí una planilla con tus animales y los damos de alta en un solo
-            paso. Antes de importar vas a poder revisar cada fila.
-          </p>
-          <ol className="importar__pasos">
-            {PASOS.map((paso, i) => (
-              <li
-                key={paso}
-                data-estado={
-                  i < pasoActual ? "hecho" : i === pasoActual ? "actual" : "pendiente"
-                }>
-                <span className="importar__paso-numero">
-                  {i < pasoActual ? <IconCircleCheck size={18} stroke={2} /> : i + 1}
-                </span>
-                {paso}
-              </li>
-            ))}
-          </ol>
+          <PasosImportacion pasoActual={pasoActual} />
         </div>
       </header>
 
       <div className="importar__cuerpo">
-        <section className="importar__formato" aria-labelledby="importar-formato-titulo">
-          <div className="importar__formato-header">
-            <div>
-              <h2 id="importar-formato-titulo">Formato del archivo</h2>
-              <p className="importar__ayuda">
-                Una fila por animal y los nombres de las columnas en la
-                primera fila. El orden de las columnas no importa.
-              </p>
-            </div>
-            <div className="importar__formato-acciones">
-              <Button
-                variant="outline"
-                className="importar__plantilla"
-                onClick={descargarPlantilla}>
-                <IconDownload size={18} stroke={1.75} />
-                Descargar plantilla
-              </Button>
-              <span className="importar__nota">
-                CSV con ";" o "," · Excel .xlsx · hasta 5 MB
-              </span>
-            </div>
-          </div>
-
-          <ul className="importar__columnas">
-            {COLUMNAS_IMPORTACION.map((columna) => {
-              const Icono = ICONOS_COLUMNA[columna.clave];
-              return (
-                <li key={columna.clave} data-columna={columna.clave}>
-                  <span className="importar__columna-icono" aria-hidden="true">
-                    <Icono size={18} stroke={1.75} />
-                  </span>
-                  <span className="importar__columna-titulo">{columna.titulo}</span>
-                  <code>{columna.clave}</code>
-                  <span className="importar__columna-formato">
-                    {columna.formato}
-                  </span>
-                  <span className="importar__columna-ejemplo">
-                    Ej.: {columna.ejemplo}
-                  </span>
-                </li>
-              );
-            })}
-          </ul>
-
-          <details className="importar__categorias">
-            <summary>Ver categorías aceptadas</summary>
-            <div className="importar__categorias-cuerpo">
-              {(["HEMBRA", "MACHO"] as const).map((sexo) => (
-                <div key={sexo} className="importar__categorias-grupo">
-                  <span>{sexo === "HEMBRA" ? "Hembras" : "Machos"}</span>
-                  <div>
-                    {CATEGORIAS_POR_SEXO[sexo].map((valor) => (
-                      <code key={valor}>{valor}</code>
-                    ))}
-                  </div>
-                </div>
-              ))}
-              <p className="importar__ayuda">
-                También se aceptan los nombres en castellano (p. ej. "Vaca
-                seca"). Hay {CATEGORIAS_ANIMAL.length} categorías en total.
-              </p>
-            </div>
-          </details>
-        </section>
+        {fase !== "resultado" && <FormatoArchivo lotes={lotes} lotesError={lotesError} />}
 
         <div className="importar__principal">
-          {!archivo ? (
+          {resultado && analisis ? (
+            <ResultadoImportacion
+              resultado={resultado}
+              noCargadas={resultado.con_errores + analisis.resumen.con_errores}
+              descargando={descargando}
+              onDescargarErrores={descargarErrores}
+              onSubirCorregido={reiniciar}
+              onTerminar={() => navigate("/rodeo", { state: { refresh: true } })}
+            />
+          ) : !archivo ? (
             <FileUpload.Root
               width="100%"
               alignItems="stretch"
@@ -243,7 +201,7 @@ export function ImportarAnimalesPage() {
                     : "Solo se aceptan archivos .csv o .xlsx.",
                 );
               }}>
-              <FileUpload.HiddenInput />
+              <FileUpload.HiddenInput aria-label="Elegir planilla" />
               <FileUpload.Dropzone className="importar__dropzone">
                 <span className="importar__dropzone-icono">
                   <IconCloudUpload size={30} stroke={1.5} />
@@ -255,9 +213,7 @@ export function ImportarAnimalesPage() {
                     Elegir archivo
                   </Button>
                 </FileUpload.Trigger>
-                <span className="importar__dropzone-formatos">
-                  CSV o Excel (.xlsx), hasta 5 MB
-                </span>
+                <span className="importar__dropzone-formatos">CSV o Excel (.xlsx), hasta 5 MB</span>
               </FileUpload.Dropzone>
             </FileUpload.Root>
           ) : (
@@ -269,19 +225,26 @@ export function ImportarAnimalesPage() {
                 <strong>{archivo.name}</strong>
                 <span>
                   {formatTamano(archivo.size)}
-                  {leyendo
-                    ? " · Leyendo…"
-                    : tabla &&
-                      ` · ${tabla.filas.length} ${tabla.filas.length === 1 ? "fila" : "filas"}`}
+                  {analisis?.hoja && ` · hoja «${analisis.hoja}»`}
+                  {conFilas &&
+                    ` · ${analisis.filas.length} ${analisis.filas.length === 1 ? "fila" : "filas"}`}
                 </span>
               </div>
-              <button
-                type="button"
-                className="importar__archivo-quitar"
-                aria-label="Quitar archivo"
-                onClick={quitarArchivo}>
-                <IconX size={16} stroke={2} />
-              </button>
+              {fase === "analizando" ? (
+                <span className="importar__analizando" role="status">
+                  <Spinner size="sm" color="var(--accent)" />
+                  Analizando tu planilla…
+                </span>
+              ) : (
+                <button
+                  type="button"
+                  className="importar__archivo-quitar"
+                  aria-label="Quitar archivo"
+                  onClick={reiniciar}
+                  disabled={fase === "importando"}>
+                  <IconX size={16} stroke={2} />
+                </button>
+              )}
             </div>
           )}
 
@@ -291,19 +254,15 @@ export function ImportarAnimalesPage() {
             </p>
           )}
 
-          {tabla && posiciones && (
+          {analisis && fase !== "resultado" && (
             <div className="importar__detectadas">
               {COLUMNAS_IMPORTACION.map((columna) => {
-                const encontrada = posiciones[columna.clave] >= 0;
+                const encontrada = !analisis.columnas_faltantes.includes(columna.clave);
                 return (
                   <span
                     key={columna.clave}
                     className={`importar__chip importar__chip--${encontrada ? "ok" : "falta"}`}>
-                    {encontrada ? (
-                      <IconCircleCheck size={14} stroke={2} />
-                    ) : (
-                      <IconCircleX size={14} stroke={2} />
-                    )}
+                    {encontrada ? <IconCircleCheck size={14} stroke={2} /> : <IconCircleX size={14} stroke={2} />}
                     {columna.titulo}
                   </span>
                 );
@@ -311,121 +270,115 @@ export function ImportarAnimalesPage() {
             </div>
           )}
 
-          {faltantes.length > 0 && (
+          {analisis && analisis.columnas_faltantes.length > 0 && (
             <div className="importar__aviso" role="alert">
               <IconAlertTriangle size={20} stroke={1.75} />
               <div>
                 <strong>
-                  {faltantes.length === 1
+                  {analisis.columnas_faltantes.length === 1
                     ? "Falta una columna"
-                    : `Faltan ${faltantes.length} columnas`}
+                    : `Faltan ${analisis.columnas_faltantes.length} columnas`}
                 </strong>
                 <p>
-                  Agregá {faltantes.map((c) => `"${c.clave}"`).join(", ")} en
-                  la primera fila del archivo, o descargá la plantilla para
-                  empezar desde un formato válido.
+                  Agregá {analisis.columnas_faltantes.map((c) => `"${c}"`).join(", ")} en la primera
+                  fila del archivo, o descargá la plantilla para empezar desde un formato válido.
+                  {analisis.hojas_revisadas.length > 1 &&
+                    ` Revisamos las hojas: ${analisis.hojas_revisadas.join(", ")}.`}
                 </p>
               </div>
             </div>
           )}
 
-          {filas.length > 0 && (
+          {conFilas && fase !== "resultado" && (
             <div className="importar__revision">
               <div className="importar__resumen">
                 <div data-tono="total">
-                  <strong>{filas.length}</strong>
-                  <span>{filas.length === 1 ? "animal" : "animales"}</span>
+                  <strong>{analisis.resumen.total}</strong>
+                  <span>{analisis.resumen.total === 1 ? "animal" : "animales"} en el archivo</span>
                 </div>
                 <div data-tono="ok">
-                  <strong>{listas}</strong>
-                  <span>{listas === 1 ? "listo" : "listos"} para importar</span>
+                  <strong>{analisis.resumen.listas}</strong>
+                  <span>{analisis.resumen.listas === 1 ? "listo" : "listos"} para importar</span>
                 </div>
-                <div data-tono={conErrores > 0 ? "error" : undefined}>
-                  <strong>{conErrores}</strong>
+                <div data-tono={analisis.resumen.con_consultas > 0 ? "consulta" : undefined}>
+                  <strong>{analisis.resumen.con_consultas}</strong>
+                  <span>requieren tu decisión</span>
+                </div>
+                <div data-tono={analisis.resumen.con_errores > 0 ? "error" : undefined}>
+                  <strong>{analisis.resumen.con_errores}</strong>
                   <span>con errores</span>
                 </div>
               </div>
 
-              <div className="importar__tabla-card">
-                <div className="importar__tabla-header">
-                  <h2>Vista previa</h2>
-                  {conErrores > 0 && (
-                    <label className="importar__solo-errores">
-                      <input
-                        type="checkbox"
-                        checked={soloErrores}
-                        onChange={(event) => setSoloErrores(event.target.checked)}
-                      />
-                      Mostrar solo filas con errores
-                    </label>
-                  )}
-                </div>
-                <div className="importar__tabla-scroll">
-                  <table className="animales-table importar__tabla">
-                    <thead>
-                      <tr>
-                        <th>Fila</th>
-                        {COLUMNAS_IMPORTACION.map((columna) => (
-                          <th key={columna.clave}>{columna.titulo}</th>
-                        ))}
-                        <th>Estado</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {filasVisibles.map((fila) => (
-                        <tr
-                          key={fila.numero}
-                          className={
-                            fila.errores.length > 0 ? "importar__fila--error" : undefined
-                          }>
-                          <td className="importar__fila-numero">{fila.numero}</td>
-                          {COLUMNAS_IMPORTACION.map((columna) => (
-                            <td key={columna.clave}>
-                              {fila.valores[columna.clave] || (
-                                <span className="importar__vacio">—</span>
-                              )}
-                            </td>
-                          ))}
-                          <td>
-                            {fila.errores.length === 0 ? (
-                              <span className="importar__estado importar__estado--ok">
-                                <IconCircleCheck size={14} stroke={2} />
-                                Lista
-                              </span>
-                            ) : (
-                              <ul className="importar__errores">
-                                {fila.errores.map((error) => (
-                                  <li key={error}>{error}</li>
-                                ))}
-                              </ul>
-                            )}
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
+              {analisis.consultas.length > 0 && (
+                <section className="importar__consultas" aria-labelledby="importar-consultas-titulo">
+                  <div className="importar__consultas-header">
+                    <h2 id="importar-consultas-titulo">Necesitamos tu confirmación</h2>
+                    <p className="importar__ayuda">
+                      {pendientes === 0
+                        ? "Ya decidiste todo. Podés importar."
+                        : `Te ${pendientes === 1 ? "queda 1 decisión" : `quedan ${pendientes} decisiones`}. Cada una se aplica a todas las filas que la comparten; si querés, podés decidir fila por fila. Lo que no decidas no se importa.`}
+                    </p>
+                  </div>
+                  {analisis.consultas.map((consulta) => (
+                    <ConsultaCard
+                      key={consulta.clave}
+                      consulta={consulta}
+                      decision={decisiones[consulta.clave]}
+                      filas={filasPorNumero}
+                      onCambiar={(decision) =>
+                        setDecisiones((actuales) => ({ ...actuales, [consulta.clave]: decision }))
+                      }
+                    />
+                  ))}
+                </section>
+              )}
+
+              <TablaRevision filas={analisis.filas} />
             </div>
           )}
         </div>
       </div>
 
-      <footer className="importar__acciones">
-        <span className="importar__acciones-nota">
-          {filas.length > 0 && conErrores > 0
-            ? "Las filas con errores no se importan. Corregilas en el archivo y volvé a subirlo."
-            : "Vista previa: la importación todavía no está conectada al backend."}
-        </span>
-        <Button variant="outline" onClick={() => navigate("/rodeo")}>
-          Cancelar
-        </Button>
-        <Button colorPalette="brand" disabled title="Todavía no está conectado">
-          {listas > 0
-            ? `Importar ${listas} ${listas === 1 ? "animal" : "animales"}`
-            : "Importar animales"}
-        </Button>
-      </footer>
+      {conFilas && confirmacion && (fase === "revision" || fase === "importando") && (
+        <footer className="importar__acciones">
+          <span className="importar__acciones-nota">
+            {pendientes > 0
+              ? `Faltan ${pendientes} ${pendientes === 1 ? "decisión" : "decisiones"}: esas filas no se importan hasta que decidas.`
+              : analisis.resumen.con_errores > 0
+                ? "Las filas con errores no se importan: al terminar vas a poder descargarlas para corregirlas."
+                : "Todo listo para importar."}
+          </span>
+          <Button variant="outline" onClick={() => navigate("/rodeo")}>
+            Cancelar
+          </Button>
+          <Button colorPalette="brand" disabled={aImportar <= 0} onClick={() => setDialogoAbierto(true)}>
+            Importar {aImportar} {aImportar === 1 ? "animal" : "animales"}
+          </Button>
+        </footer>
+      )}
+
+      {confirmacion && (
+        <ConfirmarImportacionDialog
+          open={dialogoAbierto}
+          confirmacion={confirmacion}
+          filasConError={analisis?.resumen.con_errores ?? 0}
+          onCancelar={() => setDialogoAbierto(false)}
+          onConfirmar={importar}
+        />
+      )}
+
+      {fase === "importando" && (
+        <div className="importar__cargando" role="status" aria-live="assertive">
+          <div className="importar__cargando-tarjeta">
+            <Spinner size="xl" color="var(--accent)" borderWidth="3px" />
+            <strong>
+              Importando {aImportar} {aImportar === 1 ? "animal" : "animales"}…
+            </strong>
+            <span>Esto puede tardar unos segundos. No cierres esta página.</span>
+          </div>
+        </div>
+      )}
     </section>
   );
 }

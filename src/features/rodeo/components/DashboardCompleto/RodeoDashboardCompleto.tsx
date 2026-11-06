@@ -6,6 +6,7 @@ import type { LoteOption } from "@/features/lotes/types";
 import { getAnimales } from "@/features/animales/services/animalesService";
 import { AnimalesFiltros } from "@/features/animales/components/AnimalesFiltros";
 import { AnimalesTabla } from "@/features/animales/components/AnimalesTabla";
+import { rangoDeAlta, type FiltroAlta } from "@/features/animales/utils/filtroAlta";
 import type {
   Animal,
   CategoriaAnimal,
@@ -49,6 +50,7 @@ export function RodeoDashboardCompleto({
 }: Props) {
   const [raza, setRaza] = useState<string | null>(null);
   const [estado, setEstado] = useState<EstadoFiltro | null>("ACTIVO");
+  const [alta, setAlta] = useState<FiltroAlta | null>(null);
   const [isLotesDrawerOpen, setIsLotesDrawerOpen] = useState(false);
 
   const [lotesOptions, setLotesOptions] = useState<LoteOption[]>([]);
@@ -86,11 +88,12 @@ export function RodeoDashboardCompleto({
         ? { caravana: busquedaCaravanaDebounced }
         : {}),
       ...(loteSeleccionadoId !== null ? { lote_id: loteSeleccionadoId } : {}),
+      ...rangoDeAlta(alta),
     })
       .then(setAnimales)
       .catch(() => setAnimales([]))
       .finally(() => setLoadingAnimales(false));
-  }, [estado, raza, busquedaCaravanaDebounced, loteSeleccionadoId]);
+  }, [estado, raza, busquedaCaravanaDebounced, loteSeleccionadoId, alta]);
 
   const animalesFiltrados = useMemo(() => {
     if (!categoriaLote) return animales;
@@ -180,13 +183,15 @@ export function RodeoDashboardCompleto({
                 raza={raza}
                 estado={estado}
                 categoriaLote={categoriaLote}
+                alta={alta}
                 lotes={lotesOptions}
                 loadingLotes={loadingLotes}
                 onCaravanaChange={onCaravanaChange}
                 onRazaChange={setRaza}
                 onEstadoChange={setEstado}
                 onCategoriaLoteChange={onCategoriaLoteChange}
-                camposVisibles={["categoria", "raza", "estado"]}
+                onAltaChange={setAlta}
+                camposVisibles={["categoria", "raza", "estado", "alta"]}
               />
             </div>
 
