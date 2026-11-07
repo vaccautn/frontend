@@ -1,0 +1,132 @@
+{
+  "generadas": "2026-11-07T06:59:36.430Z",
+  "datos": "Demo local, no productivos",
+  "capturas": [
+    {
+      "archivo": "inicio.jpg",
+      "ruta": "/inicio",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "rodeo.jpg",
+      "ruta": "/rodeo",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "mapa.jpg",
+      "ruta": "/rodeo",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "animal.jpg",
+      "ruta": "/rodeo/1",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "sesiones.jpg",
+      "ruta": "/sesiones",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "sesion.jpg",
+      "ruta": "/sesiones/1",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "servicios.jpg",
+      "ruta": "/servicios",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "servicio.jpg",
+      "ruta": "/servicios/1",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "importacion.jpg",
+      "ruta": "/rodeo/importar",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "carga-tabla.jpg",
+      "ruta": "/rodeo/carga-tabla",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "historial.jpg",
+      "ruta": "/actividad",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "campo.jpg",
+      "ruta": "/campo",
+      "viewport": {
+        "width": 1440,
+        "height": 960
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "inicio-movil.jpg",
+      "ruta": "/inicio",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "origen": "Aplicación local con datos de demostración"
+    },
+    {
+      "archivo": "animal-movil.jpg",
+      "ruta": "/rodeo/1",
+      "viewport": {
+        "width": 390,
+        "height": 844
+      },
+      "origen": "Aplicación local con datos de demostración"
+    }
+  ]
+}

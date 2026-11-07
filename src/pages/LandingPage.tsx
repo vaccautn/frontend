@@ -1,301 +1,364 @@
+import { VaccaIsotipo } from "@/components/ui/VaccaIsotipo";
+import { useEffect } from "react";
 import { Link } from "react-router-dom";
 import {
+  IconArrowDown,
   IconArrowRight,
   IconCalendarHeart,
-  IconCamera,
-  IconChartBar,
   IconCheck,
-  IconPaw,
-  IconMap,
+  IconClipboardList,
+  IconMap2,
+  IconUsers,
+  IconDeviceMobile,
   IconScan,
 } from "@tabler/icons-react";
 import { useAuth } from "@/features/auth";
-import { metricasIA, releases } from "@/features/landing/releases";
+import { LandingCapturas } from "@/features/landing/LandingCapturas";
+import { releases } from "@/features/landing/releases";
 import "@/features/landing/landing.css";
 
-const destacados = [
+const funciones = [
   {
-    icono: <IconPaw size={26} stroke={1.5} />,
-    titulo: "Rodeo ordenado",
+    icono: IconClipboardList,
+    titulo: "Tu rodeo ordenado",
     texto:
-      "Animales, lotes y categorías en un solo lugar, con búsqueda por caravana y filtros.",
+      "Caravanas, lotes y categorías. Cargá desde una planilla o una tabla y encontrá cada animal cuando lo necesites.",
   },
   {
-    icono: <IconCamera size={26} stroke={1.5} />,
-    titulo: "Condición corporal",
+    icono: IconMap2,
+    titulo: "El campo en contexto",
     texto:
-      "Sesiones de evaluación en la manga, con fotos y un semáforo que tiene en cuenta el mes.",
+      "Consultá los potreros en el mapa y revisá sus animales y su condición corporal desde el mismo lugar.",
   },
   {
-    icono: <IconScan size={26} stroke={1.5} />,
-    titulo: "VACCA",
+    icono: IconCalendarHeart,
+    titulo: "El seguimiento completo",
     texto:
-      "Detección de bovinos en imágenes y videos. La estimación de condición corporal es experimental.",
+      "Evaluaciones, fotos, servicios, nacimientos y recordatorios de manejo, vinculados a la historia de cada animal.",
   },
   {
-    icono: <IconCalendarHeart size={26} stroke={1.5} />,
-    titulo: "Servicios",
+    icono: IconUsers,
+    titulo: "El trabajo compartido",
     texto:
-      "Temporada de monta, resultados, nacimientos, reservicio y recomendaciones de manejo.",
+      "Sumá colaboradores al campo y conservá el registro de quién realizó cada carga o movimiento.",
   },
-  {
-    icono: <IconChartBar size={26} stroke={1.5} />,
-    titulo: "Tableros",
-    texto:
-      "Distribución de CC, evolución y alertas del rodeo, de cada animal y de cada sesión.",
-  },
-  {
-    icono: <IconMap size={26} stroke={1.5} />,
-    titulo: "Mapa del campo",
-    texto:
-      "Vista satelital con los potreros importados desde KMZ y el estado de cada lote.",
-  },
-];
-
-const escalaCC = [
-  { valor: 1, nombre: "Muy flaca", color: "var(--rojo-alerta)" },
-  { valor: 2, nombre: "Flaca", color: "var(--ocre-campo)" },
-  { valor: 3, nombre: "Ideal", color: "var(--verde-confirmacion)" },
-  { valor: 4, nombre: "Gorda", color: "var(--ambar-aviso)" },
-  { valor: 5, nombre: "Muy gorda", color: "var(--rojo-alerta)" },
-];
-
-const stack = [
-  { capa: "Frontend", detalle: "React · TypeScript · Chakra UI · OpenLayers" },
-  { capa: "Backend", detalle: "FastAPI · SQLModel · PostgreSQL · JWT" },
-  { capa: "IA", detalle: "YOLO26n fine-tuneado · API de detección" },
-  { capa: "Almacenamiento", detalle: "Cloudflare R2 para las fotos" },
 ];
 
 export function LandingPage() {
   const { isAuthenticated } = useAuth();
-  const destinoApp = isAuthenticated ? "/rodeo" : "/login";
-  const textoApp = isAuthenticated ? "Ir a la app" : "Ingresar";
+  const destinoApp = isAuthenticated ? "/inicio" : "/login";
+  const textoApp = isAuthenticated ? "Abrir mi campo" : "Ingresar a VACCA";
+  useEffect(() => {
+    const anterior = document.title;
+    document.title = "VACCA · El estado de tu rodeo, a la vista";
+    return () => {
+      document.title = anterior;
+    };
+  }, []);
 
   return (
-    <div className="landing">
+    <div className="landing" id="inicio">
+      <a className="landing-skip" href="#contenido">
+        Saltar al contenido
+      </a>
       <header className="landing-nav">
         <div className="landing-container landing-nav-inner">
-          <a href="#inicio" className="landing-brand">
-            <img src="/vacca_logo.png" alt="" width={36} height={36} />
-            <span>Vacca</span>
+          <a
+            href="#inicio"
+            className="landing-brand"
+            aria-label="VACCA, inicio"
+          >
+            <VaccaIsotipo size={36} />
+            <span>
+              vacca<span className="landing-brand-note">gestión bovina</span>
+            </span>
           </a>
           <nav className="landing-nav-links" aria-label="Secciones">
+            <a href="#pantallas">La aplicación</a>
             <a href="#funciones">Funciones</a>
-            <a href="#releases">Releases</a>
-            <a href="#ia">IA</a>
-            <a href="#tecnologia">Tecnología</a>
+            <a href="#proyecto">El proyecto</a>
           </nav>
           <Link
             to={destinoApp}
             className="landing-btn landing-btn-primary landing-btn-sm"
           >
-            {textoApp}
+            {isAuthenticated ? "Ir a la app" : "Ingresar"}
+            <IconArrowRight size={16} />
           </Link>
         </div>
       </header>
-
-      <main>
-        <section id="inicio" className="landing-hero">
+      <main id="contenido">
+        <section className="landing-hero">
           <div className="landing-container landing-hero-inner">
             <div className="landing-hero-text">
               <p className="landing-eyebrow">
-                Proyecto final · Ingeniería en Sistemas de Información
+                <span /> Gestión de rodeos de cría
               </p>
-              <h1>La condición corporal de tu rodeo, a la vista.</h1>
+              <h1>
+                El estado de tu rodeo, <span>a la vista.</span>
+              </h1>
               <p className="landing-lead">
-                Vacca es un sistema de soporte de decisiones para el manejo
-                nutricional de rodeos de cría. Organizá animales y lotes,
-                registrá evaluaciones y revisá el estado del campo para tomar
-                decisiones con información a mano.
+                Conocé cómo están tus animales y seguí su evolución. VACCA reúne
+                el campo, las evaluaciones y el manejo del rodeo en un solo
+                lugar.
               </p>
               <div className="landing-hero-actions">
                 <Link
                   to={destinoApp}
                   className="landing-btn landing-btn-primary"
                 >
-                  {textoApp} <IconArrowRight size={18} stroke={2} />
+                  {textoApp}
+                  <IconArrowRight size={18} />
                 </Link>
-                <a href="#releases" className="landing-btn landing-btn-ghost">
-                  Ver la evolución
+                <a href="#pantallas" className="landing-btn landing-btn-ghost">
+                  Conocer la aplicación
+                  <IconArrowDown size={17} />
                 </a>
               </div>
-            </div>
-
-            <div
-              className="landing-hero-card"
-              aria-label="Escala de condición corporal"
-            >
-              <p className="landing-card-title">Escala de condición corporal</p>
-              <ul className="landing-escala">
-                {escalaCC.map((nivel) => (
-                  <li key={nivel.valor}>
-                    <span
-                      className="landing-escala-valor"
-                      style={{ background: nivel.color }}
-                    >
-                      {nivel.valor}
-                    </span>
-                    <span>{nivel.nombre}</span>
-                  </li>
-                ))}
-              </ul>
-              <p className="landing-card-note">
-                El semáforo cambia según el mes: la misma nota puede ser normal
-                en verano y crítica en invierno.
+              <p className="landing-hero-footnote">
+                Para trabajar con información a mano, en la computadora y en el
+                celular.
               </p>
             </div>
+            <figure className="landing-hero-product">
+              <div className="landing-product-frame">
+                <div className="landing-frame-bar">
+                  <span className="landing-frame-brand">
+                    <VaccaIsotipo size={18} /> VACCA <span>/ Inicio</span>
+                  </span>
+                  <span className="landing-frame-label">
+                    Vista de la aplicación
+                  </span>
+                </div>
+                <a
+                  href="#pantallas"
+                  aria-label="Explorar las capturas de VACCA"
+                >
+                  <img
+                    src="/landing/inicio.jpg"
+                    alt="Captura real del tablero de VACCA con el resumen del rodeo, su distribución y evolución de condición corporal."
+                    width={1440}
+                    height={960}
+                    fetchPriority="high"
+                    decoding="async"
+                  />
+                </a>
+              </div>
+              <figcaption>
+                <span className="landing-live-dot" /> Así se ve VACCA · datos de
+                demostración
+              </figcaption>
+            </figure>
           </div>
         </section>
-
-        <section id="funciones" className="landing-section">
+        <section
+          className="landing-workflow"
+          aria-label="Del registro al seguimiento"
+        >
+          <div className="landing-container landing-workflow-inner">
+            {[
+              ["01", "Organizá", "Cargá tus animales y lotes."],
+              ["02", "Evaluá", "Registrá la condición corporal."],
+              [
+                "03",
+                "Hacé seguimiento",
+                "Revisá el estado y las medidas de manejo.",
+              ],
+            ].map(([numero, titulo, texto]) => (
+              <div className="landing-step" key={numero}>
+                <span>{numero}</span>
+                <div>
+                  <h2>{titulo}</h2>
+                  <p>{texto}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </section>
+        <section id="pantallas" className="landing-section landing-showcase">
           <div className="landing-container">
             <div className="landing-section-head">
-              <p className="landing-eyebrow">Funciones</p>
-              <h2>Todo el ciclo del rodeo de cría</h2>
+              <p className="landing-eyebrow">Por dentro</p>
+              <h2>Una mirada a la aplicación.</h2>
+              <p>
+                Del panorama general a la historia de cada animal. Elegí una
+                pantalla para recorrer VACCA.
+              </p>
             </div>
-            <div className="landing-grid">
-              {destacados.map((item) => (
-                <article key={item.titulo} className="landing-feature">
-                  <div className="landing-feature-icon">{item.icono}</div>
-                  <h3>{item.titulo}</h3>
-                  <p>{item.texto}</p>
+            <LandingCapturas />
+          </div>
+        </section>
+        <section id="funciones" className="landing-section landing-section-alt">
+          <div className="landing-container">
+            <div className="landing-section-head">
+              <p className="landing-eyebrow">El trabajo de todos los días</p>
+              <h2>Todo conectado con tu rodeo.</h2>
+              <p>
+                Los registros de cada jornada se convierten en información para
+                seguir el campo a lo largo del tiempo.
+              </p>
+            </div>
+            <div className="landing-feature-grid">
+              {funciones.map(({ icono: Icono, titulo, texto }) => (
+                <article className="landing-feature" key={titulo}>
+                  <div className="landing-feature-icon">
+                    <Icono size={25} stroke={1.5} />
+                  </div>
+                  <h3>{titulo}</h3>
+                  <p>{texto}</p>
                 </article>
               ))}
             </div>
           </div>
         </section>
-
-        <section id="recorrido" className="landing-section landing-section-alt">
-          <div className="landing-container">
-            <div className="landing-section-head">
-              <p className="landing-eyebrow">Del registro a la decisión</p>
-              <h2>Una forma de seguir el estado del rodeo</h2>
-            </div>
-            <div className="landing-grid">
-              <article className="landing-feature">
-                <h3>01 · Organizá el campo</h3>
-                <p>
-                  Cargá animales desde una planilla o una tabla, asignales un
-                  lote y compartí el campo con tus colaboradores.
-                </p>
-              </article>
-              <article className="landing-feature">
-                <h3>02 · Registrá las evaluaciones</h3>
-                <p>
-                  Reuní las observaciones y fotos de cada jornada. Consultá cómo
-                  cambia la condición corporal de cada animal.
-                </p>
-              </article>
-              <article className="landing-feature">
-                <h3>03 · Revisá y actuá</h3>
-                <p>
-                  Consultá el mapa, los indicadores y los servicios. Registrá
-                  movimientos y seguimientos de manejo para volver a evaluar.
-                </p>
-              </article>
-            </div>
-          </div>
-        </section>
-
-        <section id="releases" className="landing-section landing-section-alt">
-          <div className="landing-container">
-            <div className="landing-section-head">
-              <p className="landing-eyebrow">Releases</p>
-              <h2>Cómo fue creciendo Vacca</h2>
-              <p className="landing-muted">
-                Cada etapa sumó funciones sobre la anterior, de la gestión
-                básica del rodeo al mapa del campo.
+        <section className="landing-section landing-mobile">
+          <div className="landing-container landing-mobile-inner">
+            <div className="landing-mobile-copy">
+              <p className="landing-eyebrow">
+                <IconDeviceMobile size={18} /> También en el celular
+              </p>
+              <h2>La misma información, donde estés.</h2>
+              <p>
+                Consultá el resumen del rodeo o abrí la ficha de un animal desde
+                el navegador de tu celular, sin instalar otra aplicación.
+              </p>
+              <ul className="landing-check-list">
+                <li>
+                  <IconCheck size={18} /> Accedé con tu cuenta.
+                </li>
+                <li>
+                  <IconCheck size={18} /> Consultá evaluaciones e historial.
+                </li>
+                <li>
+                  <IconCheck size={18} /> Trabajá sobre el mismo campo que tu
+                  equipo.
+                </li>
+              </ul>
+              <p className="landing-demo-note">
+                El acceso y la carga de datos requieren conexión a internet.
               </p>
             </div>
-            <ol className="landing-timeline">
-              {releases.map((release, indice) => (
-                <li key={release.id} className="landing-release">
-                  <div className="landing-release-marker" aria-hidden="true">
-                    {indice + 1}
-                  </div>
-                  <div className="landing-release-body">
-                    <div className="landing-release-meta">
-                      <span className="landing-tag">{release.etiqueta}</span>
-                      <span className="landing-muted">{release.fecha}</span>
-                    </div>
-                    <h3>{release.titulo}</h3>
-                    <p className="landing-muted">{release.resumen}</p>
-                    <ul className="landing-release-list">
-                      {release.funciones.map((funcion) => (
-                        <li key={funcion}>
-                          <IconCheck size={16} stroke={2.2} />
-                          <span>{funcion}</span>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                </li>
-              ))}
-            </ol>
+            <div
+              className="landing-phones"
+              aria-label="Capturas de VACCA en celular"
+            >
+              <figure className="landing-phone">
+                <img
+                  src="/landing/inicio-movil.jpg"
+                  alt="Inicio de VACCA en una pantalla de celular con los indicadores del rodeo."
+                  width={390}
+                  height={844}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption>Inicio</figcaption>
+              </figure>
+              <figure className="landing-phone landing-phone-second">
+                <img
+                  src="/landing/animal-movil.jpg"
+                  alt="Ficha de un animal de demostración en un celular, con foto y servicios."
+                  width={390}
+                  height={844}
+                  loading="lazy"
+                  decoding="async"
+                />
+                <figcaption>Ficha del animal</figcaption>
+              </figure>
+            </div>
           </div>
         </section>
-
         <section id="ia" className="landing-section landing-ia">
           <div className="landing-container landing-ia-inner">
+            <div className="landing-ia-icon">
+              <IconScan size={40} stroke={1.4} />
+            </div>
             <div>
-              <p className="landing-eyebrow landing-eyebrow-light">
-                VACCA Vision
-              </p>
-              <h2>Un modelo propio que reconoce vacas</h2>
+              <p className="landing-eyebrow">Análisis visual</p>
+              <h2>
+                Una ayuda para registrar. Un criterio que sigue siendo tuyo.
+              </h2>
               <p>
-                Entrenamos YOLO26n sobre datasets públicos de bovinos. La
-                detección reconoce bovinos en imágenes y videos. La condición
-                corporal automática sigue siendo experimental. Cada foto que se
-                sube pasa primero por el modelo: si no hay una vaca, se rechaza
-                y se avisa el motivo.
+                VACCA integra detección de bovinos en fotos y videos para
+                acompañar el registro de evaluaciones. La estimación automática
+                de condición corporal está en etapa experimental y requiere
+                revisión.
               </p>
             </div>
-            <div className="landing-metricas">
-              {metricasIA.map((metrica) => (
-                <div key={metrica.etiqueta} className="landing-metrica">
-                  <span className="landing-metrica-valor">{metrica.valor}</span>
-                  <span className="landing-metrica-etiqueta">
-                    {metrica.etiqueta}
-                  </span>
-                </div>
-              ))}
+            <span className="landing-status">CC automática experimental</span>
+          </div>
+        </section>
+        <section id="proyecto" className="landing-section">
+          <div className="landing-container landing-project">
+            <div>
+              <p className="landing-eyebrow">El proyecto</p>
+              <h2>Tecnología pensada para el manejo del rodeo.</h2>
+              <p>
+                VACCA es un proyecto final de Ingeniería en Sistemas de
+                Información: un sistema de soporte de decisiones para el manejo
+                nutricional de rodeos de cría.
+              </p>
+              <p>
+                Reúne la gestión de animales, las evaluaciones de condición
+                corporal y el mapa del campo para sostener el seguimiento entre
+                jornadas.
+              </p>
+              <div
+                className="landing-stack"
+                aria-label="Tecnologías del proyecto"
+              >
+                <span>React</span>
+                <span>FastAPI</span>
+                <span>PostgreSQL</span>
+                <span>OpenLayers</span>
+                <span>Visión por computadora</span>
+              </div>
+            </div>
+            <div className="landing-evolution">
+              <h3>Cómo fue creciendo</h3>
+              <p>
+                Desde los primeros registros hasta la gestión del campo y el
+                análisis visual.
+              </p>
+              <details>
+                <summary>
+                  Ver las etapas del proyecto <IconArrowDown size={16} />
+                </summary>
+                <ol>
+                  {releases.map((release) => (
+                    <li key={release.id}>
+                      <span>
+                        {release.etiqueta} · {release.fecha}
+                      </span>
+                      <h4>{release.titulo}</h4>
+                      <p>{release.resumen}</p>
+                    </li>
+                  ))}
+                </ol>
+              </details>
             </div>
           </div>
         </section>
-
-        <section id="tecnologia" className="landing-section">
-          <div className="landing-container">
-            <div className="landing-section-head">
-              <p className="landing-eyebrow">Tecnología</p>
-              <h2>Cómo está construido</h2>
-            </div>
-            <div className="landing-stack">
-              {stack.map((item) => (
-                <div key={item.capa} className="landing-stack-item">
-                  <span className="landing-stack-capa">{item.capa}</span>
-                  <span className="landing-muted">{item.detalle}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </section>
-
         <section className="landing-cta">
           <div className="landing-container landing-cta-inner">
-            <h2>Probalo con tu rodeo</h2>
+            <div>
+              <p className="landing-eyebrow">VACCA · gestión bovina</p>
+              <h2>Tu próximo registro empieza acá.</h2>
+              <p>Entrá a la aplicación y continuá con tu campo.</p>
+            </div>
             <Link to={destinoApp} className="landing-btn landing-btn-primary">
-              {textoApp} <IconArrowRight size={18} stroke={2} />
+              {textoApp}
+              <IconArrowRight size={19} />
             </Link>
           </div>
         </section>
       </main>
-
       <footer className="landing-footer">
         <div className="landing-container landing-footer-inner">
-          <span>
-            Vacca · Proyecto final de Ingeniería en Sistemas de Información
-          </span>
+          <a href="#inicio" className="landing-brand">
+            <VaccaIsotipo size={25} />
+            <span>vacca</span>
+          </a>
+          <span>Proyecto final · Ingeniería en Sistemas de Información</span>
           <span>{new Date().getFullYear()}</span>
         </div>
       </footer>

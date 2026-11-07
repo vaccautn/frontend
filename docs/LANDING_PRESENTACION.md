@@ -1,15 +1,51 @@
-# Propuesta de presentación de VACCA
+# Landing de VACCA
 
-La primera versión pública está implementada en `/landing`, sin requerir sesión.
-Se reutilizó la propuesta que ya existía en la rama de landing y se adaptó a la integración actual.
+La presentación pública está en `/landing`, integrada al frontend. Conserva
+el isotipo, la tipografía Manrope y los tokens de colores, radios y sombras
+de la aplicación. El acceso lleva al login o a Inicio según la sesión.
 
-1. **Presentación:** “La condición corporal de tu rodeo, a la vista”. Explicar a quién ayuda y qué información reúne, con acceso a la aplicación.
-2. **Funciones:** animales/lotes, evaluaciones, análisis visual VACCA, servicios, tableros y mapa del campo.
-3. **Recorrido:** organizar el campo → registrar evaluaciones → revisar y actuar.
-4. **Evolución:** etapas del proyecto, diferenciando la gestión implementada de la estimación experimental de CC.
-5. **Tecnología y equipo:** proyecto final de Ingeniería en Sistemas de Información, sin inventar integrantes o instituciones.
-6. **Material visual:** incorporar capturas después de terminar la validación y recibir la revisión del usuario. No se tomaron capturas ni se agregaron imágenes simuladas como si fueran del producto.
+## Recorrido
 
-Las métricas del detector corresponden al resultado reportado por el repositorio de IA: no representan precisión de CC ni resultados garantizados sobre un campo nuevo. La detección/tracking de un video no reemplaza la identificación por caravana.
+La portada muestra el tablero real. Después se presenta el flujo de organizar,
+evaluar y seguir el rodeo; una galería permite elegir diez pantallas y ampliar
+cada captura con un diálogo accesible. Se explican las funciones principales,
+el acceso desde celular, el alcance experimental de la CC automática y el
+proyecto. Las etapas anteriores se pueden desplegar sin ocupar toda la página.
+No se publican estadísticas de precisión como promesas de uso.
 
-Antes de publicar: revisar nombres del equipo, texto definitivo y resultados del modelo, elegir las capturas reales y comprobar el despliegue integrado.
+## Capturas reales
+
+Hay catorce capturas JPEG en `public/landing`: doce de escritorio (1440×960)
+y dos de celular (390×844). Incluyen inicio, rodeo, mapa, animal, sesiones,
+detalle de sesión, servicios, detalle de servicio, importación, tabla de alta,
+historial y campo. La galería usa diez vistas; las otras quedan como material
+de presentación. La portada reutiliza Inicio y la sección móvil muestra Inicio
+y la ficha del animal.
+
+Todas salen de `backend/scripts/preview_local.py`, con cuenta, animales y lotes
+de demostración. No contienen datos productivos. La foto de ejemplo proviene
+del fixture existente de IA, cargada mediante el almacenamiento local de la app.
+`public/landing/capturas.json` registra rutas, tamaños y fecha de la generación.
+No se retocó la interfaz ni se reemplazaron datos mediante respuestas simuladas.
+El mapa capturado muestra los polígonos de demo; no se presenta como fotografía
+satelital de un campo real.
+
+## Reproducir y revisar
+
+Con la demo del backend en 8026 y el build del frontend apuntando a
+`http://127.0.0.1:8026/api`, servido en 5180:
+
+```sh
+node scripts/capturas-landing.mjs
+node scripts/landing.browser.test.mjs
+```
+
+El primer script sólo permite un frontend localhost/127.0.0.1 y usa la cuenta
+de demo del backend local. El segundo comprueba navegación, imágenes, cambio
+de vista, ampliación, Escape y ausencia de desbordes en 320, 390, 768 y 1440px.
+Guarda las vistas de revisión de la landing en `.local/landing`, fuera de Git.
+
+La landing funciona sin autenticación y carga las capturas secundarias de
+forma diferida. Respeta la preferencia de movimiento reducido y permite
+navegar por teclado. Sigue pendiente únicamente la publicación, que no fue
+solicitada; el trabajo queda en la rama local `recta-final`, sin push.

@@ -1,8 +1,7 @@
 # Revisión de la lista de VACCA
 
-Trabajo local en las ramas `feat/mejoras-consulta-presentacion` (frontend) y
-`feat/integracion-mejoras-vacca` (backend e IA). No se hicieron push,
-publicaciones ni capturas. Las pruebas usan una base de demostración separada.
+Trabajo local en las ramas `recta-final` (frontend) y
+`recta-final` (backend e IA). No se hicieron push ni publicaciones. Las capturas de la landing están autorizadas y usan datos de demostración. Las pruebas usan una base de demostración separada.
 
 ## Criterios de importación
 
@@ -51,7 +50,7 @@ validación normativa de los cuatro caracteres alfanuméricos.
 | Redondeo, hover y paleta | Recorte del contenedor de aplicación, hover en tarjetas y neutros ocre/marrón conservados de la base integrada. Nuevos controles usan Chakra y tokens del proyecto, y diálogos con el estilo de sesiones. |
 | Textos y botones | «Abrir mapa», panel sin «Todo el rodeo», accesos de lotes y acciones con + junto a los títulos según los componentes existentes. |
 | Rendimiento con 3.000+ animales | Consulta paginada con última CC incluida; última CC y promedios calculados en SQL, consulta de una sola sesión en Inicio, páginas por demanda y DOM limitado. Script `performance-preview.mjs` con demo de 3.000 vacas/125 toros. SQLite local no representa un benchmark de producción. |
-| Landing general | `/landing` pública, acceso desde login, funciones, recorrido, presentación del proyecto y CC automática señalada como experimental. Sin capturas. |
+| Landing general | `/landing` pública, acceso desde login, funciones, recorrido, presentación del proyecto y CC automática señalada como experimental. Con capturas reales de la demo. |
 
 ## Decisiones que no se pueden cumplir simultáneamente
 
@@ -85,8 +84,7 @@ No se aplicaron migraciones ni cambios a una base real. La migración nueva se
 prueba en una base aislada y se debe ejecutar al desplegar. Las pruebas de IA
 validan contratos/tracking con fixtures; no prueban exactitud de inferencia con
 pesos privados. El lint general mantiene infracciones anteriores de efectos de
-React/Fast Refresh; no se desactivaron reglas para ocultarlas. Capturas y
-publicación siguen fuera de esta entrega por indicación del usuario.
+React/Fast Refresh; no se desactivaron reglas para ocultarlas. La publicación sigue fuera de esta entrega. Las capturas se incorporaron por pedido posterior del usuario.
 
 
 ## Validación del cierre
@@ -113,3 +111,5 @@ publicación siguen fuera de esta entrega por indicación del usuario.
   mediana de tabla (50 animales) **26 ms / 14,6 KB**, mapa **283 ms**,
   dashboard **278 ms** y última sesión **21 ms**. Son tiempos de la demo SQLite,
   no una promesa de producción ni una comparación controlada con la versión previa.
+
+Actualización de presentación: se incorporaron capturas reales de la demo a `/landing`, por pedido posterior del usuario. Ver [LANDING_PRESENTACION.md](LANDING_PRESENTACION.md). Las capturas están autorizadas; no se hizo push ni publicación.

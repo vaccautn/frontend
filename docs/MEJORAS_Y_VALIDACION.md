@@ -1,8 +1,8 @@
 # VACCA: mejoras locales y revisión
 
-Trabajo en `feat/mejoras-consulta-presentacion` (frontend) y
-`feat/integracion-mejoras-vacca` (backend e IA). Sin push ni publicación.
-Las capturas están aplazadas por pedido del usuario.
+Trabajo en `recta-final` (frontend) y
+`recta-final` (backend e IA). Sin push ni publicación.
+La landing incorpora capturas reales de la demo por autorización posterior del usuario.
 
 ## Qué revisar
 
@@ -23,7 +23,7 @@ Las capturas están aplazadas por pedido del usuario.
 | Ficha | Portada de la última evaluación confirmada, ampliación, historial reproductivo y acceso a crías/servicios. |
 | Video | Ramas de frontend, backend e IA integradas. Pruebas de contrato con detectores sintéticos; CC automática mantiene el estado experimental. |
 | Visuales | Conserva los arreglos ya existentes de hover, botones con +, colores neutros, leyendas sin ceros y recorte del scroll. Elimina “Todo el rodeo” del panel lateral. Nombre visible: VACCA. |
-| Landing | `/landing`, pública y accesible desde login; propuesta del proyecto, funciones, recorrido de tres pasos, evolución, tecnología y acceso. Sin capturas; CC automática identificada como experimental. |
+| Landing | `/landing`, pública y accesible desde login; propuesta del proyecto, funciones, recorrido de tres pasos, evolución, tecnología y acceso. Con capturas de la demo; CC automática identificada como experimental. |
 
 ## Validación reproducible
 
@@ -47,6 +47,8 @@ alta en tabla/historial/movimientos comprobados en navegador, sin capturas.
 - Pesos/datasets, exactitud de la CC automática y aprobación del modelo: no quedan validados por pruebas con fixtures. No se entrenó ni se declaró aprobado el modelo experimental.
 - Pendiente de Diego: edad/dentición, criterio definitivo de identificación, estados iniciales, reglas de reservicio sobre polígonos y valoración de NDVI/inundaciones. Se conservan las reglas existentes, con categoría heredada del lote para el alta mínima.
 - El lint de frontend heredó avisos/errores de los componentes existentes con las reglas nuevas de React sobre efectos y Fast Refresh. Build, tipos, tests y navegador se verifican por separado; no se desactivaron reglas para ocultarlos.
-- No se hicieron capturas, push, despliegue ni cambios sobre bases de datos reales.
+- No se hicieron push, despliegue ni cambios sobre bases de datos reales. Las capturas usan únicamente la demo local.
 
 La matriz detallada de criterios y contradicciones está en [CIERRE_LISTA_VACCA.md](CIERRE_LISTA_VACCA.md).
+
+Actualización de presentación: se incorporaron capturas reales de la demo a `/landing`, por pedido posterior del usuario. Ver [LANDING_PRESENTACION.md](LANDING_PRESENTACION.md). Las capturas están autorizadas; no se hizo push ni publicación.
