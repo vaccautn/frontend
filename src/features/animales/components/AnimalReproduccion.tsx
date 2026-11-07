@@ -1,3 +1,5 @@
+import "@/components/ui/gestion.css";
+import { Button, Input, NativeSelect } from "@chakra-ui/react";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import type { LoteOption } from "@/features/lotes/types";
 import { useEffect, useState } from "react";
@@ -51,7 +53,7 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
         <p>Sin resultados reproductivos registrados.</p>
       ) : (
         items.map((r) => (
-          <article className="actividad-tanda" key={r.id}>
+          <article className="gestion-card" key={r.id}>
             <Link to={`/servicios/${r.servicio_id}`}>
               Servicio #{r.servicio_id}
             </Link>
@@ -65,7 +67,7 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
               </Link>
             )}
             {!r.cria_id && ["PRENADA", "PARIDA"].includes(r.estado) && (
-              <button
+              <Button colorPalette="brand" variant="outline"
                 type="button"
                 onClick={() => {
                   setRegistrando(r.id);
@@ -73,7 +75,7 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
                 }}
               >
                 Registrar nacimiento
-              </button>
+              </Button>
             )}
           </article>
         ))
@@ -81,7 +83,7 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
       {mensaje && <p role="alert">{mensaje}</p>}
       {registrando && (
         <form
-          className="evaluaciones-filtros"
+          className="gestion-filter"
           onSubmit={async (e) => {
             e.preventDefault();
             if (busy) return;
@@ -114,7 +116,7 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
         >
           <label>
             Caravana de la cría
-            <input
+            <Input
               required
               value={caravana}
               onChange={(e) => setCaravana(e.target.value)}
@@ -122,8 +124,8 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
           </label>
           <label>
             Nuevo lote
-            <select
-              required
+            <NativeSelect.Root><NativeSelect.Field
+
               value={lote}
               onChange={(e) => setLote(e.target.value)}
             >
@@ -135,21 +137,21 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
                     {l.nombre}
                   </option>
                 ))}
-            </select>
+            </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
           </label>
           <label>
             Categoría
-            <select
+            <NativeSelect.Root><NativeSelect.Field
               value={categoria}
               onChange={(e) => setCategoria(e.target.value)}
             >
               <option value="TERNERA">Ternera</option>
               <option value="TERNERO">Ternero</option>
-            </select>
+            </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
           </label>
           <label>
             Fecha de nacimiento
-            <input
+            <Input
               required
               type="date"
               value={fecha}
@@ -157,12 +159,12 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
               onChange={(e) => setFecha(e.target.value)}
             />
           </label>
-          <button disabled={busy} type="submit">
+          <Button colorPalette="brand" variant="outline" disabled={busy} type="submit">
             Guardar nacimiento
-          </button>
-          <button type="button" onClick={() => setRegistrando(null)}>
+          </Button>
+          <Button colorPalette="brand" variant="outline" type="button" onClick={() => setRegistrando(null)}>
             Cancelar
-          </button>
+          </Button>
         </form>
       )}
     </section>

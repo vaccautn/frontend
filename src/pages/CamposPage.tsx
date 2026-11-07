@@ -1,3 +1,6 @@
+import { ConfirmacionDialog } from "@/components/ui/ConfirmacionDialog";
+import "@/components/ui/gestion.css";
+import { Button, Input, NativeSelect } from "@chakra-ui/react";
 import { useEffect, useState, type FormEvent } from "react";
 import { getJson, postJson, deleteRequest } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
@@ -5,6 +8,7 @@ import { getAccessToken } from "@/features/auth";
 type Campo = { id: number; nombre: string; es_propietario: boolean };
 type Miembro = { id: number; email: string; nombre: string };
 export function CamposPage() {
+  const [aQuitar, setAQuitar] = useState<Miembro | null>(null);
   const [campos, setCampos] = useState<Campo[]>([]);
   const [nombre, setNombre] = useState("");
   const [email, setEmail] = useState("");
@@ -61,7 +65,7 @@ export function CamposPage() {
     });
   };
   return (
-    <section>
+    <section className="gestion-page">
       <div className="section-header">
         <h1>Campo y colaboradores</h1>
       </div>
@@ -70,10 +74,10 @@ export function CamposPage() {
         el propietario administra los accesos.
       </p>
       {error && <p role="alert">{error}</p>}
-      <div className="evaluaciones-filtros">
+      <div className="gestion-filter">
         <label>
           Campo activo
-          <select
+          <NativeSelect.Root><NativeSelect.Field
             value={sessionStorage.getItem("vacca.campoActivo") ?? ""}
             onChange={(e) => {
               if (e.target.value)
@@ -88,15 +92,15 @@ export function CamposPage() {
                 {c.nombre}
               </option>
             ))}
-          </select>
+          </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
         </label>
       </div>
       {campos.map((c) => (
-        <article className="actividad-tanda" key={c.id}>
+        <article className="gestion-card" key={c.id}>
           <h2>{c.nombre}</h2>
           <p>{c.es_propietario ? "Propietario" : "Colaborador"}</p>
           {c.es_propietario && (
-            <button
+            <Button colorPalette="brand" variant="outline"
               type="button"
               onClick={() => {
                 setMiembros([]);
@@ -104,31 +108,31 @@ export function CamposPage() {
               }}
             >
               Administrar colaboradores
-            </button>
+            </Button>
           )}
         </article>
       ))}
       {!campos.some((c) => c.es_propietario) && (
-        <form className="evaluaciones-filtros" onSubmit={crear}>
+        <form className="gestion-filter" onSubmit={crear}>
           <label>
             Nombre de tu campo
-            <input
+            <Input
               required
               maxLength={120}
               value={nombre}
               onChange={(e) => setNombre(e.target.value)}
             />
           </label>
-          <button disabled={busy} type="submit">
+          <Button colorPalette="brand" variant="outline" disabled={busy} type="submit">
             Crear campo
-          </button>
+          </Button>
         </form>
       )}
       {administrar && (
         <section>
           <h2>Colaboradores</h2>
           <form
-            className="evaluaciones-filtros"
+            className="gestion-filter"
             onSubmit={(e) => {
               e.preventDefault();
               void actuar(async () => {
@@ -143,39 +147,37 @@ export function CamposPage() {
           >
             <label>
               Email de una cuenta existente
-              <input
+              <Input
                 type="email"
                 required
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
               />
             </label>
-            <button type="submit" disabled={busy}>
+            <Button colorPalette="brand" variant="solid" type="submit" disabled={busy}>
               Agregar colaborador
-            </button>
+            </Button>
           </form>
           {miembros.map((m) => (
-            <p key={m.id}>
+            <div className="gestion-member" key={m.id}>
               {m.nombre} · {m.email}{" "}
-              <button
+              <Button colorPalette="brand" variant="outline"
                 type="button"
                 disabled={busy}
                 onClick={() => {
-                  if (window.confirm(`¿Quitar el acceso de ${m.email}?`))
-                    void actuar(() =>
-                      deleteRequest(
-                        `/campos/${administrar}/miembros/${m.id}`,
-                        getAccessToken(),
-                      ),
-                    );
+                  setError(""); setAQuitar(m);
                 }}
               >
                 Quitar acceso
-              </button>
-            </p>
+              </Button>
+            </div>
           ))}
         </section>
       )}
+      <ConfirmacionDialog open={aQuitar !== null} titulo="Quitar acceso al campo" confirmar="Quitar acceso" peligro pendiente={busy} onClose={() => setAQuitar(null)} onConfirm={() => { if (aQuitar) void actuar(async () => { await deleteRequest(`/campos/${administrar}/miembros/${aQuitar.id}`, getAccessToken()); setAQuitar(null); }); }}>
+        <p>{aQuitar?.nombre || aQuitar?.email} dejará de tener acceso a este campo.</p>
+        {error && <p role="alert" className="status-message error">{error}</p>}
+      </ConfirmacionDialog>
     </section>
   );
 }

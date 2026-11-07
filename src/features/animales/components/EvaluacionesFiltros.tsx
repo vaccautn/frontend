@@ -1,3 +1,5 @@
+import "@/components/ui/gestion.css";
+import { Button, Input, NativeSelect } from "@chakra-ui/react";
 import { useSearchParams } from "react-router-dom";
 import type { EvaluacionCC } from "../types";
 
@@ -28,13 +30,13 @@ export function useEvaluacionesFiltradas(evaluaciones: EvaluacionCC[]) {
   });
   const filtros = (
     <div
-      className="evaluaciones-filtros"
+      className="gestion-filter"
       role="group"
       aria-label="Filtrar evaluaciones"
     >
       <label>
         Desde
-        <input
+        <Input
           type="date"
           value={desde}
           max={hasta || undefined}
@@ -43,7 +45,7 @@ export function useEvaluacionesFiltradas(evaluaciones: EvaluacionCC[]) {
       </label>
       <label>
         Hasta
-        <input
+        <Input
           type="date"
           value={hasta}
           min={desde || undefined}
@@ -52,7 +54,7 @@ export function useEvaluacionesFiltradas(evaluaciones: EvaluacionCC[]) {
       </label>
       <label>
         Calificación
-        <select
+        <NativeSelect.Root><NativeSelect.Field
           value={cc}
           onChange={(e) => setFiltro("evalCC", e.target.value)}
         >
@@ -62,16 +64,16 @@ export function useEvaluacionesFiltradas(evaluaciones: EvaluacionCC[]) {
               CC {n}
             </option>
           ))}
-        </select>
+        </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
       </label>
       {(desde || hasta || cc) && (
-        <button
+        <Button colorPalette="brand" variant="outline"
           type="button"
           onClick={() =>
             setParams(
               (current) => {
                 const next = new URLSearchParams(current);
-                ["evalDesde", "evalHasta", "evalCC"].forEach((key) =>
+                ["evalDesde", "evalHasta", "evalCC", "evalPage"].forEach((key) =>
                   next.delete(key),
                 );
                 return next;
@@ -81,7 +83,7 @@ export function useEvaluacionesFiltradas(evaluaciones: EvaluacionCC[]) {
           }
         >
           Limpiar filtros
-        </button>
+        </Button>
       )}
       <span role="status">
         {filtradas.length} de {evaluaciones.length} evaluaciones

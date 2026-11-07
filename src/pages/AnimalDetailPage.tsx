@@ -1,3 +1,4 @@
+import { normalizarCaravana, esCaravanaValida, MENSAJE_FORMATO_CARAVANA } from "@/features/animales/utils/caravana";
 import { Paginador } from "@/components/ui/Paginador";
 import {
   getEvaluacionesPagina,
@@ -45,7 +46,6 @@ import {
   ESTADOS_FILTRO,
   sexoDeCategoria,
 } from "@/features/animales/constants";
-import { normalizarCaravana } from "@/features/animales/utils/caravana";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import type { LoteOption } from "@/features/lotes/types";
 import {
@@ -230,10 +230,11 @@ export function AnimalDetailPage() {
   };
 
   const setEditField = (field: keyof RodeoEditarValues, value: string) => {
+    if (field === "caravana") value = normalizarCaravana(value);
     setEditValues((current) =>
       current ? { ...current, [field]: value } : current,
     );
-    setEditErrors((current) => ({ ...current, [field]: undefined }));
+    setEditErrors((current) => ({ ...current, [field]: field === "caravana" && value && !esCaravanaValida(value) ? MENSAJE_FORMATO_CARAVANA : undefined }));
     setEditFormError("");
   };
 
@@ -381,7 +382,7 @@ export function AnimalDetailPage() {
                 <Field.Root invalid={!!editErrors.caravana}>
                   <Field.Label>Caravana</Field.Label>
                   <Input
-                    value={editValues.caravana}
+                    maxLength={15} value={editValues.caravana}
                     onChange={updateEditField("caravana")}
                   />
                   <Field.ErrorText>{editErrors.caravana}</Field.ErrorText>

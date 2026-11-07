@@ -1,3 +1,6 @@
+import { ConfirmacionDialog } from "@/components/ui/ConfirmacionDialog";
+import "@/components/ui/gestion.css";
+import { Button, NativeSelect } from "@chakra-ui/react";
 import { useState } from "react";
 import { toast } from "react-toastify";
 import { postJson } from "@/services/httpClient";
@@ -14,19 +17,13 @@ export function MovimientoAnimales({
   lotes: LoteOption[];
   onMovidos: () => void;
 }) {
+  const [confirmando, setConfirmando] = useState(false);
   const [destino, setDestino] = useState("");
   const [guardando, setGuardando] = useState(false);
   if (!animales.length) return null;
   const varios = new Set(animales.map((a) => a.lote_id)).size > 1;
   const mover = async () => {
     if (!destino || guardando) return;
-    const nombre = lotes.find((l) => l.id === Number(destino))?.nombre;
-    if (
-      !window.confirm(
-        `${varios ? "Seleccionaste animales de distintos lotes. " : ""}¿Mover ${animales.length} animales al lote ${nombre}?`,
-      )
-    )
-      return;
     setGuardando(true);
     try {
       const result = await postJson<{ movidos: number }, object>(
@@ -41,6 +38,7 @@ export function MovimientoAnimales({
       toast.success(
         `${result.movidos} animales movidos. El movimiento quedó en el historial.`,
       );
+      setConfirmando(false);
       onMovidos();
     } catch (error) {
       toast.error(
@@ -53,14 +51,14 @@ export function MovimientoAnimales({
     }
   };
   return (
-    <div className="evaluaciones-filtros">
+    <div className="gestion-filter">
       <strong>{animales.length} seleccionados</strong>
       {varios && (
         <span role="alert">Los animales pertenecen a distintos lotes.</span>
       )}
       <label>
         Mover al lote
-        <select value={destino} onChange={(e) => setDestino(e.target.value)}>
+        <NativeSelect.Root><NativeSelect.Field value={destino} onChange={(e) => setDestino(e.target.value)}>
           <option value="">Elegí un lote</option>
           {lotes
             .filter((l) => l.activo)
@@ -69,15 +67,19 @@ export function MovimientoAnimales({
                 {l.nombre}
               </option>
             ))}
-        </select>
+        </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
       </label>
-      <button
+      <Button colorPalette="brand" variant="outline"
         type="button"
         disabled={!destino || guardando}
-        onClick={() => void mover()}
+        onClick={() => setConfirmando(true)}
       >
         {guardando ? "Moviendo…" : "Mover animales"}
-      </button>
+      </Button>
+      <ConfirmacionDialog open={confirmando} titulo="Confirmar movimiento" confirmar="Mover animales" pendiente={guardando} onClose={() => setConfirmando(false)} onConfirm={() => void mover()}>
+        {varios && <p className="status-message warning" role="alert">Seleccionaste animales de distintos lotes.</p>}
+        <p>Se moverán {animales.length} animales al lote {lotes.find(l => l.id === Number(destino))?.nombre}.</p>
+      </ConfirmacionDialog>
     </div>
   );
 }

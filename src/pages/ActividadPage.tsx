@@ -1,3 +1,5 @@
+import "@/components/ui/gestion.css";
+import { Button } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { getJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
@@ -53,7 +55,7 @@ export function ActividadPage() {
     };
   }, [pagina, revision]);
   return (
-    <section>
+    <section className="gestion-page">
       <div className="section-header">
         <h1>Historial de actividad</h1>
       </div>
@@ -64,9 +66,9 @@ export function ActividadPage() {
       {error && (
         <p role="alert">
           {error}{" "}
-          <button type="button" onClick={() => setRevision((v) => v + 1)}>
+          <Button colorPalette="brand" variant="outline" type="button" onClick={() => setRevision((v) => v + 1)}>
             Reintentar
-          </button>
+          </Button>
         </p>
       )}
       {loading ? (
@@ -78,7 +80,7 @@ export function ActividadPage() {
             <p>No hay actividad registrada todavía.</p>
           )}
           {items.map((t) => (
-            <article className="actividad-tanda" key={t.id}>
+            <article className="gestion-card" key={t.id}>
               <h2>
                 {t.tipo === "IMPORTACION"
                   ? "Importación de planilla"
@@ -120,7 +122,7 @@ export function ActividadPage() {
                   t.detalle.filas?.length ?? 0,
                 ) > (limites[t.id] ?? 0) &&
                   limites[t.id] > 0 && (
-                    <button
+                    <Button colorPalette="brand" variant="outline"
                       type="button"
                       onClick={() =>
                         setLimites((prev) => ({
@@ -130,7 +132,7 @@ export function ActividadPage() {
                       }
                     >
                       Mostrar 100 resultados más
-                    </button>
+                    </Button>
                   )}
               </details>
             </article>

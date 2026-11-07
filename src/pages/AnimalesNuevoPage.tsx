@@ -1,3 +1,4 @@
+import { normalizarCaravana, esCaravanaValida, MENSAJE_FORMATO_CARAVANA } from "@/features/animales/utils/caravana";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -25,7 +26,6 @@ import {
   SEXOS,
   sexoDeCategoria,
 } from "@/features/animales/constants";
-import { normalizarCaravana } from "@/features/animales/utils/caravana";
 import type { LoteOption } from "@/features/lotes/types";
 import { SelectOpciones } from "@/components/SelectOpciones";
 import { toast } from "react-toastify";
@@ -72,8 +72,9 @@ function AnimalesNuevoPage() {
   };
 
   const setField = (field: keyof RodeoNuevoValues, value: string) => {
+    if (field === "caravana") value = normalizarCaravana(value);
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => ({ ...current, [field]: undefined }));
+    setErrors((current) => ({ ...current, [field]: field === "caravana" && value && !esCaravanaValida(value) ? MENSAJE_FORMATO_CARAVANA : undefined }));
     setFormError("");
   };
 
@@ -212,7 +213,7 @@ function AnimalesNuevoPage() {
                 <Field.Root invalid={!!errors.caravana}>
                   <Field.Label>Caravana</Field.Label>
                   <Input
-                    value={values.caravana}
+                    maxLength={15} value={values.caravana}
                     onChange={updateField("caravana")}
                     placeholder="AB123 0001"
                   />

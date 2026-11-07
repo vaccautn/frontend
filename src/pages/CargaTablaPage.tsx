@@ -1,3 +1,6 @@
+import { normalizarCaravana, esCaravanaValida, MENSAJE_FORMATO_CARAVANA } from "@/features/animales/utils/caravana";
+import "@/components/ui/gestion.css";
+import { Button, Input, NativeSelect, Table } from "@chakra-ui/react";
 import { useEffect, useState, type FormEvent } from "react";
 import { Link, useNavigate } from "react-router-dom";
 import { postJson } from "@/services/httpClient";
@@ -30,12 +33,13 @@ export function CargaTablaPage() {
   }, []);
   const cambiar = (index: number, campo: keyof Fila, value: string) =>
     setFilas((prev) =>
-      prev.map((f, i) => (i === index ? { ...f, [campo]: value } : f)),
+      prev.map((f, i) => (i === index ? { ...f, [campo]: campo === "caravana" ? normalizarCaravana(value) : value } : f)),
     );
   const guardar = async (e: FormEvent) => {
     e.preventDefault();
     if (guardando) return;
     setError("");
+    if (filas.some(fila => !esCaravanaValida(fila.caravana))) { setError(MENSAJE_FORMATO_CARAVANA); return; }
     setGuardando(true);
     try {
       const result = await postJson<{ creados: number }, object>(
@@ -63,7 +67,7 @@ export function CargaTablaPage() {
     }
   };
   return (
-    <section>
+    <section className="gestion-page">
       <div className="section-header">
         <h1>Carga de animales en tabla</h1>
         <Link to="/rodeo/importar">Importar CSV o Excel</Link>
@@ -75,31 +79,33 @@ export function CargaTablaPage() {
       {error && <p role="alert">{error}</p>}
       <form onSubmit={(e) => void guardar(e)}>
         <div className="animales-table__wrapper">
-          <table className="carga-manual">
-            <thead>
-              <tr>
-                <th>Caravana</th>
-                <th>Lote</th>
-                <th>Categoría (opcional)</th>
-                <th>Acciones</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table.Root className="animales-table carga-manual">
+            <Table.Header>
+              <Table.Row>
+                <Table.ColumnHeader>Caravana</Table.ColumnHeader>
+                <Table.ColumnHeader>Lote</Table.ColumnHeader>
+                <Table.ColumnHeader>Categoría (opcional)</Table.ColumnHeader>
+                <Table.ColumnHeader>Acciones</Table.ColumnHeader>
+              </Table.Row>
+            </Table.Header>
+            <Table.Body>
               {filas.map((f, i) => (
-                <tr key={i}>
-                  <td>
-                    <input
+                <Table.Row key={i}>
+                  <Table.Cell>
+                    <Input
                       aria-label={`Caravana fila ${i + 1}`}
                       required
+                      aria-invalid={Boolean(f.caravana && !esCaravanaValida(f.caravana))}
                       value={f.caravana}
-                      maxLength={80}
+                      maxLength={15}
                       onChange={(e) => cambiar(i, "caravana", e.target.value)}
                     />
-                  </td>
-                  <td>
-                    <select
+                    {f.caravana && !esCaravanaValida(f.caravana) && <p className="status-message error" role="alert">{MENSAJE_FORMATO_CARAVANA}</p>}
+                  </Table.Cell>
+                  <Table.Cell>
+                    <NativeSelect.Root><NativeSelect.Field
                       aria-label={`Lote fila ${i + 1}`}
-                      required
+                      aria-required="true"
                       value={f.lote_id}
                       onChange={(e) => cambiar(i, "lote_id", e.target.value)}
                     >
@@ -111,10 +117,10 @@ export function CargaTablaPage() {
                             {l.nombre}
                           </option>
                         ))}
-                    </select>
-                  </td>
-                  <td>
-                    <select
+                    </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <NativeSelect.Root><NativeSelect.Field
                       aria-label={`Categoría fila ${i + 1}`}
                       value={f.categoria}
                       onChange={(e) => cambiar(i, "categoria", e.target.value)}
@@ -125,10 +131,10 @@ export function CargaTablaPage() {
                           {c.label}
                         </option>
                       ))}
-                    </select>
-                  </td>
-                  <td>
-                    <button
+                    </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <Button colorPalette="brand" variant="outline"
                       type="button"
                       disabled={filas.length === 1 || guardando}
                       onClick={() =>
@@ -138,26 +144,26 @@ export function CargaTablaPage() {
                       }
                     >
                       Quitar fila {i + 1}
-                    </button>
-                  </td>
-                </tr>
+                    </Button>
+                  </Table.Cell>
+                </Table.Row>
               ))}
-            </tbody>
-          </table>
+            </Table.Body>
+          </Table.Root>
         </div>
-        <div className="evaluaciones-filtros">
-          <button
+        <div className="gestion-filter">
+          <Button colorPalette="brand" variant="outline"
             type="button"
             disabled={filas.length >= 50 || guardando}
             onClick={() => setFilas((prev) => [...prev, vacia()])}
           >
             + Agregar fila
-          </button>
-          <button type="submit" disabled={guardando}>
+          </Button>
+          <Button colorPalette="brand" variant="solid" type="submit" disabled={guardando}>
             {guardando
               ? "Guardando…"
               : `Guardar tanda de ${filas.length} animales`}
-          </button>
+          </Button>
         </div>
       </form>
     </section>

@@ -1,3 +1,5 @@
+import "@/components/ui/gestion.css";
+import { Button } from "@chakra-ui/react";
 import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getJson, postJson } from "@/services/httpClient";
@@ -35,7 +37,7 @@ export function RecordatoriosDestete() {
   };
   if (!items.length && !error) return null;
   return (
-    <section className="actividad-tanda">
+    <section className="gestion-card">
       <h2>Seguimientos de destete</h2>
       {error && <p role="alert">{error}</p>}
       {items.map((r) => (
@@ -48,9 +50,9 @@ export function RecordatoriosDestete() {
             : {new Date(r.vencimiento).toLocaleDateString("es-AR")}
           </p>
           <Link to="/sesiones">Registrar nueva evaluación de CC</Link> ·{" "}
-          <button type="button" onClick={() => void resolver(r.id)}>
+          <Button colorPalette="brand" variant="outline" type="button" onClick={() => void resolver(r.id)}>
             Completar seguimiento
-          </button>
+          </Button>
         </article>
       ))}
     </section>

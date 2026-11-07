@@ -1,3 +1,4 @@
+import { Paginador } from "@/components/ui/Paginador";
 import { useState } from "react";
 import { IconAlertCircle, IconCircleCheck, IconHelpCircle, IconSparkles } from "@tabler/icons-react";
 import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
@@ -10,7 +11,7 @@ import { COLUMNAS_IMPORTACION } from "@/features/animales/utils/importacionAnima
 import { formatFecha } from "@/features/animales/utils/formatDate";
 
 /** Más filas que esto no se dibujan de una: se usan los filtros. */
-const MAXIMO_FILAS = 500;
+const MAXIMO_FILAS = 50;
 
 type Filtro = "todas" | EstadoFilaImportacion;
 
@@ -38,9 +39,11 @@ function mostrarValor(fila: FilaAnalizada, campo: CampoImportacion): string {
 }
 
 export function TablaRevision({ filas }: { filas: FilaAnalizada[] }) {
+  const [pagina, setPagina] = useState(0);
   const [filtro, setFiltro] = useState<Filtro>("todas");
   const filtradas = filtro === "todas" ? filas : filas.filter((fila) => fila.estado === filtro);
-  const visibles = filtradas.slice(0, MAXIMO_FILAS);
+  const actual = Math.min(pagina, Math.max(0, Math.ceil(filtradas.length / MAXIMO_FILAS) - 1));
+  const visibles = filtradas.slice(actual * MAXIMO_FILAS, (actual + 1) * MAXIMO_FILAS);
 
   return (
     <div className="importar__tabla-card">
@@ -56,7 +59,7 @@ export function TablaRevision({ filas }: { filas: FilaAnalizada[] }) {
                 type="button"
                 aria-pressed={filtro === valor}
                 className="importar__filtro"
-                onClick={() => setFiltro(valor)}>
+                onClick={() => { setFiltro(valor); setPagina(0); }}>
                 {etiqueta} <span>{cantidad}</span>
               </button>
             );
@@ -120,12 +123,7 @@ export function TablaRevision({ filas }: { filas: FilaAnalizada[] }) {
           </tbody>
         </table>
       </div>
-      {filtradas.length > MAXIMO_FILAS && (
-        <p className="importar__tabla-pie">
-          Mostrando {MAXIMO_FILAS} de {filtradas.length} filas. Usá los filtros para ver las que
-          necesitan atención.
-        </p>
-      )}
+      <Paginador pagina={actual} total={filtradas.length} tamano={MAXIMO_FILAS} onChange={setPagina} />
     </div>
   );
 }

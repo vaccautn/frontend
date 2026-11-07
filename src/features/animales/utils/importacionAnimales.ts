@@ -36,9 +36,9 @@ export const COLUMNAS_IMPORTACION: ColumnaImportacion[] = [
   {
     clave: "categoria",
     titulo: "Categoría",
-    formato: "Opcional: se toma del lote si no se informa",
+    formato: "Una de las categorías del rodeo",
     ejemplo: "Vaca seca",
-    obligatoria: false,
+    obligatoria: true,
   },
   {
     clave: "lote",
