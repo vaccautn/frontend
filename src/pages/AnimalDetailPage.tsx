@@ -1,3 +1,10 @@
+import { Paginador } from "@/components/ui/Paginador";
+import {
+  getEvaluacionesPagina,
+  getUltimaEvaluacionConfirmada,
+} from "@/features/animales/services/animalesService";
+import { AnimalReproduccion } from "@/features/animales/components/AnimalReproduccion";
+import { EvaluacionFoto } from "@/features/animales/components/EvaluacionFoto";
 import {
   useCallback,
   useEffect,
@@ -6,20 +13,15 @@ import {
   type ChangeEvent,
   type FormEvent,
 } from "react";
-import { useLocation, useNavigate, useParams } from "react-router-dom";
 import {
-  Button,
-  Field,
-  Input,
-  NativeSelect,
-  Textarea,
-} from "@chakra-ui/react";
+  useLocation,
+  useNavigate,
+  useParams,
+  useSearchParams,
+} from "react-router-dom";
+import { Button, Field, Input, NativeSelect, Textarea } from "@chakra-ui/react";
 import { toast } from "react-toastify";
-import {
-  IconArrowLeft,
-  IconEdit,
-  IconTrash,
-} from "@tabler/icons-react";
+import { IconArrowLeft, IconEdit, IconTrash } from "@tabler/icons-react";
 import type {
   Animal,
   EstadoAnimal,
@@ -27,12 +29,14 @@ import type {
 } from "@/features/animales/types";
 import {
   getAnimal,
-  getEvaluacionesCc,
   updateAnimal,
 } from "@/features/animales/services/animalesService";
 import { useAnimalDashboard } from "@/features/animales/hooks/useAnimalDashboard";
 import { AnimalDashboard } from "@/features/animales/components/dashboard/AnimalDashboard";
-import { formatFecha, formatMomento } from "@/features/animales/utils/formatDate";
+import {
+  formatFecha,
+  formatMomento,
+} from "@/features/animales/utils/formatDate";
 import {
   CATEGORIA_ANIMAL_LABELS,
   CATEGORIAS_ANIMAL,
@@ -78,6 +82,14 @@ export function AnimalDetailPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const location = useLocation();
+  const [params, setParams] = useSearchParams();
+  const desde = params.get("evalDesde") ?? "";
+  const hasta = params.get("evalHasta") ?? "";
+  const ccFiltro = params.get("evalCC") ?? "";
+  const pagina = Math.max(0, Number(params.get("evalPage")) || 0);
+  const [totalEvaluaciones, setTotalEvaluaciones] = useState(0);
+  const [portadaId, setPortadaId] = useState<number | null>(null);
+  const [revisionPortada, setRevisionPortada] = useState(0);
 
   const [evaluacionSeleccionada, setEvaluacionSeleccionada] =
     useState<EvaluacionCC | null>(null);
@@ -109,6 +121,22 @@ export function AnimalDetailPage() {
   }, []);
 
   const animalId = Number(id);
+  useEffect(() => {
+    let cancel = false;
+    getUltimaEvaluacionConfirmada(animalId)
+      .then((data) => {
+        if (!cancel)
+          setPortadaId(
+            data.items.find((e) => e.estado === "CONFIRMADA")?.id ?? null,
+          );
+      })
+      .catch(() => {
+        if (!cancel) setPortadaId(null);
+      });
+    return () => {
+      cancel = true;
+    };
+  }, [animalId, revisionPortada]);
   const {
     data: dashboardData,
     loading: dashboardLoading,
@@ -134,30 +162,41 @@ export function AnimalDetailPage() {
     }
   }, [id]);
 
-  const fetchEvaluaciones = useCallback(async (animalId: number) => {
-    const requestId = ++latestEvaluacionesRequestId.current;
-    setEvaluacionesLoading(true);
-    setEvaluacionesError("");
+  const fetchEvaluaciones = useCallback(
+    async (animalId: number) => {
+      const requestId = ++latestEvaluacionesRequestId.current;
+      setEvaluacionesLoading(true);
+      setEvaluacionesError("");
 
-    try {
-      const history = await getEvaluacionesCc({ animalId });
+      try {
+        const history = await getEvaluacionesPagina(
+          animalId,
+          pagina,
+          desde,
+          hasta,
+          ccFiltro,
+        );
 
-      if (latestEvaluacionesRequestId.current !== requestId) return;
+        if (latestEvaluacionesRequestId.current !== requestId) return;
 
-      setEvaluaciones(history);
-    } catch {
-      if (latestEvaluacionesRequestId.current !== requestId) return;
+        setEvaluaciones(history.items);
+        setTotalEvaluaciones(history.total);
+      } catch {
+        if (latestEvaluacionesRequestId.current !== requestId) return;
 
-      setEvaluacionesError("No se pudo cargar el historial de evaluaciones.");
-    } finally {
-      if (latestEvaluacionesRequestId.current === requestId) {
-        setEvaluacionesLoading(false);
+        setEvaluacionesError("No se pudo cargar el historial de evaluaciones.");
+      } finally {
+        if (latestEvaluacionesRequestId.current === requestId) {
+          setEvaluacionesLoading(false);
+        }
       }
-    }
-  }, []);
+    },
+    [pagina, desde, hasta, ccFiltro],
+  );
 
   const handleRefreshEvaluaciones = useCallback(() => {
     if (!animal) return Promise.resolve();
+    setRevisionPortada(value => value + 1);
 
     return fetchEvaluaciones(animal.id);
   }, [animal, fetchEvaluaciones]);
@@ -211,7 +250,10 @@ export function AnimalDetailPage() {
     event.preventDefault();
     if (isSavingDetails || !editValues || !animal) return;
 
-    const nextErrors = validateRodeoEditarForm(editValues, animal.caravana ?? "");
+    const nextErrors = validateRodeoEditarForm(
+      editValues,
+      animal.caravana ?? "",
+    );
     setEditErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
@@ -219,9 +261,9 @@ export function AnimalDetailPage() {
     try {
       const updated = await updateAnimal(animal.id, {
         caravana: normalizarCaravana(editValues.caravana),
-        raza: editValues.raza,
+        ...(editValues.raza ? { raza: editValues.raza } : {}),
         categoria: editValues.categoria,
-        fecha_nacimiento: editValues.fecha_nacimiento,
+        fecha_nacimiento: editValues.fecha_nacimiento || null,
         estado: editValues.estado as EstadoAnimal,
         observacion: editValues.observacion.trim(),
         lote_id: editValues.lote_id ? Number(editValues.lote_id) : null,
@@ -245,23 +287,23 @@ export function AnimalDetailPage() {
   };
 
   useEffect(() => {
-    if (!id) return;
-    void fetchAnimal();
-    void fetchEvaluaciones(Number(id));
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [id]);
-
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) void fetchAnimal();
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [fetchAnimal, location.state]);
   useEffect(() => {
-    const state = location.state as { refresh?: boolean } | null;
-
-    if (state?.refresh && animal) {
-      void fetchAnimal();
-      void fetchEvaluaciones(animal.id);
-    }
-    // intentionally omit fetchAnimal/fetchEvaluaciones from deps to avoid an
-    // infinite loop — they are stable useCallback references
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.state]);
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (!cancelled) void fetchEvaluaciones(animalId);
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [animalId, fetchEvaluaciones, location.state]);
 
   return (
     <section className="animal-page">
@@ -273,7 +315,8 @@ export function AnimalDetailPage() {
           paddingInlineEnd="0.75rem"
           marginInlineStart="-0.75rem"
           className="animal-page__back-link"
-          onClick={() => navigate("/rodeo")}>
+          onClick={() => navigate("/rodeo")}
+        >
           <IconArrowLeft size={16} stroke={1.5} />
           Volver
         </Button>
@@ -293,13 +336,24 @@ export function AnimalDetailPage() {
               <span className="animal-page__eyebrow">Animal</span>
               <div className="animal-page__titulo">
                 <h1>{animal.caravana ?? `#${animal.id}`}</h1>
-                <span className={`estado-pill estado-pill--${tonoEstado(animal.estado)}`}>
+                <span
+                  className={`estado-pill estado-pill--${tonoEstado(animal.estado)}`}
+                >
                   {labelEstado(animal.estado)}
                 </span>
               </div>
             </div>
           </div>
 
+          <div className="animal-portada">
+            <EvaluacionFoto
+              key={`${portadaId ?? "sin-foto"}-${revisionPortada}`}
+              evaluacionId={portadaId}
+              caravana={animal.caravana ?? `#${animal.id}`}
+              ampliable
+            />
+          </div>
+          <AnimalReproduccion key={animal.id} animalId={animal.id} />
           <Ficha
             titulo="Ficha del animal"
             abierta={isDetailsOpen}
@@ -307,155 +361,165 @@ export function AnimalDetailPage() {
               if (!abierta && isEditingDetails) cancelEditingDetails();
               setIsDetailsOpen(abierta);
             }}
-            editando={isEditingDetails}>
+            editando={isEditingDetails}
+          >
             {isEditingDetails && editValues ? (
-            <form
-              onSubmit={handleSaveDetails}
-              noValidate
-              className="animal-edit-page__form">
-              {editFormError && (
-                <p
-                  className="status-message error animal-edit-page__field--full"
-                  role="alert">
-                  {editFormError}
-                </p>
-              )}
+              <form
+                onSubmit={handleSaveDetails}
+                noValidate
+                className="animal-edit-page__form"
+              >
+                {editFormError && (
+                  <p
+                    className="status-message error animal-edit-page__field--full"
+                    role="alert"
+                  >
+                    {editFormError}
+                  </p>
+                )}
 
-              <Field.Root invalid={!!editErrors.caravana}>
-                <Field.Label>Caravana</Field.Label>
-                <Input
-                  value={editValues.caravana}
-                  onChange={updateEditField("caravana")}
-                />
-                <Field.ErrorText>{editErrors.caravana}</Field.ErrorText>
-              </Field.Root>
+                <Field.Root invalid={!!editErrors.caravana}>
+                  <Field.Label>Caravana</Field.Label>
+                  <Input
+                    value={editValues.caravana}
+                    onChange={updateEditField("caravana")}
+                  />
+                  <Field.ErrorText>{editErrors.caravana}</Field.ErrorText>
+                </Field.Root>
 
-              <Field.Root invalid={!!editErrors.raza}>
-                <Field.Label>Raza</Field.Label>
-                <NativeSelect.Root>
-                  <NativeSelect.Field
-                    value={editValues.raza}
-                    onChange={updateEditField("raza")}>
-                    <option value="">Seleccioná una raza</option>
-                    {RAZAS.map((raza) => (
-                      <option key={raza} value={raza}>
-                        {raza}
-                      </option>
-                    ))}
-                  </NativeSelect.Field>
-                  <NativeSelect.Indicator />
-                </NativeSelect.Root>
-                <Field.ErrorText>{editErrors.raza}</Field.ErrorText>
-              </Field.Root>
-
-              <Field.Root invalid={!!editErrors.categoria}>
-                <Field.Label>Categoría</Field.Label>
-                <NativeSelect.Root>
-                  <NativeSelect.Field
-                    value={editValues.categoria}
-                    onChange={updateEditField("categoria")}>
-                    <option value="">Seleccioná la categoría</option>
-                    {CATEGORIAS_ANIMAL.map(({ value, label }) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </NativeSelect.Field>
-                  <NativeSelect.Indicator />
-                </NativeSelect.Root>
-                <Field.HelperText>
-                  Sexo:{" "}
-                  {SEXOS.find((s) => s.value === sexoDeCategoria(editValues.categoria))?.label ??
-                    "—"}{" "}
-                  (sale de la categoría)
-                </Field.HelperText>
-                <Field.ErrorText>{editErrors.categoria}</Field.ErrorText>
-              </Field.Root>
-
-              <Field.Root invalid={!!editErrors.fecha_nacimiento}>
-                <Field.Label>Fecha de nacimiento</Field.Label>
-                <FechaInput
-                  value={editValues.fecha_nacimiento}
-                  max={new Date().toISOString().split("T")[0]}
-                  onChange={(fecha) =>
-                    setEditField("fecha_nacimiento", fecha)
-                  }
-                />
-                <Field.ErrorText>
-                  {editErrors.fecha_nacimiento}
-                </Field.ErrorText>
-              </Field.Root>
-
-              <Field.Root invalid={!!editErrors.estado}>
-                <Field.Label>Estado</Field.Label>
-                <NativeSelect.Root>
-                  <NativeSelect.Field
-                    value={editValues.estado}
-                    onChange={updateEditField("estado")}>
-                    <option value="">Seleccioná el estado</option>
-                    {ESTADOS_FILTRO.map(({ value, label }) => (
-                      <option key={value} value={value}>
-                        {label}
-                      </option>
-                    ))}
-                  </NativeSelect.Field>
-                  <NativeSelect.Indicator />
-                </NativeSelect.Root>
-                <Field.ErrorText>{editErrors.estado}</Field.ErrorText>
-              </Field.Root>
-
-              <Field.Root className="animal-edit-page__field--full">
-                <Field.Label>Observación</Field.Label>
-                <Textarea
-                  value={editValues.observacion}
-                  onChange={updateEditField("observacion")}
-                  rows={3}
-                />
-              </Field.Root>
-
-              <Field.Root className="animal-edit-page__field--full">
-                <Field.Label>Lote</Field.Label>
-                <NativeSelect.Root>
-                  <NativeSelect.Field
-                    value={editValues.lote_id}
-                    onChange={updateEditField("lote_id")}>
-                    <option value="">Sin lote</option>
-                    {lotes
-                      .filter(
-                        (lote) =>
-                          lote.activo ||
-                          String(lote.id) === editValues.lote_id,
-                      )
-                      .map((lote) => (
-                        <option key={lote.id} value={lote.id}>
-                          {lote.nombre} ·{" "}
-                          {CATEGORIA_ANIMAL_LABELS[lote.categoria] ??
-                            lote.categoria}
+                <Field.Root invalid={!!editErrors.raza}>
+                  <Field.Label>Raza</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={editValues.raza}
+                      onChange={updateEditField("raza")}
+                    >
+                      <option value="">Seleccioná una raza</option>
+                      {RAZAS.map((raza) => (
+                        <option key={raza} value={raza}>
+                          {raza}
                         </option>
                       ))}
-                  </NativeSelect.Field>
-                  <NativeSelect.Indicator />
-                </NativeSelect.Root>
-              </Field.Root>
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.ErrorText>{editErrors.raza}</Field.ErrorText>
+                </Field.Root>
 
-              <div className="animal-edit-page__actions">
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="animal-form__cancel"
-                  onClick={cancelEditingDetails}
-                  disabled={isSavingDetails}>
-                  Cancelar
-                </Button>
-                <Button
-                  type="submit"
-                  colorPalette="brand"
-                  loading={isSavingDetails}
-                  loadingText="Guardando...">
-                  Guardar cambios
-                </Button>
-              </div>
-            </form>
+                <Field.Root invalid={!!editErrors.categoria}>
+                  <Field.Label>Categoría</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={editValues.categoria}
+                      onChange={updateEditField("categoria")}
+                    >
+                      <option value="">Seleccioná la categoría</option>
+                      {CATEGORIAS_ANIMAL.map(({ value, label }) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.HelperText>
+                    Sexo:{" "}
+                    {SEXOS.find(
+                      (s) => s.value === sexoDeCategoria(editValues.categoria),
+                    )?.label ?? "—"}{" "}
+                    (sale de la categoría)
+                  </Field.HelperText>
+                  <Field.ErrorText>{editErrors.categoria}</Field.ErrorText>
+                </Field.Root>
+
+                <Field.Root invalid={!!editErrors.fecha_nacimiento}>
+                  <Field.Label>Fecha de nacimiento</Field.Label>
+                  <FechaInput
+                    value={editValues.fecha_nacimiento}
+                    max={new Date().toISOString().split("T")[0]}
+                    onChange={(fecha) =>
+                      setEditField("fecha_nacimiento", fecha)
+                    }
+                  />
+                  <Field.ErrorText>
+                    {editErrors.fecha_nacimiento}
+                  </Field.ErrorText>
+                </Field.Root>
+
+                <Field.Root invalid={!!editErrors.estado}>
+                  <Field.Label>Estado</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={editValues.estado}
+                      onChange={updateEditField("estado")}
+                    >
+                      <option value="">Seleccioná el estado</option>
+                      {ESTADOS_FILTRO.map(({ value, label }) => (
+                        <option key={value} value={value}>
+                          {label}
+                        </option>
+                      ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                  <Field.ErrorText>{editErrors.estado}</Field.ErrorText>
+                </Field.Root>
+
+                <Field.Root className="animal-edit-page__field--full">
+                  <Field.Label>Observación</Field.Label>
+                  <Textarea
+                    value={editValues.observacion}
+                    onChange={updateEditField("observacion")}
+                    rows={3}
+                  />
+                </Field.Root>
+
+                <Field.Root className="animal-edit-page__field--full">
+                  <Field.Label>Lote</Field.Label>
+                  <NativeSelect.Root>
+                    <NativeSelect.Field
+                      value={editValues.lote_id}
+                      onChange={updateEditField("lote_id")}
+                    >
+                      <option value="">Sin lote</option>
+                      {lotes
+                        .filter(
+                          (lote) =>
+                            lote.activo ||
+                            String(lote.id) === editValues.lote_id,
+                        )
+                        .map((lote) => (
+                          <option key={lote.id} value={lote.id}>
+                            {lote.nombre} ·{" "}
+                            {CATEGORIA_ANIMAL_LABELS[lote.categoria] ??
+                              lote.categoria}
+                          </option>
+                        ))}
+                    </NativeSelect.Field>
+                    <NativeSelect.Indicator />
+                  </NativeSelect.Root>
+                </Field.Root>
+
+                <div className="animal-edit-page__actions">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="animal-form__cancel"
+                    onClick={cancelEditingDetails}
+                    disabled={isSavingDetails}
+                  >
+                    Cancelar
+                  </Button>
+                  <Button
+                    type="submit"
+                    colorPalette="brand"
+                    loading={isSavingDetails}
+                    loadingText="Guardando..."
+                  >
+                    Guardar cambios
+                  </Button>
+                </div>
+              </form>
             ) : (
               <>
                 <FichaFilas
@@ -484,39 +548,41 @@ export function AnimalDetailPage() {
                     },
                   ]}
                 />
-              <div className="ficha__acciones">
-                <button
-                  type="button"
-                  className="animal-detail__action"
-                  onClick={startEditingDetails}>
-                  <IconEdit size={16} stroke={1.5} />
-                  Editar
-                </button>
-                <span
-                  className={`animal-detail__action-tooltip-target${
-                    canStartBajaFlow
-                      ? ""
-                      : " animal-detail__action-tooltip-target--disabled"
-                  }`}
-                  title={
-                    canStartBajaFlow
-                      ? undefined
-                      : "No es posible dar de baja o eliminar al animal porque ya no se encuentra activo."
-                  }>
+                <div className="ficha__acciones">
                   <button
                     type="button"
-                    className="animal-detail__action animal-detail__action--danger"
-                    onClick={() => setAnimalParaBaja(animal)}
-                    disabled={!canStartBajaFlow}>
-                    <IconTrash size={16} stroke={1.5} />
-                    Eliminar
+                    className="animal-detail__action"
+                    onClick={startEditingDetails}
+                  >
+                    <IconEdit size={16} stroke={1.5} />
+                    Editar
                   </button>
-                </span>
-              </div>
+                  <span
+                    className={`animal-detail__action-tooltip-target${
+                      canStartBajaFlow
+                        ? ""
+                        : " animal-detail__action-tooltip-target--disabled"
+                    }`}
+                    title={
+                      canStartBajaFlow
+                        ? undefined
+                        : "No es posible dar de baja o eliminar al animal porque ya no se encuentra activo."
+                    }
+                  >
+                    <button
+                      type="button"
+                      className="animal-detail__action animal-detail__action--danger"
+                      onClick={() => setAnimalParaBaja(animal)}
+                      disabled={!canStartBajaFlow}
+                    >
+                      <IconTrash size={16} stroke={1.5} />
+                      Eliminar
+                    </button>
+                  </span>
+                </div>
               </>
             )}
           </Ficha>
-
 
           <AnimalDashboard
             data={dashboardData}
@@ -564,7 +630,6 @@ export function AnimalDetailPage() {
                   Este animal todavía no tiene evaluaciones registradas.
                 </p>
               )}
-
           </section>
         </>
       )}
@@ -587,14 +652,28 @@ export function AnimalDetailPage() {
           onSuccess={handleBajaSuccess}
         />
       )}
-      {!evaluacionesLoading &&
-        !evaluacionesError &&
-        historyItems.length > 0 && (
+      {!evaluacionesLoading && !evaluacionesError && (
+        <div>
+          <Paginador
+            pagina={pagina}
+            total={totalEvaluaciones}
+            onChange={(value) =>
+              setParams(
+                (current) => {
+                  const next = new URLSearchParams(current);
+                  next.set("evalPage", String(value));
+                  return next;
+                },
+                { preventScrollReset: true },
+              )
+            }
+          />
           <AnimalEvaluacionesTable
             evaluaciones={historyItems}
             onEdit={setEvaluacionSeleccionada}
           />
-        )}
+        </div>
+      )}
       {evaluacionSeleccionada && (
         <AnimalEvaluacionCCDialog
           key={evaluacionSeleccionada.id}

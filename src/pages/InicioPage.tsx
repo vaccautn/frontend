@@ -1,3 +1,4 @@
+import { RecordatoriosDestete } from "@/features/animales/components/RecordatoriosDestete";
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Box, Button } from "@chakra-ui/react";
@@ -14,7 +15,7 @@ import { RodeoResumenCompacto } from "@/features/rodeo/components/Resumen/RodeoR
 import { RodeoMovimientosCard } from "@/features/rodeo/components/Resumen/RodeoMovimientosCard";
 import { SesionDashboard } from "@/features/sesiones/components/dashboard/SesionDashboard";
 import { useSesionDashboard } from "@/features/sesiones/hooks/useSesionDashboard";
-import { getTodasLasSesionesConResumen } from "@/features/sesiones/services/sesionesService";
+import { getSesionesConResumen } from "@/features/sesiones/services/sesionesService";
 import type { SesionCapturaConResumen } from "@/features/sesiones/types";
 import { getRecomendacionesSesion } from "@/features/recomendaciones/services/recomendacionesService";
 import type { AptitudVaca } from "@/features/recomendaciones/types";
@@ -40,7 +41,10 @@ export function InicioPage() {
   const lotes = useMemo(() => features.map((f) => f.properties), [features]);
   const lote = lotes.find((l) => l.id === loteId) ?? null;
   const totalHa = lotes.reduce((suma, l) => suma + (l.superficie_ha ?? 0), 0);
-  const totalAnimales = lotes.reduce((suma, l) => suma + l.cantidad_animales, 0);
+  const totalAnimales = lotes.reduce(
+    (suma, l) => suma + l.cantidad_animales,
+    0,
+  );
 
   const { data: dashboard, loading: loadingDashboard } =
     useAnimalesDashboard(loteId);
@@ -60,14 +64,8 @@ export function InicioPage() {
   const [cargandoSesiones, setCargandoSesiones] = useState(true);
   const [errorSesiones, setErrorSesiones] = useState("");
   useEffect(() => {
-    getTodasLasSesionesConResumen({ estado: "CERRADA" })
-      .then((sesiones) =>
-        setUltimaSesion(
-          [...sesiones].sort((a, b) =>
-            b.fecha_inicio.localeCompare(a.fecha_inicio),
-          )[0] ?? null,
-        ),
-      )
+    getSesionesConResumen({ estado: "CERRADA", limit: 1 })
+      .then(({ items }) => setUltimaSesion(items[0] ?? null))
       .catch(() => setErrorSesiones("No se pudo cargar la última sesión."))
       .finally(() => setCargandoSesiones(false));
   }, []);
@@ -80,6 +78,7 @@ export function InicioPage() {
 
   return (
     <section className="inicio">
+      <RecordatoriosDestete />
       <header className="inicio__header">
         <span className="inicio__fecha">{hoy}</span>
         <h1>{user ? `Hola, ${user.nombre}` : "Inicio"}</h1>
@@ -119,7 +118,10 @@ export function InicioPage() {
             />
           </Box>
           <Box className="rodeo-dashboard-full__card">
-            <DashboardEvolucion evolucion={evolucion} loading={loadingDashboard} />
+            <DashboardEvolucion
+              evolucion={evolucion}
+              loading={loadingDashboard}
+            />
           </Box>
         </div>
       </section>
@@ -142,7 +144,8 @@ export function InicioPage() {
             <Button
               variant="outline"
               bg="var(--panel)"
-              onClick={() => navigate(`/sesiones?sesion=${ultimaSesion.id}`)}>
+              onClick={() => navigate(`/sesiones?sesion=${ultimaSesion.id}`)}
+            >
               Ver sesión
               <IconArrowRight size={16} stroke={1.75} />
             </Button>
@@ -150,7 +153,9 @@ export function InicioPage() {
         </div>
 
         {cargandoSesiones && <p className="inicio__vacio">Cargando…</p>}
-        {errorSesiones && <p className="status-message error">{errorSesiones}</p>}
+        {errorSesiones && (
+          <p className="status-message error">{errorSesiones}</p>
+        )}
         {!cargandoSesiones && !errorSesiones && !ultimaSesion && (
           <p className="inicio__vacio">Todavía no hay sesiones cerradas.</p>
         )}
@@ -162,7 +167,11 @@ export function InicioPage() {
 
 /** Mismo dashboard que el detalle de la sesión, con las vacas que todavía
  * tienen una recomendación pendiente. */
-function UltimaSesionDashboard({ sesion }: { sesion: SesionCapturaConResumen }) {
+function UltimaSesionDashboard({
+  sesion,
+}: {
+  sesion: SesionCapturaConResumen;
+}) {
   const dashboard = useSesionDashboard(sesion.id);
   const [pendientes, setPendientes] = useState<AptitudVaca[]>([]);
   const [cargandoPendientes, setCargandoPendientes] = useState(true);

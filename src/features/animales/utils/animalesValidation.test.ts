@@ -21,11 +21,19 @@ describe("validateRodeoNuevoForm", () => {
   });
 
   it("exige el formato SENASA de la caravana", () => {
-    expect(validateRodeoNuevoForm({ ...nuevo, caravana: "V-1" }).caravana).toMatch(/SENASA/);
+    expect(
+      validateRodeoNuevoForm({ ...nuevo, caravana: "V-1" }).caravana,
+    ).toMatch(/SENASA/);
   });
 
-  it("exige la categoría", () => {
-    expect(validateRodeoNuevoForm({ ...nuevo, categoria: "" }).categoria).toBeDefined();
+  it("acepta sólo caravana y lote; la categoría se toma del lote", () => {
+    expect(
+      validateRodeoNuevoForm({
+        ...initialRodeoNuevoValues,
+        caravana: nuevo.caravana,
+        lote_id: "1",
+      }),
+    ).toEqual({});
   });
 });
 
@@ -45,9 +53,12 @@ describe("validateRodeoEditarForm", () => {
   });
 
   it("exige el formato si la caravana cambia", () => {
-    expect(validateRodeoEditarForm({ ...editar, caravana: "V-00002" }, "V-00001").caravana).toMatch(
-      /SENASA/,
-    );
-    expect(validateRodeoEditarForm({ ...editar, caravana: "ab123 0002" }, "V-00001")).toEqual({});
+    expect(
+      validateRodeoEditarForm({ ...editar, caravana: "V-00002" }, "V-00001")
+        .caravana,
+    ).toMatch(/SENASA/);
+    expect(
+      validateRodeoEditarForm({ ...editar, caravana: "ab123 0002" }, "V-00001"),
+    ).toEqual({});
   });
 });

@@ -15,7 +15,8 @@ export const releases: Release[] = [
     etiqueta: "v1.0.0",
     titulo: "Gestión de usuarios y del rodeo",
     fecha: "Julio 2026",
-    resumen: "La base: cada productor entra con su cuenta y administra sus animales.",
+    resumen:
+      "La base: cada productor entra con su cuenta y administra sus animales.",
     funciones: [
       "Registro, inicio y cierre de sesión del productor",
       "Alta de animales desde un formulario lateral",
@@ -29,7 +30,8 @@ export const releases: Release[] = [
     etiqueta: "v1.0.1",
     titulo: "Filtrado y búsqueda en el rodeo",
     fecha: "Julio 2026",
-    resumen: "Encontrar un animal en segundos y empezar a registrar su condición.",
+    resumen:
+      "Encontrar un animal en segundos y empezar a registrar su condición.",
     funciones: [
       "Búsqueda por caravana mientras escribís",
       "Filtros por sexo, raza y estado",
@@ -41,7 +43,8 @@ export const releases: Release[] = [
     etiqueta: "Etapa 3",
     titulo: "Evaluaciones, sesiones y tableros",
     fecha: "Julio 2026",
-    resumen: "De la manga al tablero: se evalúa en sesiones y se ve el estado del rodeo.",
+    resumen:
+      "De la manga al tablero: se evalúa en sesiones y se ve el estado del rodeo.",
     funciones: [
       "Fotos adjuntas a cada evaluación, guardadas en la nube",
       "Cada productor ve solo su rodeo, sus lotes y sus capturas",
@@ -69,14 +72,15 @@ export const releases: Release[] = [
     etiqueta: "Etapa 5",
     titulo: "Servicios y condición corporal automática",
     fecha: "Septiembre 2026",
-    resumen: "La temporada de monta completa, y la IA estimando la condición corporal.",
+    resumen:
+      "Gestión de la temporada de monta y prototipo experimental de condición corporal.",
     funciones: [
       "Categorías de animal y de lote por sexo y etapa productiva",
       "Servicios con lotes asociados y estados que avanzan solos según las fechas",
       "Carga de resultados: preñada, vacía o parida",
       "Calendario, historial y línea de tiempo de nacimientos",
       "Reservicio de vacas vacías",
-      "Condición corporal estimada por IA a partir de una foto",
+      "Estimación experimental de condición corporal por IA, con el modelo instalado",
       "Recomendaciones de manejo para revisar y decidir",
     ],
   },

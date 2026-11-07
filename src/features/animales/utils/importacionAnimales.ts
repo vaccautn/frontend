@@ -36,9 +36,9 @@ export const COLUMNAS_IMPORTACION: ColumnaImportacion[] = [
   {
     clave: "categoria",
     titulo: "Categoría",
-    formato: "Una de las categorías del rodeo",
+    formato: "Opcional: se toma del lote si no se informa",
     ejemplo: "Vaca seca",
-    obligatoria: true,
+    obligatoria: false,
   },
   {
     clave: "lote",
@@ -87,11 +87,20 @@ export const TAMANO_MAX_PLANILLA = 5 * 1024 * 1024;
 export function descargarPlantilla() {
   const filas = [
     COLUMNAS_IMPORTACION.map((c) => c.clave),
-    ["AB123 0001", "Vaca seca", "Lote Norte", "Compra", "15/08/2019", "Brangus"],
+    [
+      "AB123 0001",
+      "Vaca seca",
+      "Lote Norte",
+      "Compra",
+      "15/08/2019",
+      "Brangus",
+    ],
     ["032000123456789", "Ternero", "Recría", "Servicio", "02/09/2026", "Angus"],
   ];
   const csv = "﻿" + filas.map((f) => f.join(";")).join("\r\n");
-  const url = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const url = URL.createObjectURL(
+    new Blob([csv], { type: "text/csv;charset=utf-8" }),
+  );
   const enlace = document.createElement("a");
   enlace.href = url;
   enlace.download = "plantilla-animales.csv";
@@ -135,7 +144,9 @@ export function consultasPendientes(
   });
 }
 
-const CONFIRMACION_CAMPO_VACIO: Partial<Record<CampoImportacion, ConfirmacionImportacion>> = {
+const CONFIRMACION_CAMPO_VACIO: Partial<
+  Record<CampoImportacion, ConfirmacionImportacion>
+> = {
   raza: "RAZA_VACIA",
   fecha_nacimiento: "FECHA_VACIA",
   origen: "ORIGEN_VACIO",
@@ -159,7 +170,10 @@ export function armarConfirmacion(
   decisiones: Decisiones,
 ): Confirmacion {
   const consultas = new Map(analisis.consultas.map((c) => [c.clave, c]));
-  const lotesNuevos = new Map<string, { nombre: string; categoria: CategoriaAnimal | null }>();
+  const lotesNuevos = new Map<
+    string,
+    { nombre: string; categoria: CategoriaAnimal | null }
+  >();
   const lotesReactivar = new Set<number>();
   const filas: FilaConfirmar[] = [];
   const descartadas: number[] = [];
@@ -169,7 +183,11 @@ export function armarConfirmacion(
 
   for (const fila of analisis.filas) {
     if (fila.estado === "ERROR") continue;
-    const enviada: FilaConfirmar = { numero: fila.numero, ...fila.valores, confirmaciones: [] };
+    const enviada: FilaConfirmar = {
+      numero: fila.numero,
+      ...fila.valores,
+      confirmaciones: [],
+    };
     let descartar = false;
     let resuelta = true;
 
@@ -197,14 +215,16 @@ export function armarConfirmacion(
           break;
         }
         case "ORIGEN_SERVICIO":
-          if (opcion === OPCION.CONFIRMAR) enviada.confirmaciones.push("ORIGEN_SERVICIO");
+          if (opcion === OPCION.CONFIRMAR)
+            enviada.confirmaciones.push("ORIGEN_SERVICIO");
           else enviada.origen = opcion;
           break;
         case "LOTE_NUEVO":
           if (opcion === OPCION.CREAR_LOTE) {
             lotesNuevos.set(clave, {
               nombre: consulta.valor,
-              categoria: (decision?.categoriaLote || null) as CategoriaAnimal | null,
+              categoria: (decision?.categoriaLote ||
+                null) as CategoriaAnimal | null,
             });
           } else {
             enviada.lote = opcion;
@@ -261,7 +281,9 @@ export function armarArchivoErrores(
   resultado: ResultadoImportacion,
 ): ArchivoErroresPayload {
   const rechazadas = new Map(
-    resultado.filas.filter((f) => f.estado === "ERROR").map((f) => [f.numero, f.errores]),
+    resultado.filas
+      .filter((f) => f.estado === "ERROR")
+      .map((f) => [f.numero, f.errores]),
   );
   return {
     encabezados: analisis.encabezados,
@@ -271,7 +293,10 @@ export function armarArchivoErrores(
       .map((fila) => ({
         numero: fila.numero,
         celdas: fila.celdas,
-        errores: fila.estado === "ERROR" ? fila.errores : rechazadas.get(fila.numero) ?? [],
+        errores:
+          fila.estado === "ERROR"
+            ? fila.errores
+            : (rechazadas.get(fila.numero) ?? []),
       })),
   };
 }

@@ -123,7 +123,9 @@ export function getEvaluacionesCc(
   );
 }
 
-export function getEntradasSesion(sesionId: number): Promise<EntradasSesionRead> {
+export function getEntradasSesion(
+  sesionId: number,
+): Promise<EntradasSesionRead> {
   const token = getAccessToken();
   return getJson<EntradasSesionRead>(
     `/sesiones-captura/${sesionId}/entradas`,
@@ -248,7 +250,10 @@ export function getAnimalesDashboard(
     loteId != null
       ? `/animales/dashboard?lote_id=${loteId}`
       : "/animales/dashboard";
-  return getJson<DashboardAnimalesData>(path, token);
+  return getJson<DashboardAnimalesData>(path, token).then((data) => ({
+    ...data,
+    alertas: data.alertas_manejo ?? data.alertas,
+  }));
 }
 
 export function getAnimalDashboard(
@@ -292,4 +297,61 @@ export async function registrarEvaluacionCCCompleta(
   }
 
   return { evaluacion: evaluacionFinal, imagenesError };
+}
+
+export type PaginaAnimales = {
+  items: Animal[];
+  total: number;
+  has_more: boolean;
+  cc: Record<
+    string,
+    {
+      valor_cc: number | null;
+      fecha_cc: string | null;
+      escala_min: number;
+      escala_max: number;
+    }
+  >;
+};
+export function getAnimalesPagina(
+  params: AnimalListParams,
+  pagina: number,
+  categoriaLote?: string | null,
+): Promise<PaginaAnimales> {
+  const query = buildAnimalSearchParams(params);
+  query.set("limit", "50");
+  query.set("offset", String(pagina * 50));
+  if (categoriaLote) query.set("categoria_lote", categoriaLote);
+  return getJson<PaginaAnimales>(`/animales/pagina?${query}`, getAccessToken());
+}
+
+export function getEvaluacionesPagina(
+  animalId: number,
+  pagina: number,
+  desde = "",
+  hasta = "",
+  cc = "",
+): Promise<{ items: EvaluacionCC[]; total: number }> {
+  const query = new URLSearchParams({
+    animal_id: String(animalId),
+    paginar: "true",
+    limit: "50",
+    offset: String(pagina * 50),
+  });
+  if (desde) query.set("fecha_desde", desde);
+  if (hasta) query.set("fecha_hasta", hasta);
+  if (cc) {
+    query.set("valor_cc_min", cc);
+    query.set("valor_cc_max", cc);
+  }
+  return getJson(`/evaluaciones-cc/?${query}`, getAccessToken());
+}
+
+export function getUltimaEvaluacionConfirmada(
+  animalId: number,
+): Promise<{ items: EvaluacionCC[] }> {
+  return getJson(
+    `/evaluaciones-cc/?animal_id=${animalId}&estado=CONFIRMADA&paginar=true&limit=1`,
+    getAccessToken(),
+  );
 }

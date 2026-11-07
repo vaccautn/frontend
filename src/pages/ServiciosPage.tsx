@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from "react";
+import { usePageState } from "@/hooks/usePageState";
+import { useEffect, useMemo } from "react";
 import { Outlet, useLocation, useNavigate } from "react-router-dom";
 import { Button } from "@chakra-ui/react";
 import { IconPlus } from "@tabler/icons-react";
@@ -22,11 +23,23 @@ export function ServiciosPage() {
   const navigate = useNavigate();
   const location = useLocation();
 
-  const { estado, fechaDesde, fechaHasta, setEstado, setFechaDesde, setFechaHasta } =
-    useServiciosFiltros();
+  const {
+    estado,
+    fechaDesde,
+    fechaHasta,
+    setEstado,
+    setFechaDesde,
+    setFechaHasta,
+  } = useServiciosFiltros();
   const dashboard = useServiciosDashboard();
-  const [seleccionadoId, setSeleccionadoId] = useState<number | null>(null);
-  const [detalleExpandido, setDetalleExpandido] = useState(false);
+  const [seleccionadoId, setSeleccionadoId] = usePageState<number | null>(
+    "servicios.seleccion",
+    null,
+  );
+  const [detalleExpandido, setDetalleExpandido] = usePageState(
+    "servicios.expandido",
+    false,
+  );
 
   useEffect(() => {
     const state = location.state as NavigationState | null;
@@ -50,7 +63,8 @@ export function ServiciosPage() {
   // hay más de uno) o, si no hay ninguno, el planificado más próximo.
   const servicioPorDefectoId = useMemo(() => {
     const masProximo = (candidatos: typeof servicios) =>
-      candidatos.reduce((a, b) => (a.fecha_inicio <= b.fecha_inicio ? a : b)).id;
+      candidatos.reduce((a, b) => (a.fecha_inicio <= b.fecha_inicio ? a : b))
+        .id;
 
     const enCurso = servicios.filter((s) => s.estado === "EN_CURSO");
     if (enCurso.length > 0) return masProximo(enCurso);
@@ -101,14 +115,17 @@ export function ServiciosPage() {
           <Button
             colorPalette="brand"
             className="boton-agregar"
-            onClick={() => navigate("/servicios/nuevo")}>
+            onClick={() => navigate("/servicios/nuevo")}
+          >
             Planificar servicio
             <IconPlus size={18} stroke={2.25} />
           </Button>
         </div>
       </div>
 
-      {dashboard.error && <p className="status-message error">{dashboard.error}</p>}
+      {dashboard.error && (
+        <p className="status-message error">{dashboard.error}</p>
+      )}
 
       {!dashboard.loading && !dashboard.error && (
         <>
@@ -121,7 +138,8 @@ export function ServiciosPage() {
           )}
 
           <div
-            className={`servicios-cuerpo${detalleExpandido ? " servicios-cuerpo--expandido" : ""}`}>
+            className={`servicios-cuerpo${detalleExpandido ? " servicios-cuerpo--expandido" : ""}`}
+          >
             {!detalleExpandido && (
               <ServiciosListaPanel
                 servicios={servicios}

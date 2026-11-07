@@ -53,7 +53,7 @@ function AnimalesNuevoPage() {
 
   useEffect(() => {
     getLotes()
-      .then(setLotes)
+      .then((data) => setLotes(data.filter((lote) => lote.activo)))
       .catch(() =>
         setLotesError("No se pudieron cargar los lotes disponibles."),
       )
@@ -142,9 +142,11 @@ function AnimalesNuevoPage() {
 
       await registerAnimal({
         caravana: normalizarCaravana(values.caravana),
-        raza: values.raza,
-        categoria: values.categoria,
-        fecha_nacimiento: values.fecha_nacimiento,
+        ...(values.raza ? { raza: values.raza } : {}),
+        ...(values.categoria ? { categoria: values.categoria } : {}),
+        ...(values.fecha_nacimiento
+          ? { fecha_nacimiento: values.fecha_nacimiento }
+          : {}),
         lote_id: loteId,
       });
 
@@ -175,7 +177,8 @@ function AnimalesNuevoPage() {
         if (!details.open) close();
       }}
       placement="end"
-      size="md">
+      size="md"
+    >
       <Portal>
         <Drawer.Backdrop className="animal-form__backdrop" />
         <Drawer.Positioner>
@@ -186,7 +189,8 @@ function AnimalesNuevoPage() {
                 <button
                   type="button"
                   className="animal-form__close"
-                  aria-label="Cerrar">
+                  aria-label="Cerrar"
+                >
                   ✕
                 </button>
               </Drawer.CloseTrigger>
@@ -203,7 +207,8 @@ function AnimalesNuevoPage() {
                 id="animal-nuevo-form"
                 onSubmit={handleSubmit}
                 noValidate
-                className="animal-form__fields">
+                className="animal-form__fields"
+              >
                 <Field.Root invalid={!!errors.caravana}>
                   <Field.Label>Caravana</Field.Label>
                   <Input
@@ -212,17 +217,21 @@ function AnimalesNuevoPage() {
                     placeholder="AB123 0001"
                   />
                   <Field.HelperText>
-                    CUIG y número de animal, o los 15 dígitos de la caravana electrónica.
+                    CUIG y número de animal, o los 15 dígitos de la caravana
+                    electrónica.
                   </Field.HelperText>
                   <Field.ErrorText>{errors.caravana}</Field.ErrorText>
                 </Field.Root>
 
                 <Field.Root invalid={!!errors.raza}>
-                  <Field.Label>Raza</Field.Label>
+                  <Field.Label>Raza (opcional)</Field.Label>
                   <SelectOpciones
                     aria-label="Raza"
                     placeholder="Seleccioná una raza"
-                    opciones={RAZAS.map((raza) => ({ value: raza, label: raza }))}
+                    opciones={RAZAS.map((raza) => ({
+                      value: raza,
+                      label: raza,
+                    }))}
                     value={values.raza}
                     onChange={(raza) => setField("raza", raza)}
                   />
@@ -230,7 +239,9 @@ function AnimalesNuevoPage() {
                 </Field.Root>
 
                 <Field.Root invalid={!!errors.categoria}>
-                  <Field.Label>Categoría</Field.Label>
+                  <Field.Label>
+                    Categoría (por defecto, la del lote)
+                  </Field.Label>
                   <SelectOpciones
                     aria-label="Categoría"
                     placeholder="Seleccioná una categoría"
@@ -247,7 +258,7 @@ function AnimalesNuevoPage() {
                 </Field.Root>
 
                 <Field.Root invalid={!!errors.fecha_nacimiento}>
-                  <Field.Label>Fecha de nacimiento</Field.Label>
+                  <Field.Label>Fecha de nacimiento (opcional)</Field.Label>
                   <FechaInput
                     value={values.fecha_nacimiento}
                     onChange={(fecha) => setField("fecha_nacimiento", fecha)}
@@ -264,7 +275,8 @@ function AnimalesNuevoPage() {
                         <button
                           type="button"
                           className="animal-form__link-button"
-                          onClick={toggleCreatingLote}>
+                          onClick={toggleCreatingLote}
+                        >
                           {isCreatingLote
                             ? "Usar lote existente"
                             : "Crear nuevo lote"}
@@ -274,7 +286,9 @@ function AnimalesNuevoPage() {
                     <SelectOpciones
                       aria-label="Lote"
                       placeholder={
-                        lotesLoading ? "Cargando lotes..." : "Seleccioná un lote"
+                        lotesLoading
+                          ? "Cargando lotes..."
+                          : "Seleccioná un lote"
                       }
                       opciones={lotes.map((lote) => ({
                         value: String(lote.id),
@@ -300,7 +314,8 @@ function AnimalesNuevoPage() {
                           <button
                             type="button"
                             className="animal-form__link-button"
-                            onClick={toggleCreatingLote}>
+                            onClick={toggleCreatingLote}
+                          >
                             {isCreatingLote
                               ? "Usar lote existente"
                               : "Crear nuevo lote"}
@@ -360,7 +375,8 @@ function AnimalesNuevoPage() {
                 type="button"
                 variant="outline"
                 className="animal-form__cancel"
-                onClick={() => close()}>
+                onClick={() => close()}
+              >
                 Cancelar
               </Button>
               <Button
@@ -368,7 +384,8 @@ function AnimalesNuevoPage() {
                 form="animal-nuevo-form"
                 colorPalette="brand"
                 loading={isSubmitting}
-                loadingText="Registrando...">
+                loadingText="Registrando..."
+              >
                 Registrar animal
               </Button>
             </Drawer.Footer>

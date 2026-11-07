@@ -36,9 +36,7 @@ type Props = {
   ordenDisponible: boolean;
   entradasCount: number;
   onResultadosActualizados: () => Promise<void>;
-  onRegistrarRefrescoEntradas: (
-    request: (() => Promise<void>) | null,
-  ) => void;
+  onRegistrarRefrescoEntradas: (request: (() => Promise<void>) | null) => void;
 };
 
 const ESPERA_POLL_MS = 4000;
@@ -97,7 +95,9 @@ export function AnalisisVideoSesion({
       },
       onError: () => {
         setCargando(false);
-        setErrorConsulta("No se pudo recuperar el estado de los análisis de esta sesión.");
+        setErrorConsulta(
+          "No se pudo recuperar el estado de los análisis de esta sesión.",
+        );
       },
       onRefreshFailure: () => {
         setAvisoRefresco(
@@ -117,7 +117,12 @@ export function AnalisisVideoSesion({
       if (recoveryRef.current === recovery) recoveryRef.current = null;
       onRegistrarRefrescoEntradas(null);
     };
-  }, [onRegistrarRefrescoEntradas, onResultadosActualizados, sesionId, usuarioId]);
+  }, [
+    onRegistrarRefrescoEntradas,
+    onResultadosActualizados,
+    sesionId,
+    usuarioId,
+  ]);
 
   const activo = analisisActivo(analisis);
   const analisisVisible = seleccionarAnalisisVisible(analisis);
@@ -139,8 +144,7 @@ export function AnalisisVideoSesion({
     recoveryKey && (!intentoPendiente || intentoPendiente.key === recoveryKey),
   );
   const mismoIntento = recoveryKey
-    ? recoveryKeyCompatible &&
-      (coincideArchivoPendiente || !intentoPendiente)
+    ? recoveryKeyCompatible && (coincideArchivoPendiente || !intentoPendiente)
     : coincideArchivoPendiente;
   const rechazoAdmisionRetenido = Boolean(
     activo?.estado === "ERROR" &&
@@ -151,7 +155,9 @@ export function AnalisisVideoSesion({
     rechazoAdmisionRetenido && mismoIntento,
   );
   const puedeReenviarEnvioIncierto = Boolean(
-    archivo && (activo?.estado === "ENVIANDO" || reintentarRechazoAdmision) && mismoIntento,
+    archivo &&
+      (activo?.estado === "ENVIANDO" || reintentarRechazoAdmision) &&
+      mismoIntento,
   );
   const puedeEnviar = puedeIniciarCarga({
     archivoValido: Boolean(archivo && !errorArchivo),
@@ -173,16 +179,20 @@ export function AnalisisVideoSesion({
     setError(null);
     setAvisoRefresco(null);
     try {
-      const clave = recoveryKeyCompatible && recoveryKey
-        ? recoveryKey
-        : obtenerClaveReintento(sesionId, usuarioId, archivo);
+      const clave =
+        recoveryKeyCompatible && recoveryKey
+          ? recoveryKey
+          : obtenerClaveReintento(sesionId, usuarioId, archivo);
       const aceptado = await subirAnalisisVideo(sesionId, archivo, clave);
       if (aceptado.estado !== "ENVIANDO") {
         confirmarClaveReintentoAceptada(sesionId, usuarioId, clave);
       } else {
         asociarClaveReintentoAnalisis(sesionId, usuarioId, clave, aceptado.id);
       }
-      setAnalisis((actuales) => [aceptado, ...actuales.filter((item) => item.id !== aceptado.id)]);
+      setAnalisis((actuales) => [
+        aceptado,
+        ...actuales.filter((item) => item.id !== aceptado.id),
+      ]);
       if (["IMPORTANDO", "COMPLETADO"].includes(aceptado.estado)) {
         try {
           await actualizarTabla();
@@ -240,7 +250,9 @@ export function AnalisisVideoSesion({
       if (accion === "retry") {
         const actualizado = await reintentarAnalisisVideo(sesionId, item.id);
         setAnalisis((actuales) =>
-          actuales.map((actual) => (actual.id === item.id ? actualizado : actual)),
+          actuales.map((actual) =>
+            actual.id === item.id ? actualizado : actual,
+          ),
         );
       } else {
         await resolverAnalisisVideo(sesionId, item.id);
@@ -255,18 +267,43 @@ export function AnalisisVideoSesion({
   };
 
   return (
-    <section className="analisis-video" aria-labelledby={`video-title-${sesionId}`}>
+    <section
+      className="analisis-video"
+      aria-labelledby={`video-title-${sesionId}`}
+    >
       <div className="analisis-video__encabezado">
         <div>
           <p className="analisis-video__eyebrow">Análisis de la sesión</p>
-          <h2 id={`video-title-${sesionId}`}>Cargar video</h2>
+          <h2 id={`video-title-${sesionId}`}>VACCA · Cargar video</h2>
         </div>
       </div>
 
-      {!sesionAbierta && <p className="analisis-video__nota">Solo se pueden enviar videos mientras la sesión está abierta.</p>}
-      {!ordenDisponible && <p className="analisis-video__alerta">No se puede enviar el video porque hay ingresos históricos sin orden verificable.</p>}
-      {entradasCount === 0 && <p className="analisis-video__nota">Registrá al menos un ingreso ordenado antes de cargar un video.</p>}
-      {activo?.estado === "ENVIANDO" && !clavePendiente && !recoveryKey && !activo.acceso_restringido && <p className="analisis-video__alerta">Este navegador no conserva la clave del envío pendiente. No se puede reenviar con seguridad; el estado se seguirá consultando sin crear otro trabajo.</p>}
+      {!sesionAbierta && (
+        <p className="analisis-video__nota">
+          Solo se pueden enviar videos mientras la sesión está abierta.
+        </p>
+      )}
+      {!ordenDisponible && (
+        <p className="analisis-video__alerta">
+          No se puede enviar el video porque hay ingresos históricos sin orden
+          verificable.
+        </p>
+      )}
+      {entradasCount === 0 && (
+        <p className="analisis-video__nota">
+          Registrá al menos un ingreso ordenado antes de cargar un video.
+        </p>
+      )}
+      {activo?.estado === "ENVIANDO" &&
+        !clavePendiente &&
+        !recoveryKey &&
+        !activo.acceso_restringido && (
+          <p className="analisis-video__alerta">
+            Este navegador no conserva la clave del envío pendiente. No se puede
+            reenviar con seguridad; el estado se seguirá consultando sin crear
+            otro trabajo.
+          </p>
+        )}
 
       <div className="analisis-video__carga">
         <label htmlFor={inputId}>Archivo MP4 o MOV (máximo 50 MiB)</label>
@@ -274,34 +311,76 @@ export function AnalisisVideoSesion({
           id={inputId}
           type="file"
           accept="video/mp4,video/quicktime,.mp4,.mov"
-          disabled={!sesionAbierta || !ordenDisponible || entradasCount === 0 || activo?.acceso_restringido === true || (activo != null && activo.estado !== "ENVIANDO" && !rechazoAdmisionRetenido) || enviando}
+          disabled={
+            !sesionAbierta ||
+            !ordenDisponible ||
+            entradasCount === 0 ||
+            activo?.acceso_restringido === true ||
+            (activo != null &&
+              activo.estado !== "ENVIANDO" &&
+              !rechazoAdmisionRetenido) ||
+            enviando
+          }
           onChange={(event) => {
             setArchivo(event.currentTarget.files?.[0] ?? null);
             setError(null);
           }}
         />
-        {archivo && <span className="analisis-video__archivo">{archivo.name} · {(archivo.size / (1024 * 1024)).toFixed(1)} MiB</span>}
-        {errorArchivo && <p className="analisis-video__alerta" role="alert">{errorArchivo}</p>}
-        {clavePendiente && archivo && !coincideArchivoPendiente && !recoveryKeyCompatible && (
-          <div className="analisis-video__alerta" role="alert">
-            <p>Hay un intento incierto asociado a otro archivo. No se generará una clave nueva automáticamente.</p>
-          </div>
+        {archivo && (
+          <span className="analisis-video__archivo">
+            {archivo.name} · {(archivo.size / (1024 * 1024)).toFixed(1)} MiB
+          </span>
         )}
+        {errorArchivo && (
+          <p className="analisis-video__alerta" role="alert">
+            {errorArchivo}
+          </p>
+        )}
+        {clavePendiente &&
+          archivo &&
+          !coincideArchivoPendiente &&
+          !recoveryKeyCompatible && (
+            <div className="analisis-video__alerta" role="alert">
+              <p>
+                Hay un intento incierto asociado a otro archivo. No se generará
+                una clave nueva automáticamente.
+              </p>
+            </div>
+          )}
         {clavePendiente && !activo && estadoRecuperado && (
           <Button size="sm" variant="outline" onClick={descartarClavePendiente}>
             Descartar clave pendiente
           </Button>
         )}
-        {(activo?.estado === "ENVIANDO" || rechazoAdmisionRetenido) && archivo && !puedeReenviarEnvioIncierto && (
-          <p className="analisis-video__alerta" role="alert">
-            Para recuperar este intento tenés que seleccionar el mismo archivo que originó la solicitud.
-          </p>
-        )}
-        <Button colorPalette="brand" onClick={enviar} disabled={!puedeEnviar} loading={enviando} loadingText="Enviando video...">
-          {enviando ? "Enviando video..." : reintentarRechazoAdmision ? "Reintentar admisión del mismo video" : puedeReenviarEnvioIncierto ? "Reintentar el mismo envío" : "Enviar video"}
+        {(activo?.estado === "ENVIANDO" || rechazoAdmisionRetenido) &&
+          archivo &&
+          !puedeReenviarEnvioIncierto && (
+            <p className="analisis-video__alerta" role="alert">
+              Para recuperar este intento tenés que seleccionar el mismo archivo
+              que originó la solicitud.
+            </p>
+          )}
+        <Button
+          colorPalette="brand"
+          onClick={enviar}
+          disabled={!puedeEnviar}
+          loading={enviando}
+          loadingText="Enviando video..."
+        >
+          {enviando
+            ? "Enviando video..."
+            : reintentarRechazoAdmision
+              ? "Reintentar admisión del mismo video"
+              : puedeReenviarEnvioIncierto
+                ? "Reintentar el mismo envío"
+                : "Enviar video"}
         </Button>
         {enviando && (
-          <div className="analisis-video__progreso" role="status" aria-live="polite">
+          <div
+            className="analisis-video__progreso"
+            role="status"
+            aria-live="polite"
+          >
             <span>Subiendo video…</span>
             <div
               className="analisis-video__barra"
@@ -313,8 +392,16 @@ export function AnalisisVideoSesion({
         )}
       </div>
 
-      {errorConsulta && <p className="analisis-video__alerta" role="alert">{errorConsulta}</p>}
-      {error && <p className="analisis-video__alerta" role="alert">{error}</p>}
+      {errorConsulta && (
+        <p className="analisis-video__alerta" role="alert">
+          {errorConsulta}
+        </p>
+      )}
+      {error && (
+        <p className="analisis-video__alerta" role="alert">
+          {error}
+        </p>
+      )}
       {avisoRefresco && (
         <div className="analisis-video__alerta" role="status">
           <p>{avisoRefresco}</p>
@@ -323,20 +410,28 @@ export function AnalisisVideoSesion({
             variant="outline"
             onClick={() => {
               void recoveryRef.current?.requestEntriesRefresh().catch(() => {});
-            }}>
+            }}
+          >
             Reintentar actualización de ingresos
           </Button>
         </div>
       )}
       {!cargando && analisisVisible && !enviando && (
-        <div className="analisis-video__estado" role="status" aria-live="polite">
+        <div
+          className="analisis-video__estado"
+          role="status"
+          aria-live="polite"
+        >
           <span>
             {analisisVisible.acceso_restringido
               ? "Este análisis conserva su estado, pero el acceso a sus datos fue revocado. Podés resolver el bloqueo sin consultar el contenido."
               : mensajeEstadoAnalisis(analisisVisible)}
           </span>
           {!["COMPLETADO", "ERROR"].includes(analisisVisible.estado) &&
-            !(analisisVisible.estado === "IMPORTANDO" && analisisVisible.error_code) && (
+            !(
+              analisisVisible.estado === "IMPORTANDO" &&
+              analisisVisible.error_code
+            ) && (
               <div
                 className="analisis-video__barra"
                 role="progressbar"
@@ -345,15 +440,38 @@ export function AnalisisVideoSesion({
               />
             )}
           {(analisisVisible.estado === "ERROR" ||
-            (analisisVisible.acceso_restringido && analisisVisible.estado === "ENVIANDO")) && (
+            (analisisVisible.acceso_restringido &&
+              analisisVisible.estado === "ENVIANDO")) && (
             <div className="analisis-video__acciones">
-              {!analisisVisible.acceso_restringido && puedeReintentarAnalisis(analisisVisible) && <Button size="sm" onClick={() => void accionar(analisisVisible, "retry")} loading={accionId === analisisVisible.id}>Reintentar</Button>}
-              {puedeResolverAnalisis(analisisVisible) && <Button size="sm" variant="outline" onClick={() => void accionar(analisisVisible, "resolve")} loading={accionId === analisisVisible.id}>Resolver error</Button>}
+              {!analisisVisible.acceso_restringido &&
+                puedeReintentarAnalisis(analisisVisible) && (
+                  <Button
+                    size="sm"
+                    onClick={() => void accionar(analisisVisible, "retry")}
+                    loading={accionId === analisisVisible.id}
+                  >
+                    Reintentar
+                  </Button>
+                )}
+              {puedeResolverAnalisis(analisisVisible) && (
+                <Button
+                  size="sm"
+                  variant="outline"
+                  onClick={() => void accionar(analisisVisible, "resolve")}
+                  loading={accionId === analisisVisible.id}
+                >
+                  Resolver error
+                </Button>
+              )}
             </div>
           )}
         </div>
       )}
-      {discrepancia && <p className="analisis-video__alerta">La cantidad detectada no coincide con los ingresos de la sesión.</p>}
+      {discrepancia && (
+        <p className="analisis-video__alerta">
+          La cantidad detectada no coincide con los ingresos de la sesión.
+        </p>
+      )}
       {erroresRetenidos.map((item) => (
         <div className="analisis-video__error" key={item.id}>
           <span>
@@ -362,8 +480,25 @@ export function AnalisisVideoSesion({
               : mensajeEstadoAnalisis(item)}
           </span>
           <div className="analisis-video__acciones">
-            {!item.acceso_restringido && puedeReintentarAnalisis(item) && <Button size="sm" onClick={() => void accionar(item, "retry")} loading={accionId === item.id}>Reintentar</Button>}
-            {puedeResolverAnalisis(item) && <Button size="sm" variant="outline" onClick={() => void accionar(item, "resolve")} loading={accionId === item.id}>Resolver error</Button>}
+            {!item.acceso_restringido && puedeReintentarAnalisis(item) && (
+              <Button
+                size="sm"
+                onClick={() => void accionar(item, "retry")}
+                loading={accionId === item.id}
+              >
+                Reintentar
+              </Button>
+            )}
+            {puedeResolverAnalisis(item) && (
+              <Button
+                size="sm"
+                variant="outline"
+                onClick={() => void accionar(item, "resolve")}
+                loading={accionId === item.id}
+              >
+                Resolver error
+              </Button>
+            )}
           </div>
         </div>
       ))}

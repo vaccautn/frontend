@@ -1,8 +1,12 @@
+import { useEvaluacionesFiltradas } from "./EvaluacionesFiltros";
 import { Fragment, useEffect, useState } from "react";
 import { Portal, Spinner, Table } from "@chakra-ui/react";
 import { IconChevronDown, IconPencil, IconX } from "@tabler/icons-react";
 import { getImagenesEvaluacion } from "@/features/animales/services/animalesService";
-import type { EvaluacionCC, EvidenciaImagenRead } from "@/features/animales/types";
+import type {
+  EvaluacionCC,
+  EvidenciaImagenRead,
+} from "@/features/animales/types";
 import { formatFechaDeTimestamp } from "@/features/animales/utils/formatDate";
 import { NIVEL_CC_HEX, nivelCC } from "@/features/animales/utils/ccColor";
 
@@ -15,6 +19,7 @@ export function AnimalEvaluacionesTable({
   evaluaciones,
   onEdit,
 }: AnimalEvaluacionesTableProps) {
+  const { filtradas, filtros } = useEvaluacionesFiltradas(evaluaciones);
   const [expandedId, setExpandedId] = useState<number | null>(null);
 
   const toggleRow = (id: number) => {
@@ -27,11 +32,15 @@ export function AnimalEvaluacionesTable({
     <div className="animales-table__wrapper animal-evaluaciones-table__wrapper">
       <div className="animales-table__summary">
         <div>
-          <span className="animales-table__summary-label">Evaluaciones registradas</span>
+          <span className="animales-table__summary-label">
+            Evaluaciones registradas
+          </span>
           <strong>{evaluaciones.length}</strong>
         </div>
         <div>
-          <span className="animales-table__summary-label">Última evaluación</span>
+          <span className="animales-table__summary-label">
+            Última evaluación
+          </span>
           <strong>
             {evaluaciones.length > 0
               ? formatFechaDeTimestamp(evaluaciones[0].fecha)
@@ -40,9 +49,14 @@ export function AnimalEvaluacionesTable({
         </div>
       </div>
 
+      {filtros}
+      {filtradas.length === 0 && (
+        <p role="status">No hay evaluaciones con estos filtros.</p>
+      )}
       <Table.Root
         className="animales-table animal-evaluaciones-table"
-        interactive>
+        interactive
+      >
         <Table.Header>
           <Table.Row>
             <Table.ColumnHeader>CC</Table.ColumnHeader>
@@ -52,7 +66,7 @@ export function AnimalEvaluacionesTable({
           </Table.Row>
         </Table.Header>
         <Table.Body>
-          {evaluaciones.map((evaluacion) => {
+          {filtradas.map((evaluacion) => {
             const isExpanded = expandedId === evaluacion.id;
 
             return (
@@ -73,15 +87,19 @@ export function AnimalEvaluacionesTable({
                       event.preventDefault();
                       toggleRow(evaluacion.id);
                     }
-                  }}>
+                  }}
+                >
                   <Table.Cell
                     style={{
                       fontWeight: 700,
                       color:
                         evaluacion.valor_cc === null
                           ? undefined
-                          : NIVEL_CC_HEX[nivelCC(evaluacion.valor_cc, evaluacion.fecha)],
-                    }}>
+                          : NIVEL_CC_HEX[
+                              nivelCC(evaluacion.valor_cc, evaluacion.fecha)
+                            ],
+                    }}
+                  >
                     {evaluacion.valor_cc === null
                       ? "Pendiente de CC"
                       : evaluacion.valor_cc.toFixed(1)}
@@ -179,7 +197,8 @@ function AnimalEvaluacionRowDetail({
     <div
       className="animal-evaluaciones-table__detail"
       onClick={(event) => event.stopPropagation()}
-      onKeyDown={(event) => event.stopPropagation()}>
+      onKeyDown={(event) => event.stopPropagation()}
+    >
       <div className="animal-evaluaciones-table__detail-section">
         <span className="animal-evaluaciones-table__detail-label">
           Observaciones
@@ -217,11 +236,9 @@ function AnimalEvaluacionRowDetail({
                 type="button"
                 className="animal-imagenes__thumb"
                 aria-label="Ver imagen en pantalla completa"
-                onClick={() => setFullscreenImage(imagen)}>
-                <img
-                  src={imagen.url}
-                  alt="Evidencia visual de la evaluación"
-                />
+                onClick={() => setFullscreenImage(imagen)}
+              >
+                <img src={imagen.url} alt="Evidencia visual de la evaluación" />
               </button>
             ))}
           </div>
@@ -231,7 +248,8 @@ function AnimalEvaluacionRowDetail({
       <button
         type="button"
         className="animal-evaluaciones-table__detail-edit"
-        onClick={onEdit}>
+        onClick={onEdit}
+      >
         <IconPencil size={14} stroke={1.75} />
         Editar evaluación
       </button>
@@ -240,7 +258,8 @@ function AnimalEvaluacionRowDetail({
         <Portal>
           <div
             className="animal-imagenes__lightbox"
-            onClick={() => setFullscreenImage(null)}>
+            onClick={() => setFullscreenImage(null)}
+          >
             <button
               type="button"
               className="animal-imagenes__lightbox-close"
@@ -248,7 +267,8 @@ function AnimalEvaluacionRowDetail({
               onClick={(event) => {
                 event.stopPropagation();
                 setFullscreenImage(null);
-              }}>
+              }}
+            >
               <IconX size={20} stroke={1.75} />
             </button>
             <img

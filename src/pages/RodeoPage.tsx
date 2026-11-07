@@ -1,3 +1,4 @@
+import { usePageState } from "@/hooks/usePageState";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { Outlet, useNavigate } from "react-router-dom";
 import { MapaLotes } from "@/features/mapa/components/MapaLotes";
@@ -22,13 +23,20 @@ export function RodeoPage() {
     refetch: refetchRecomendaciones,
   } = useRecomendaciones();
 
-  const [mode, setMode] = useState<RodeoMode>("full");
-  const [loteSeleccionadoId, setLoteSeleccionadoId] = useState<number | null>(null);
+  const [mode, setMode] = usePageState<RodeoMode>("rodeo.modo", "full");
+  const [loteSeleccionadoId, setLoteSeleccionadoId] = usePageState<
+    number | null
+  >("rodeo.lote", null);
   const [loteHoverId, setLoteHoverId] = useState<number | null>(null);
 
-  const [busquedaCaravana, setBusquedaCaravana] = useState("");
-  const [busquedaCaravanaDebounced, setBusquedaCaravanaDebounced] = useState("");
-  const [categoriaLote, setCategoriaLote] = useState<CategoriaAnimal | null>(null);
+  const [busquedaCaravana, setBusquedaCaravana] = usePageState(
+    "rodeo.busqueda",
+    "",
+  );
+  const [busquedaCaravanaDebounced, setBusquedaCaravanaDebounced] =
+    useState("");
+  const [categoriaLote, setCategoriaLote] =
+    usePageState<CategoriaAnimal | null>("rodeo.categoria", null);
 
   useEffect(() => {
     const timer = window.setTimeout(() => {
@@ -92,7 +100,10 @@ export function RodeoPage() {
           />
         )}
         {mode === "closed" && (
-          <RodeoPestanaFlotante texto={textoPestana} onClick={() => setMode("docked")} />
+          <RodeoPestanaFlotante
+            texto={textoPestana}
+            onClick={() => setMode("docked")}
+          />
         )}
         {mode === "full" && (
           <RodeoDashboardCompleto

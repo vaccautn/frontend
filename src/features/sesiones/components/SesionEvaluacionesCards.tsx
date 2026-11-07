@@ -1,3 +1,6 @@
+import { useState } from "react";
+import { Paginador } from "@/components/ui/Paginador";
+import { useEvaluacionesFiltradas } from "@/features/animales/components/EvaluacionesFiltros";
 import type { EvaluacionCC } from "@/features/animales/types";
 import { EvaluacionFoto } from "@/features/animales/components/EvaluacionFoto";
 import { getAnimalRfidLabel } from "@/features/animales/utils/animalRfid";
@@ -11,7 +14,17 @@ type Props = {
 
 /** Evaluaciones de la sesión como tarjetas: foto, CC, caravana y
  * observaciones. Clickear una abre la edición. */
-export function SesionEvaluacionesCards({ titulo, evaluaciones, onEdit }: Props) {
+export function SesionEvaluacionesCards({
+  titulo,
+  evaluaciones,
+  onEdit,
+}: Props) {
+  const { filtradas, filtros } = useEvaluacionesFiltradas(evaluaciones);
+  const [pagina, setPagina] = useState(0);
+  const actual = Math.min(
+    pagina,
+    Math.max(0, Math.ceil(filtradas.length / 24) - 1),
+  );
   return (
     <section className="sesion-seccion">
       <div className="sesion-seccion__titulo">
@@ -22,8 +35,15 @@ export function SesionEvaluacionesCards({ titulo, evaluaciones, onEdit }: Props)
             : `${evaluaciones.length} animales`}
         </span>
       </div>
+      {filtros}
+      <Paginador
+        pagina={actual}
+        total={filtradas.length}
+        tamano={24}
+        onChange={setPagina}
+      />
       <ul className="sesion-tarjetas">
-        {evaluaciones.map((evaluacion) => {
+        {filtradas.slice(actual * 24, (actual + 1) * 24).map((evaluacion) => {
           const nivel =
             evaluacion.valor_cc === null
               ? "pendiente"
@@ -35,17 +55,25 @@ export function SesionEvaluacionesCards({ titulo, evaluaciones, onEdit }: Props)
                 type="button"
                 className={`sesion-tarjeta sesion-tarjeta--compacta sesion-tarjeta--boton sesion-tarjeta--${nivel}`}
                 aria-label={`Editar la evaluación de ${caravana}`}
-                onClick={() => onEdit(evaluacion)}>
+                onClick={() => onEdit(evaluacion)}
+              >
                 <div className="sesion-tarjeta__media">
-                  <EvaluacionFoto evaluacionId={evaluacion.id} caravana={caravana} />
-                  <span className={`sesion-tarjeta__cc sesion-tarjeta__cc--${nivel}`}>
+                  <EvaluacionFoto
+                    evaluacionId={evaluacion.id}
+                    caravana={caravana}
+                  />
+                  <span
+                    className={`sesion-tarjeta__cc sesion-tarjeta__cc--${nivel}`}
+                  >
                     {evaluacion.valor_cc === null
                       ? "Pendiente de CC"
                       : evaluacion.valor_cc}
                   </span>
                 </div>
                 <div className="sesion-tarjeta__cuerpo">
-                  <strong className="sesion-tarjeta__caravana">{caravana}</strong>
+                  <strong className="sesion-tarjeta__caravana">
+                    {caravana}
+                  </strong>
                   <span className="sesion-tarjeta__sub">
                     {evaluacion.observaciones || "Sin observaciones"}
                   </span>

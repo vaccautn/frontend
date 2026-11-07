@@ -1,21 +1,26 @@
+import { MovimientoAnimales } from "@/features/animales/components/MovimientoAnimales";
+import { Paginador } from "@/components/ui/Paginador";
+import { usePageState } from "@/hooks/usePageState";
+import type { CcAnimal } from "@/features/animales/components/AnimalesTabla";
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { AgregarAnimalMenu } from "@/features/animales/components/AgregarAnimalMenu";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import { LotesDrawer } from "@/features/lotes/components/LotesDrawer";
 import type { LoteOption } from "@/features/lotes/types";
-import { getAnimales } from "@/features/animales/services/animalesService";
+import { getAnimalesPagina } from "@/features/animales/services/animalesService";
 import { AnimalesFiltros } from "@/features/animales/components/AnimalesFiltros";
 import { AnimalesTabla } from "@/features/animales/components/AnimalesTabla";
-import { rangoDeAlta, type FiltroAlta } from "@/features/animales/utils/filtroAlta";
+import {
+  rangoDeAlta,
+  type FiltroAlta,
+} from "@/features/animales/utils/filtroAlta";
 import type {
   Animal,
   CategoriaAnimal,
   EstadoFiltro,
 } from "@/features/animales/types";
-import type {
-  LotePotreroFeature,
-} from "@/features/mapa/types";
-import { useCcPorAnimal } from "../../hooks/useCcPorAnimal";
+import type { LotePotreroFeature } from "@/features/mapa/types";
+
 import { RodeoMinimapa } from "./RodeoMinimapa";
 import { RodeoLoteSelector } from "./RodeoLoteSelector";
 
@@ -48,8 +53,11 @@ export function RodeoDashboardCompleto({
   onAgregarAnimal,
   onImportarAnimales,
 }: Props) {
-  const [raza, setRaza] = useState<string | null>(null);
-  const [estado, setEstado] = useState<EstadoFiltro | null>("ACTIVO");
+  const [raza, setRaza] = usePageState<string | null>("rodeo.raza", null);
+  const [estado, setEstado] = usePageState<EstadoFiltro | null>(
+    "rodeo.estado",
+    "ACTIVO",
+  );
   const [alta, setAlta] = useState<FiltroAlta | null>(null);
   const [isLotesDrawerOpen, setIsLotesDrawerOpen] = useState(false);
 
@@ -62,7 +70,7 @@ export function RodeoDashboardCompleto({
       .finally(() => setLoadingLotes(false));
   }, []);
   useEffect(() => {
-    fetchLotesOptions();
+    void Promise.resolve().then(fetchLotesOptions);
   }, [fetchLotesOptions]);
 
   const lotePorId = useMemo(() => {
@@ -77,44 +85,87 @@ export function RodeoDashboardCompleto({
     [lotes],
   );
 
+  const [seleccionados, setSeleccionados] = useState<Set<number>>(new Set());
+  const [revision, setRevision] = useState(0);
   const [animales, setAnimales] = useState<Animal[]>([]);
   const [loadingAnimales, setLoadingAnimales] = useState(true);
-  useEffect(() => {
-    setLoadingAnimales(true);
-    getAnimales({
-      ...(estado ? { estado } : {}),
-      ...(raza ? { raza } : {}),
-      ...(busquedaCaravanaDebounced
-        ? { caravana: busquedaCaravanaDebounced }
-        : {}),
-      ...(loteSeleccionadoId !== null ? { lote_id: loteSeleccionadoId } : {}),
-      ...rangoDeAlta(alta),
-    })
-      .then(setAnimales)
-      .catch(() => setAnimales([]))
-      .finally(() => setLoadingAnimales(false));
-  }, [estado, raza, busquedaCaravanaDebounced, loteSeleccionadoId, alta]);
-
-  const animalesFiltrados = useMemo(() => {
-    if (!categoriaLote) return animales;
-    return animales.filter(
-      (a) =>
-        a.lote_id !== null &&
-        lotePorId.get(a.lote_id)?.categoria === categoriaLote,
-    );
-  }, [animales, categoriaLote, lotePorId]);
-
-  const loteIds = useMemo(
-    () => [
-      ...new Set(
-        animalesFiltrados
-          .map((a) => a.lote_id)
-          .filter((id): id is number => id !== null),
-      ),
-    ],
-    [animalesFiltrados],
+  const [errorAnimales, setErrorAnimales] = useState("");
+  const [total, setTotal] = useState(0);
+  const [ccPorAnimal, setCcPorAnimal] = useState<Map<number, CcAnimal>>(
+    new Map(),
   );
-  const { ccPorAnimal } = useCcPorAnimal(loteIds);
+  const [paginacion, setPaginacion] = usePageState("rodeo.pagina", {
+    key: "",
+    pagina: 0,
+  });
+  const filtroKey = JSON.stringify([
+    estado,
+    raza,
+    busquedaCaravanaDebounced,
+    loteSeleccionadoId,
+    categoriaLote,
+    alta,
+  ]);
+  const pagina = paginacion.key === filtroKey ? paginacion.pagina : 0;
+  const cambiarPagina = (value: number) =>
+    setPaginacion({ key: filtroKey, pagina: value });
+  useEffect(() => {
+    let cancelled = false;
+    void Promise.resolve().then(() => {
+      if (cancelled) return;
+      setSeleccionados(new Set());
+      setLoadingAnimales(true);
+      setErrorAnimales("");
+      getAnimalesPagina(
+        {
+          ...(estado ? { estado } : {}),
+          ...(raza ? { raza } : {}),
+          ...(busquedaCaravanaDebounced
+            ? { caravana: busquedaCaravanaDebounced }
+            : {}),
+          ...(loteSeleccionadoId !== null
+            ? { lote_id: loteSeleccionadoId }
+            : {}),
+          ...rangoDeAlta(alta),
+        },
+        pagina,
+        categoriaLote,
+      )
+        .then((data) => {
+          if (!cancelled) {
+            setAnimales(data.items);
+            setTotal(data.total);
+            setCcPorAnimal(
+              new Map(
+                Object.entries(data.cc).map(([id, cc]) => [Number(id), cc]),
+              ),
+            );
+          }
+        })
+        .catch(() => {
+          if (!cancelled)
+            setErrorAnimales(
+              "No se pudieron cargar los animales. Intent? nuevamente.",
+            );
+        })
+        .finally(() => {
+          if (!cancelled) setLoadingAnimales(false);
+        });
+    });
+    return () => {
+      cancelled = true;
+    };
+  }, [
+    estado,
+    raza,
+    busquedaCaravanaDebounced,
+    loteSeleccionadoId,
+    categoriaLote,
+    alta,
+    pagina,
+    revision,
+  ]);
+  const animalesFiltrados = animales;
 
   const handleLoteNombreClick = (loteIdClickeado: number) => {
     onLoteClick(loteIdClickeado);
@@ -195,12 +246,31 @@ export function RodeoDashboardCompleto({
               />
             </div>
 
+            <Paginador pagina={pagina} total={total} onChange={cambiarPagina} />
+            <MovimientoAnimales
+              animales={animales.filter((a) => seleccionados.has(a.id))}
+              lotes={lotesOptions}
+              onMovidos={() => {
+                setSeleccionados(new Set());
+                setRevision((r) => r + 1);
+              }}
+            />
             <AnimalesTabla
+              seleccionados={seleccionados}
+              onSeleccionar={(id) =>
+                setSeleccionados((prev) => {
+                  const next = new Set(prev);
+                  if (next.has(id)) next.delete(id);
+                  else next.add(id);
+                  return next;
+                })
+              }
               animales={animalesFiltrados}
               lotePorId={lotePorId}
               ccPorAnimal={ccPorAnimal}
               onLoteNombreClick={handleLoteNombreClick}
               loading={loadingAnimales}
+              error={errorAnimales}
             />
           </div>
         </div>

@@ -46,6 +46,14 @@ _tmp_*
 *.sw?
 
 .claude
+
+# Resultados de validación locales
+/.local/
+/.*-tests.txt
+/.lint-results*
+/.browser-results.txt
+/.build-results.txt
+/.flows-results.txt
 # Playwright
 test-results/
 playwright-report/

@@ -115,7 +115,7 @@ describe("ImportarAnimalesPage", () => {
     expect(screen.getByText("Formato del archivo")).toBeInTheDocument();
     expect(screen.queryByText("Sexo")).not.toBeInTheDocument();
     expect(screen.getByText("Origen")).toBeInTheDocument();
-    expect(screen.getAllByText("Obligatoria")).toHaveLength(3);
+    expect(screen.getAllByText("Obligatoria")).toHaveLength(2);
     expect(await screen.findByText("Viejo")).toBeInTheDocument();
     expect(screen.getByText("Ver razas aceptadas")).toBeInTheDocument();
   });

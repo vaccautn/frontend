@@ -34,18 +34,6 @@ export function validateRodeoNuevoForm(
     errors.caravana = errorCaravana;
   }
 
-  if (!values.raza.trim()) {
-    errors.raza = "La raza es obligatoria.";
-  }
-
-  if (!values.categoria) {
-    errors.categoria = "La categoría es obligatoria.";
-  }
-
-  if (!values.fecha_nacimiento) {
-    errors.fecha_nacimiento = "La fecha de nacimiento es obligatoria.";
-  }
-
   if (!values.lote_id) {
     errors.lote_id = "Debes elegir un lote.";
   }
@@ -86,7 +74,8 @@ export function validateRodeoEditarForm(
   const errors: RodeoEditarFieldErrors = {};
 
   const cambioCaravana =
-    normalizarCaravana(values.caravana) !== normalizarCaravana(caravanaOriginal);
+    normalizarCaravana(values.caravana) !==
+    normalizarCaravana(caravanaOriginal);
   const errorCaravana = values.caravana.trim()
     ? cambioCaravana
       ? validarCaravana(values.caravana)
@@ -96,17 +85,11 @@ export function validateRodeoEditarForm(
     errors.caravana = errorCaravana;
   }
 
-  if (!values.raza.trim()) {
-    errors.raza = "La raza es obligatoria.";
-  }
-
   if (!values.categoria) {
     errors.categoria = "La categoría es obligatoria.";
   }
 
-  if (!values.fecha_nacimiento) {
-    errors.fecha_nacimiento = "La fecha de nacimiento es obligatoria.";
-  } else {
+  if (values.fecha_nacimiento) {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     const fechaNac = new Date(values.fecha_nacimiento);
@@ -128,5 +111,7 @@ export function validateRodeoEditarForm(
 
 function validarCaravana(valor: string): string | null {
   if (!valor.trim()) return "El ID de caravana es obligatorio.";
-  return esCaravanaValida(normalizarCaravana(valor)) ? null : MENSAJE_FORMATO_CARAVANA;
+  return esCaravanaValida(normalizarCaravana(valor))
+    ? null
+    : MENSAJE_FORMATO_CARAVANA;
 }
