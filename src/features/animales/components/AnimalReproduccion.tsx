@@ -67,7 +67,9 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
               </Link>
             )}
             {!r.cria_id && ["PRENADA", "PARIDA"].includes(r.estado) && (
-              <Button colorPalette="brand" variant="outline"
+              <Button
+                colorPalette="brand"
+                variant="outline"
                 type="button"
                 onClick={() => {
                   setRegistrando(r.id);
@@ -124,30 +126,35 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
           </label>
           <label>
             Nuevo lote
-            <NativeSelect.Root><NativeSelect.Field
-
-              value={lote}
-              onChange={(e) => setLote(e.target.value)}
-            >
-              <option value="">Elegir lote</option>
-              {lotes
-                .filter((l) => l.activo)
-                .map((l) => (
-                  <option key={l.id} value={l.id}>
-                    {l.nombre}
-                  </option>
-                ))}
-            </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
+            <NativeSelect.Root>
+              <NativeSelect.Field
+                value={lote}
+                onChange={(e) => setLote(e.target.value)}
+              >
+                <option value="">Elegir lote</option>
+                {lotes
+                  .filter((l) => l.activo)
+                  .map((l) => (
+                    <option key={l.id} value={l.id}>
+                      {l.nombre}
+                    </option>
+                  ))}
+              </NativeSelect.Field>
+              <NativeSelect.Indicator />
+            </NativeSelect.Root>
           </label>
           <label>
             Categoría
-            <NativeSelect.Root><NativeSelect.Field
-              value={categoria}
-              onChange={(e) => setCategoria(e.target.value)}
-            >
-              <option value="TERNERA">Ternera</option>
-              <option value="TERNERO">Ternero</option>
-            </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
+            <NativeSelect.Root>
+              <NativeSelect.Field
+                value={categoria}
+                onChange={(e) => setCategoria(e.target.value)}
+              >
+                <option value="TERNERA">Ternera</option>
+                <option value="TERNERO">Ternero</option>
+              </NativeSelect.Field>
+              <NativeSelect.Indicator />
+            </NativeSelect.Root>
           </label>
           <label>
             Fecha de nacimiento
@@ -159,10 +166,20 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
               onChange={(e) => setFecha(e.target.value)}
             />
           </label>
-          <Button colorPalette="brand" variant="outline" disabled={busy} type="submit">
+          <Button
+            colorPalette="brand"
+            variant="outline"
+            disabled={busy}
+            type="submit"
+          >
             Guardar nacimiento
           </Button>
-          <Button colorPalette="brand" variant="outline" type="button" onClick={() => setRegistrando(null)}>
+          <Button
+            colorPalette="brand"
+            variant="outline"
+            type="button"
+            onClick={() => setRegistrando(null)}
+          >
             Cancelar
           </Button>
         </form>

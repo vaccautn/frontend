@@ -1,8 +1,6 @@
-/** Caravana: identificación oficial SENASA, única de por vida.
- * Refleja app/services/caravana.py del backend, que es quien valida en última
- * instancia: CUIG (2 letras y 3 números) + número de animal (4 números), p. ej.
- * "AB123 0001", o los 15 dígitos de la identificación electrónica. Se guarda en
- * mayúsculas y sin espacios. */
+/** Formato acordado para la identificación en VACCA: dos letras ASCII,
+ * tres dígitos y cuatro caracteres alfanuméricos ASCII, o quince dígitos.
+ * El servidor vuelve a validar y guarda en mayúsculas y sin espacios. */
 
 export const MENSAJE_FORMATO_CARAVANA =
   "La caravana debe tener el formato de SENASA: CUIG y número de animal (ej.: AB123 0001) o los 15 dígitos de la identificación electrónica.";

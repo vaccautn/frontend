@@ -253,7 +253,6 @@ export function AnimalDetailPage() {
 
     const nextErrors = validateRodeoEditarForm(
       editValues,
-      animal.caravana ?? "",
     );
     setEditErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;

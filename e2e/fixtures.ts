@@ -1,6 +1,6 @@
 import { test as base, expect, type APIRequestContext } from "@playwright/test";
 
-export const API = "http://127.0.0.1:8010/api";
+export const API = process.env.E2E_API_BASE_URL ?? "http://127.0.0.1:8010/api";
 
 type Productor = {
   token: string;

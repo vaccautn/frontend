@@ -10,7 +10,7 @@ Las capturas están aplazadas por pedido del usuario.
 |---|---|
 | Base integrada | Importación `feat/carga`, backend de mapa/reproducción y ramas de integración de video. Migración con una sola cabecera. |
 | Rendimiento | Páginas de 50 animales con CC incluida; panel general paginado; tablas de carga acotadas; historial del animal paginado en servidor y tarjetas de sesión de a 24; última CC seleccionada en SQL; promedios mensuales agregados en SQL; Inicio consulta una sola sesión; páginas cargadas por demanda. |
-| Importación | CSV/XLSX, revisión, confirmación parcial, corrección/descarga de errores, nuevas tandas con responsable. Sólo se exigen columnas caravana y lote; categoría ausente se deduce del animal existente o del lote. Si se crea un lote sin ninguna categoría conocida, hay que informarla. |
+| Importación | CSV/XLSX, revisión, confirmación parcial, corrección/descarga de errores, nuevas tandas con responsable. Se exigen los seis encabezados y valor en caravana, categoría y lote. Origen, fecha y raza ausentes requieren confirmación. El mínimo caravana/lote se conserva en alta manual y tabla. |
 | Alta mínima | Caravana y lote; categoría heredada del lote, sexo deducido y fecha/raza opcionales. El alta individual rechaza lotes inactivos; el importador conserva la confirmación explícita para reactivarlos. |
 | Tabla de alta | `/rodeo/carga-tabla`, hasta 50 filas, validación completa antes de guardar y una tanda por productor. Borrador conservado en la pestaña. |
 | Campo compartido | `/campo`: un campo por propietario, colaboradores con cuentas existentes y revocación de acceso. Colaboradores pueden gestionar el rodeo; sólo el propietario administra miembros. Selector de campo activo y estado de interfaz aislado por cuenta/campo. |
@@ -27,10 +27,10 @@ Las capturas están aplazadas por pedido del usuario.
 
 ## Validación reproducible
 
-Última pasada: **713 pruebas de backend aprobadas (1 omitida)**,
-**52 de frontend**, **14 de recuperación de video** y **308 de IA**
+Última pasada: **730 pruebas de backend aprobadas (1 omitida)**,
+**56 de frontend**, **14 de recuperación de video** y **308 de IA**
 (45 de API y 263 de tracking/pasadas; 2 omitidas por dependencias opcionales).
-Build y tipos del frontend aprobados. Navegación de 28 vistas y flujo de
+Build y tipos del frontend aprobados. Los seis E2E de importación pasaron en escritorio/celular, incluida descarga, corrección y reimportación de errores. Navegación de 28 vistas y flujo de
 alta en tabla/historial/movimientos comprobados en navegador, sin capturas.
 
 - Backend: `python -m pytest -q`; suite de negocio, permisos y video. Nuevos casos en `tests/test_mejoras_gestion.py`.
@@ -40,7 +40,7 @@ alta en tabla/historial/movimientos comprobados en navegador, sin capturas.
 - `scripts/carga-movimiento.browser.test.mjs`: guarda una tanda en una base de demo, consulta el historial y confirma un movimiento entre distintos lotes.
 - `scripts/performance-preview.mjs`: mide respuestas de la demo aislada de 3.000 vacas y 125 toros. Medianas iniciales locales: tabla 22 ms/14,6 KB, mapa 261 ms, dashboard 242 ms y última sesión 17 ms. No son tiempos de producción ni una comparación controlada con la versión anterior.
 - Backend `scripts/preview_local.py`: base SQLite separada en `.local/preview`, sin usar datos ni credenciales productivas. Las cuentas de demostración son exclusivas de esa base.
-- Migración PostgreSQL: se compiló el upgrade desde `c9d0e1f2a3b4` al nuevo head `20261106_actividad_campos`. No se aplicó a una base productiva. Las migraciones anteriores incluyen comprobaciones de datos que deben ejecutarse sobre la base destino.
+- Migración PostgreSQL: se compiló el upgrade desde `c9d0e1f2a3b4` al head de actividad `20261106_actividad_campos`; ahora la cabecera única es `20261107_identificacion`, con comprobación de datos probada en SQLite aislado. No se aplicó a una base productiva. Las migraciones anteriores incluyen comprobaciones de datos que deben ejecutarse sobre la base destino.
 
 ## Límites que requieren revisión
 
@@ -48,3 +48,5 @@ alta en tabla/historial/movimientos comprobados en navegador, sin capturas.
 - Pendiente de Diego: edad/dentición, criterio definitivo de identificación, estados iniciales, reglas de reservicio sobre polígonos y valoración de NDVI/inundaciones. Se conservan las reglas existentes, con categoría heredada del lote para el alta mínima.
 - El lint de frontend heredó avisos/errores de los componentes existentes con las reglas nuevas de React sobre efectos y Fast Refresh. Build, tipos, tests y navegador se verifican por separado; no se desactivaron reglas para ocultarlos.
 - No se hicieron capturas, push, despliegue ni cambios sobre bases de datos reales.
+
+La matriz detallada de criterios y contradicciones está en [CIERRE_LISTA_VACCA.md](CIERRE_LISTA_VACCA.md).

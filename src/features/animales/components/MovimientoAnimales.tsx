@@ -58,27 +58,49 @@ export function MovimientoAnimales({
       )}
       <label>
         Mover al lote
-        <NativeSelect.Root><NativeSelect.Field value={destino} onChange={(e) => setDestino(e.target.value)}>
-          <option value="">Elegí un lote</option>
-          {lotes
-            .filter((l) => l.activo)
-            .map((l) => (
-              <option key={l.id} value={l.id}>
-                {l.nombre}
-              </option>
-            ))}
-        </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
+        <NativeSelect.Root>
+          <NativeSelect.Field
+            value={destino}
+            onChange={(e) => setDestino(e.target.value)}
+          >
+            <option value="">Elegí un lote</option>
+            {lotes
+              .filter((l) => l.activo)
+              .map((l) => (
+                <option key={l.id} value={l.id}>
+                  {l.nombre}
+                </option>
+              ))}
+          </NativeSelect.Field>
+          <NativeSelect.Indicator />
+        </NativeSelect.Root>
       </label>
-      <Button colorPalette="brand" variant="outline"
+      <Button
+        colorPalette="brand"
+        variant="outline"
         type="button"
         disabled={!destino || guardando}
         onClick={() => setConfirmando(true)}
       >
         {guardando ? "Moviendo…" : "Mover animales"}
       </Button>
-      <ConfirmacionDialog open={confirmando} titulo="Confirmar movimiento" confirmar="Mover animales" pendiente={guardando} onClose={() => setConfirmando(false)} onConfirm={() => void mover()}>
-        {varios && <p className="status-message warning" role="alert">Seleccionaste animales de distintos lotes.</p>}
-        <p>Se moverán {animales.length} animales al lote {lotes.find(l => l.id === Number(destino))?.nombre}.</p>
+      <ConfirmacionDialog
+        open={confirmando}
+        titulo="Confirmar movimiento"
+        confirmar="Mover animales"
+        pendiente={guardando}
+        onClose={() => setConfirmando(false)}
+        onConfirm={() => void mover()}
+      >
+        {varios && (
+          <p className="status-message warning" role="alert">
+            Seleccionaste animales de distintos lotes.
+          </p>
+        )}
+        <p>
+          Se moverán {animales.length} animales al lote{" "}
+          {lotes.find((l) => l.id === Number(destino))?.nombre}.
+        </p>
       </ConfirmacionDialog>
     </div>
   );

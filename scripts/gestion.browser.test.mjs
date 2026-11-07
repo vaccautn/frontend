@@ -84,6 +84,21 @@ try {
         false,
         `Desborde horizontal de página en ${path} (${viewport.width}px)`,
       );
+      // Los módulos nuevos usan el tema y los controles del resto de VACCA.
+      const estilos = await page.evaluate(() => {
+        const cards = [...document.querySelectorAll(".gestion-card")];
+        const botones = [...document.querySelectorAll(".gestion-page button, .gestion-filter button")];
+        const radio = getComputedStyle(document.documentElement).getPropertyValue("--radius-lg").trim();
+        return {
+          cardsConTema: cards.every(card => {
+            const estilo = getComputedStyle(card);
+            return estilo.borderTopLeftRadius === radio && estilo.backgroundColor !== "rgba(0, 0, 0, 0)" && estilo.boxShadow !== "none";
+          }),
+          controlesConTema: botones.every(button => button.classList.contains("chakra-button")),
+        };
+      });
+      assert.ok(estilos.cardsConTema, `Tarjetas fuera del tema en ${path}`);
+      assert.ok(estilos.controlesConTema, `Botones fuera del tema en ${path}`);
       if (path === "/rodeo") {
         await page.getByRole("navigation", { name: "Paginación" }).waitFor();
         assert.ok(

@@ -1,3 +1,4 @@
+import { Button } from "@chakra-ui/react";
 export function Paginador({
   pagina,
   total,
@@ -12,23 +13,29 @@ export function Paginador({
   const paginas = Math.max(1, Math.ceil(total / tamano));
   return (
     <nav className="paginador" aria-label="Paginación">
-      <button
+      <Button
+        colorPalette="brand"
+        variant="outline"
+        borderRadius="full"
         type="button"
         disabled={pagina <= 0}
         onClick={() => onChange(pagina - 1)}
       >
         Anterior
-      </button>
+      </Button>
       <span role="status">
         Página {pagina + 1} de {paginas} · {total} resultados
       </span>
-      <button
+      <Button
+        colorPalette="brand"
+        variant="outline"
+        borderRadius="full"
         type="button"
         disabled={pagina + 1 >= paginas}
         onClick={() => onChange(pagina + 1)}
       >
         Siguiente
-      </button>
+      </Button>
     </nav>
   );
 }

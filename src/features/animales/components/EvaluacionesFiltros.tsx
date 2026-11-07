@@ -54,27 +54,32 @@ export function useEvaluacionesFiltradas(evaluaciones: EvaluacionCC[]) {
       </label>
       <label>
         Calificación
-        <NativeSelect.Root><NativeSelect.Field
-          value={cc}
-          onChange={(e) => setFiltro("evalCC", e.target.value)}
-        >
-          <option value="">Todas</option>
-          {[1, 2, 3, 4, 5].map((n) => (
-            <option key={n} value={n}>
-              CC {n}
-            </option>
-          ))}
-        </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
+        <NativeSelect.Root>
+          <NativeSelect.Field
+            value={cc}
+            onChange={(e) => setFiltro("evalCC", e.target.value)}
+          >
+            <option value="">Todas</option>
+            {[1, 2, 3, 4, 5].map((n) => (
+              <option key={n} value={n}>
+                CC {n}
+              </option>
+            ))}
+          </NativeSelect.Field>
+          <NativeSelect.Indicator />
+        </NativeSelect.Root>
       </label>
       {(desde || hasta || cc) && (
-        <Button colorPalette="brand" variant="outline"
+        <Button
+          colorPalette="brand"
+          variant="outline"
           type="button"
           onClick={() =>
             setParams(
               (current) => {
                 const next = new URLSearchParams(current);
-                ["evalDesde", "evalHasta", "evalCC", "evalPage"].forEach((key) =>
-                  next.delete(key),
+                ["evalDesde", "evalHasta", "evalCC", "evalPage"].forEach(
+                  (key) => next.delete(key),
                 );
                 return next;
               },

@@ -77,22 +77,25 @@ export function CamposPage() {
       <div className="gestion-filter">
         <label>
           Campo activo
-          <NativeSelect.Root><NativeSelect.Field
-            value={sessionStorage.getItem("vacca.campoActivo") ?? ""}
-            onChange={(e) => {
-              if (e.target.value)
-                sessionStorage.setItem("vacca.campoActivo", e.target.value);
-              else sessionStorage.removeItem("vacca.campoActivo");
-              window.location.assign("/rodeo");
-            }}
-          >
-            <option value="">Mi rodeo y campos compartidos</option>
-            {campos.map((c) => (
-              <option key={c.id} value={c.id}>
-                {c.nombre}
-              </option>
-            ))}
-          </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
+          <NativeSelect.Root>
+            <NativeSelect.Field
+              value={sessionStorage.getItem("vacca.campoActivo") ?? ""}
+              onChange={(e) => {
+                if (e.target.value)
+                  sessionStorage.setItem("vacca.campoActivo", e.target.value);
+                else sessionStorage.removeItem("vacca.campoActivo");
+                window.location.assign("/rodeo");
+              }}
+            >
+              <option value="">Mi rodeo y campos compartidos</option>
+              {campos.map((c) => (
+                <option key={c.id} value={c.id}>
+                  {c.nombre}
+                </option>
+              ))}
+            </NativeSelect.Field>
+            <NativeSelect.Indicator />
+          </NativeSelect.Root>
         </label>
       </div>
       {campos.map((c) => (
@@ -100,7 +103,9 @@ export function CamposPage() {
           <h2>{c.nombre}</h2>
           <p>{c.es_propietario ? "Propietario" : "Colaborador"}</p>
           {c.es_propietario && (
-            <Button colorPalette="brand" variant="outline"
+            <Button
+              colorPalette="brand"
+              variant="outline"
               type="button"
               onClick={() => {
                 setMiembros([]);
@@ -123,7 +128,12 @@ export function CamposPage() {
               onChange={(e) => setNombre(e.target.value)}
             />
           </label>
-          <Button colorPalette="brand" variant="outline" disabled={busy} type="submit">
+          <Button
+            colorPalette="brand"
+            variant="outline"
+            disabled={busy}
+            type="submit"
+          >
             Crear campo
           </Button>
         </form>
@@ -154,18 +164,26 @@ export function CamposPage() {
                 onChange={(e) => setEmail(e.target.value)}
               />
             </label>
-            <Button colorPalette="brand" variant="solid" type="submit" disabled={busy}>
+            <Button
+              colorPalette="brand"
+              variant="solid"
+              type="submit"
+              disabled={busy}
+            >
               Agregar colaborador
             </Button>
           </form>
           {miembros.map((m) => (
             <div className="gestion-member" key={m.id}>
               {m.nombre} · {m.email}{" "}
-              <Button colorPalette="brand" variant="outline"
+              <Button
+                colorPalette="brand"
+                variant="outline"
                 type="button"
                 disabled={busy}
                 onClick={() => {
-                  setError(""); setAQuitar(m);
+                  setError("");
+                  setAQuitar(m);
                 }}
               >
                 Quitar acceso
@@ -174,9 +192,33 @@ export function CamposPage() {
           ))}
         </section>
       )}
-      <ConfirmacionDialog open={aQuitar !== null} titulo="Quitar acceso al campo" confirmar="Quitar acceso" peligro pendiente={busy} onClose={() => setAQuitar(null)} onConfirm={() => { if (aQuitar) void actuar(async () => { await deleteRequest(`/campos/${administrar}/miembros/${aQuitar.id}`, getAccessToken()); setAQuitar(null); }); }}>
-        <p>{aQuitar?.nombre || aQuitar?.email} dejará de tener acceso a este campo.</p>
-        {error && <p role="alert" className="status-message error">{error}</p>}
+      <ConfirmacionDialog
+        open={aQuitar !== null}
+        titulo="Quitar acceso al campo"
+        confirmar="Quitar acceso"
+        peligro
+        pendiente={busy}
+        onClose={() => setAQuitar(null)}
+        onConfirm={() => {
+          if (aQuitar)
+            void actuar(async () => {
+              await deleteRequest(
+                `/campos/${administrar}/miembros/${aQuitar.id}`,
+                getAccessToken(),
+              );
+              setAQuitar(null);
+            });
+        }}
+      >
+        <p>
+          {aQuitar?.nombre || aQuitar?.email} dejará de tener acceso a este
+          campo.
+        </p>
+        {error && (
+          <p role="alert" className="status-message error">
+            {error}
+          </p>
+        )}
       </ConfirmacionDialog>
     </section>
   );

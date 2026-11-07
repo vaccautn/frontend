@@ -1,6 +1,11 @@
 import { Paginador } from "@/components/ui/Paginador";
 import { useState } from "react";
-import { IconAlertCircle, IconCircleCheck, IconHelpCircle, IconSparkles } from "@tabler/icons-react";
+import {
+  IconAlertCircle,
+  IconCircleCheck,
+  IconHelpCircle,
+  IconSparkles,
+} from "@tabler/icons-react";
 import { CATEGORIA_ANIMAL_LABELS } from "@/features/animales/constants";
 import type {
   CampoImportacion,
@@ -22,9 +27,12 @@ const FILTROS: { valor: Filtro; etiqueta: string }[] = [
   { valor: "ERROR", etiqueta: "Con errores" },
 ];
 
-const ESTADOS: Record<EstadoFilaImportacion, { etiqueta: string; icono: typeof IconCircleCheck }> = {
+const ESTADOS: Record<
+  EstadoFilaImportacion,
+  { etiqueta: string; icono: typeof IconCircleCheck }
+> = {
   LISTA: { etiqueta: "Lista", icono: IconCircleCheck },
-  INFERIDA: { etiqueta: "Lista", icono: IconSparkles },
+  INFERIDA: { etiqueta: "Lista con inferencias", icono: IconSparkles },
   CONSULTA: { etiqueta: "Requiere tu decisión", icono: IconHelpCircle },
   ERROR: { etiqueta: "Con errores", icono: IconAlertCircle },
 };
@@ -34,24 +42,43 @@ function mostrarValor(fila: FilaAnalizada, campo: CampoImportacion): string {
   if (!valor) return "";
   if (campo === "fecha_nacimiento") return formatFecha(valor);
   if (campo === "categoria") return CATEGORIA_ANIMAL_LABELS[valor] ?? valor;
-  if (campo === "origen") return valor === "SERVICIO" ? "Servicio" : valor === "COMPRA" ? "Compra" : valor;
+  if (campo === "origen")
+    return valor === "SERVICIO"
+      ? "Servicio"
+      : valor === "COMPRA"
+        ? "Compra"
+        : valor;
   return valor;
 }
 
 export function TablaRevision({ filas }: { filas: FilaAnalizada[] }) {
   const [pagina, setPagina] = useState(0);
   const [filtro, setFiltro] = useState<Filtro>("todas");
-  const filtradas = filtro === "todas" ? filas : filas.filter((fila) => fila.estado === filtro);
-  const actual = Math.min(pagina, Math.max(0, Math.ceil(filtradas.length / MAXIMO_FILAS) - 1));
-  const visibles = filtradas.slice(actual * MAXIMO_FILAS, (actual + 1) * MAXIMO_FILAS);
+  const filtradas =
+    filtro === "todas" ? filas : filas.filter((fila) => fila.estado === filtro);
+  const actual = Math.min(
+    pagina,
+    Math.max(0, Math.ceil(filtradas.length / MAXIMO_FILAS) - 1),
+  );
+  const visibles = filtradas.slice(
+    actual * MAXIMO_FILAS,
+    (actual + 1) * MAXIMO_FILAS,
+  );
 
   return (
     <div className="importar__tabla-card">
       <div className="importar__tabla-header">
         <h2>Vista previa</h2>
-        <div className="importar__filtros" role="group" aria-label="Filtrar filas">
+        <div
+          className="importar__filtros"
+          role="group"
+          aria-label="Filtrar filas"
+        >
           {FILTROS.map(({ valor, etiqueta }) => {
-            const cantidad = valor === "todas" ? filas.length : filas.filter((f) => f.estado === valor).length;
+            const cantidad =
+              valor === "todas"
+                ? filas.length
+                : filas.filter((f) => f.estado === valor).length;
             if (valor !== "todas" && cantidad === 0) return null;
             return (
               <button
@@ -59,7 +86,11 @@ export function TablaRevision({ filas }: { filas: FilaAnalizada[] }) {
                 type="button"
                 aria-pressed={filtro === valor}
                 className="importar__filtro"
-                onClick={() => { setFiltro(valor); setPagina(0); }}>
+                onClick={() => {
+                  setFiltro(valor);
+                  setPagina(0);
+                }}
+              >
                 {etiqueta} <span>{cantidad}</span>
               </button>
             );
@@ -86,13 +117,21 @@ export function TablaRevision({ filas }: { filas: FilaAnalizada[] }) {
                 <tr key={fila.numero} data-estado={fila.estado}>
                   <td className="importar__fila-numero">{fila.numero}</td>
                   {COLUMNAS_IMPORTACION.map(({ clave }) => {
-                    const inferencia = fila.inferencias.find((i) => i.campo === clave);
+                    const inferencia = fila.inferencias.find(
+                      (i) => i.campo === clave,
+                    );
                     const valor = mostrarValor(fila, clave);
                     return (
-                      <td key={clave} data-error={camposConError.has(clave) || undefined}>
+                      <td
+                        key={clave}
+                        data-error={camposConError.has(clave) || undefined}
+                      >
                         {valor || <span className="importar__vacio">—</span>}
                         {inferencia && (
-                          <small className="importar__inferencia" title="Valor escrito en el archivo">
+                          <small
+                            className="importar__inferencia"
+                            title="Valor escrito en el archivo"
+                          >
                             escrito «{inferencia.original}»
                           </small>
                         )}
@@ -100,12 +139,18 @@ export function TablaRevision({ filas }: { filas: FilaAnalizada[] }) {
                     );
                   })}
                   <td>
-                    {fila.sexo === "HEMBRA" ? "Hembra" : fila.sexo === "MACHO" ? "Macho" : (
+                    {fila.sexo === "HEMBRA" ? (
+                      "Hembra"
+                    ) : fila.sexo === "MACHO" ? (
+                      "Macho"
+                    ) : (
                       <span className="importar__vacio">—</span>
                     )}
                   </td>
                   <td>
-                    <span className={`importar__estado importar__estado--${fila.estado.toLowerCase()}`}>
+                    <span
+                      className={`importar__estado importar__estado--${fila.estado.toLowerCase()}`}
+                    >
                       <Icono size={14} stroke={2} />
                       {etiqueta}
                     </span>
@@ -123,7 +168,12 @@ export function TablaRevision({ filas }: { filas: FilaAnalizada[] }) {
           </tbody>
         </table>
       </div>
-      <Paginador pagina={actual} total={filtradas.length} tamano={MAXIMO_FILAS} onChange={setPagina} />
+      <Paginador
+        pagina={actual}
+        total={filtradas.length}
+        tamano={MAXIMO_FILAS}
+        onChange={setPagina}
+      />
     </div>
   );
 }

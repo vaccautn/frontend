@@ -28,11 +28,11 @@ try {
   await page.getByRole("checkbox", { name: `Seleccionar AB123${numero+1}`, exact: true }).check();
   await page.getByRole("alert").filter({ hasText: "distintos lotes" }).waitFor();
   await page.getByRole("combobox", { name: /Mover al lote/ }).selectOption("1");
-  let advertido = false;
-  page.once("dialog", async dialog => { advertido = dialog.message().includes("distintos lotes"); await dialog.accept(); });
   const movido = page.waitForResponse(r => r.url().endsWith("/animales/mover") && r.request().method() === "POST");
   await page.getByRole("button", { name: "Mover animales", exact: true }).click();
+  const dialog = page.getByRole("dialog", { name: "Confirmar movimiento" });
+  await dialog.getByRole("alert").filter({ hasText: "distintos lotes" }).waitFor();
+  await dialog.getByRole("button", { name: "Mover animales", exact: true }).click();
   assert.equal((await movido).status(), 200);
-  assert.equal(advertido, true);
   console.log(JSON.stringify({ cargaTabla: "ok", historial: "ok", advertenciaVariosLotes: "ok", movimiento: "ok", capturas: false }));
 } finally { await browser.close(); }

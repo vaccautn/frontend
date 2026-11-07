@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Button, FileUpload, Spinner } from "@chakra-ui/react";
 import {
@@ -58,6 +58,7 @@ function mensajeDeError(error: unknown, porDefecto: string) {
  * todo al importar (confirmar). Ver backend/docs/routers/importacion.md. */
 export function ImportarAnimalesPage() {
   const navigate = useNavigate();
+  const envioEnCurso = useRef(false);
   const [fase, setFase] = useState<Fase>("inicio");
   const [archivo, setArchivo] = useState<File | null>(null);
   const [analisis, setAnalisis] = useState<AnalisisImportacion | null>(null);
@@ -124,7 +125,8 @@ export function ImportarAnimalesPage() {
   const pasoActual = !archivo ? 0 : conFilas || fase === "resultado" ? 2 : 1;
 
   const importar = async () => {
-    if (!confirmacion) return;
+    if (!confirmacion || envioEnCurso.current) return;
+    envioEnCurso.current = true;
     setDialogoAbierto(false);
     setFase("importando");
     try {
@@ -135,10 +137,13 @@ export function ImportarAnimalesPage() {
       if (cargados > 0) {
         toast.success(`Se importaron ${cargados} ${cargados === 1 ? "animal" : "animales"}.`);
       }
+      if (analisis && armarArchivoErrores(analisis, respuesta).filas.length === 0) navigate("/rodeo");
       cargarLotes();
     } catch (error) {
       toast.error(mensajeDeError(error, "No se pudo completar la importación. Probá nuevamente."));
       setFase("revision");
+    } finally {
+      envioEnCurso.current = false;
     }
   };
 
@@ -349,10 +354,10 @@ export function ImportarAnimalesPage() {
                 ? "Las filas con errores no se importan: al terminar vas a poder descargarlas para corregirlas."
                 : "Todo listo para importar."}
           </span>
-          <Button variant="outline" onClick={() => navigate("/rodeo")}>
+          <Button variant="outline" disabled={fase === "importando"} onClick={() => navigate("/rodeo")}>
             Cancelar
           </Button>
-          <Button colorPalette="brand" disabled={aImportar <= 0} onClick={() => setDialogoAbierto(true)}>
+          <Button colorPalette="brand" disabled={aImportar <= 0 || fase === "importando"} onClick={() => setDialogoAbierto(true)}>
             Importar {aImportar} {aImportar === 1 ? "animal" : "animales"}
           </Button>
         </footer>

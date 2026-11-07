@@ -65,22 +65,11 @@ export type RodeoEditarFieldErrors = Partial<
   Record<keyof RodeoEditarValues, string>
 >;
 
-/** `caravanaOriginal`: el formato SENASA se exige solo si la caravana cambia,
- * así se pueden seguir editando los animales cargados antes de exigirlo. */
 export function validateRodeoEditarForm(
   values: RodeoEditarValues,
-  caravanaOriginal = "",
 ): RodeoEditarFieldErrors {
   const errors: RodeoEditarFieldErrors = {};
-
-  const cambioCaravana =
-    normalizarCaravana(values.caravana) !==
-    normalizarCaravana(caravanaOriginal);
-  const errorCaravana = values.caravana.trim()
-    ? cambioCaravana
-      ? validarCaravana(values.caravana)
-      : null
-    : "El ID de caravana es obligatorio.";
+  const errorCaravana = validarCaravana(values.caravana);
   if (errorCaravana) {
     errors.caravana = errorCaravana;
   }

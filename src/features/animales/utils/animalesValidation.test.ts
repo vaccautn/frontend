@@ -48,17 +48,17 @@ describe("validateRodeoEditarForm", () => {
     lote_id: "1",
   };
 
-  it("deja editar un animal con caravana anterior al formato si no la cambia", () => {
-    expect(validateRodeoEditarForm(editar, "V-00001")).toEqual({});
+  it("rechaza identificaciones inválidas aunque no cambien", () => {
+    expect(validateRodeoEditarForm(editar).caravana).toMatch(/SENASA/);
   });
 
   it("exige el formato si la caravana cambia", () => {
     expect(
-      validateRodeoEditarForm({ ...editar, caravana: "V-00002" }, "V-00001")
+      validateRodeoEditarForm({ ...editar, caravana: "V-00002" })
         .caravana,
     ).toMatch(/SENASA/);
     expect(
-      validateRodeoEditarForm({ ...editar, caravana: "ab123 0002" }, "V-00001"),
+      validateRodeoEditarForm({ ...editar, caravana: "ab123 0002" }),
     ).toEqual({});
   });
 });

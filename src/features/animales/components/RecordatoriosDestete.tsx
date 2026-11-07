@@ -50,7 +50,12 @@ export function RecordatoriosDestete() {
             : {new Date(r.vencimiento).toLocaleDateString("es-AR")}
           </p>
           <Link to="/sesiones">Registrar nueva evaluación de CC</Link> ·{" "}
-          <Button colorPalette="brand" variant="outline" type="button" onClick={() => void resolver(r.id)}>
+          <Button
+            colorPalette="brand"
+            variant="outline"
+            type="button"
+            onClick={() => void resolver(r.id)}
+          >
             Completar seguimiento
           </Button>
         </article>

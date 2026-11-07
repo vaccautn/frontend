@@ -37,7 +37,7 @@ test.describe("Importar animales desde planilla", () => {
     await expect(dialogo).toContainText("Se dan de alta 3 animales nuevos");
     await dialogo.getByRole("button", { name: "Importar 3 animales" }).click();
 
-    await expect(page.getByText("¡Listo! Importamos todos los animales")).toBeVisible();
+    await expect(page).toHaveURL(/\/rodeo$/);
 
     const animales = await productor.api<Animal[]>("GET", "/animales/");
     const porCaravana = Object.fromEntries(animales.map((a) => [a.caravana, a]));
@@ -47,7 +47,6 @@ test.describe("Importar animales desde planilla", () => {
     expect(porCaravana[productor.caravana(2)]).toMatchObject({ categoria: "VACA_SECA", raza: "Angus", sexo: "HEMBRA" });
     expect(porCaravana[productor.caravana(3)]).toMatchObject({ sexo: "MACHO", raza: "Hereford" });
 
-    await page.getByRole("button", { name: "Ir al rodeo" }).click();
     await expect(page).toHaveURL(/\/rodeo$/);
   });
 
@@ -128,7 +127,7 @@ test.describe("Importar animales desde planilla", () => {
     );
     await page.getByRole("button", { name: "Importar 2 animales" }).click();
     await page.getByRole("dialog").getByRole("button", { name: "Importar 2 animales" }).click();
-    await expect(page.getByText("¡Listo! Importamos todos los animales")).toBeVisible();
+    await expect(page).toHaveURL(/\/rodeo$/);
     // El existente (10), los tres de la primera carga (11, 12, 13) y los dos corregidos (14, 15).
     expect(await productor.api<Animal[]>("GET", "/animales/")).toHaveLength(6);
   });

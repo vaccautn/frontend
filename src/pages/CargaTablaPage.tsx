@@ -1,4 +1,8 @@
-import { normalizarCaravana, esCaravanaValida, MENSAJE_FORMATO_CARAVANA } from "@/features/animales/utils/caravana";
+import {
+  normalizarCaravana,
+  esCaravanaValida,
+  MENSAJE_FORMATO_CARAVANA,
+} from "@/features/animales/utils/caravana";
 import "@/components/ui/gestion.css";
 import { Button, Input, NativeSelect, Table } from "@chakra-ui/react";
 import { useEffect, useState, type FormEvent } from "react";
@@ -33,13 +37,23 @@ export function CargaTablaPage() {
   }, []);
   const cambiar = (index: number, campo: keyof Fila, value: string) =>
     setFilas((prev) =>
-      prev.map((f, i) => (i === index ? { ...f, [campo]: campo === "caravana" ? normalizarCaravana(value) : value } : f)),
+      prev.map((f, i) =>
+        i === index
+          ? {
+              ...f,
+              [campo]: campo === "caravana" ? normalizarCaravana(value) : value,
+            }
+          : f,
+      ),
     );
   const guardar = async (e: FormEvent) => {
     e.preventDefault();
     if (guardando) return;
     setError("");
-    if (filas.some(fila => !esCaravanaValida(fila.caravana))) { setError(MENSAJE_FORMATO_CARAVANA); return; }
+    if (filas.some((fila) => !esCaravanaValida(fila.caravana))) {
+      setError(MENSAJE_FORMATO_CARAVANA);
+      return;
+    }
     setGuardando(true);
     try {
       const result = await postJson<{ creados: number }, object>(
@@ -95,46 +109,62 @@ export function CargaTablaPage() {
                     <Input
                       aria-label={`Caravana fila ${i + 1}`}
                       required
-                      aria-invalid={Boolean(f.caravana && !esCaravanaValida(f.caravana))}
+                      aria-invalid={Boolean(
+                        f.caravana && !esCaravanaValida(f.caravana),
+                      )}
                       value={f.caravana}
                       maxLength={15}
                       onChange={(e) => cambiar(i, "caravana", e.target.value)}
                     />
-                    {f.caravana && !esCaravanaValida(f.caravana) && <p className="status-message error" role="alert">{MENSAJE_FORMATO_CARAVANA}</p>}
+                    {f.caravana && !esCaravanaValida(f.caravana) && (
+                      <p className="status-message error" role="alert">
+                        {MENSAJE_FORMATO_CARAVANA}
+                      </p>
+                    )}
                   </Table.Cell>
                   <Table.Cell>
-                    <NativeSelect.Root><NativeSelect.Field
-                      aria-label={`Lote fila ${i + 1}`}
-                      aria-required="true"
-                      value={f.lote_id}
-                      onChange={(e) => cambiar(i, "lote_id", e.target.value)}
-                    >
-                      <option value="">Elegir lote</option>
-                      {lotes
-                        .filter((l) => l.activo)
-                        .map((l) => (
-                          <option key={l.id} value={l.id}>
-                            {l.nombre}
+                    <NativeSelect.Root>
+                      <NativeSelect.Field
+                        aria-label={`Lote fila ${i + 1}`}
+                        aria-required="true"
+                        value={f.lote_id}
+                        onChange={(e) => cambiar(i, "lote_id", e.target.value)}
+                      >
+                        <option value="">Elegir lote</option>
+                        {lotes
+                          .filter((l) => l.activo)
+                          .map((l) => (
+                            <option key={l.id} value={l.id}>
+                              {l.nombre}
+                            </option>
+                          ))}
+                      </NativeSelect.Field>
+                      <NativeSelect.Indicator />
+                    </NativeSelect.Root>
+                  </Table.Cell>
+                  <Table.Cell>
+                    <NativeSelect.Root>
+                      <NativeSelect.Field
+                        aria-label={`Categoría fila ${i + 1}`}
+                        value={f.categoria}
+                        onChange={(e) =>
+                          cambiar(i, "categoria", e.target.value)
+                        }
+                      >
+                        <option value="">La del lote</option>
+                        {CATEGORIAS_ANIMAL.map((c) => (
+                          <option value={c.value} key={c.value}>
+                            {c.label}
                           </option>
                         ))}
-                    </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
+                      </NativeSelect.Field>
+                      <NativeSelect.Indicator />
+                    </NativeSelect.Root>
                   </Table.Cell>
                   <Table.Cell>
-                    <NativeSelect.Root><NativeSelect.Field
-                      aria-label={`Categoría fila ${i + 1}`}
-                      value={f.categoria}
-                      onChange={(e) => cambiar(i, "categoria", e.target.value)}
-                    >
-                      <option value="">La del lote</option>
-                      {CATEGORIAS_ANIMAL.map((c) => (
-                        <option value={c.value} key={c.value}>
-                          {c.label}
-                        </option>
-                      ))}
-                    </NativeSelect.Field><NativeSelect.Indicator /></NativeSelect.Root>
-                  </Table.Cell>
-                  <Table.Cell>
-                    <Button colorPalette="brand" variant="outline"
+                    <Button
+                      colorPalette="brand"
+                      variant="outline"
                       type="button"
                       disabled={filas.length === 1 || guardando}
                       onClick={() =>
@@ -152,14 +182,21 @@ export function CargaTablaPage() {
           </Table.Root>
         </div>
         <div className="gestion-filter">
-          <Button colorPalette="brand" variant="outline"
+          <Button
+            colorPalette="brand"
+            variant="outline"
             type="button"
             disabled={filas.length >= 50 || guardando}
             onClick={() => setFilas((prev) => [...prev, vacia()])}
           >
             + Agregar fila
           </Button>
-          <Button colorPalette="brand" variant="solid" type="submit" disabled={guardando}>
+          <Button
+            colorPalette="brand"
+            variant="solid"
+            type="submit"
+            disabled={guardando}
+          >
             {guardando
               ? "Guardando…"
               : `Guardar tanda de ${filas.length} animales`}

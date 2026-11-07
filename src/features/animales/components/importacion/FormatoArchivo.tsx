@@ -40,7 +40,7 @@ export function FormatoArchivo({ lotes, lotesError }: Props) {
           <h2 id="importar-formato-titulo">Formato del archivo</h2>
           <p className="importar__ayuda">
             Una fila por animal y los nombres de las columnas en la primera fila. El orden de las
-            columnas no importa. El sexo no hace falta: lo sacamos de la categoría.
+            columnas no importa. Incluí los seis encabezados, incluso para los datos opcionales. El sexo no hace falta: lo sacamos de la categoría.
           </p>
         </div>
         <div className="importar__formato-acciones">

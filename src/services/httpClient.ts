@@ -2,7 +2,10 @@ const API_BASE_URL =
   import.meta.env?.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
 
 type ApiErrorBody = {
-  detail?: string | { message?: string; sesion_id?: number } | { msg: string; loc?: (string | number)[] }[];
+  detail?:
+    | string
+    | { message?: string; sesion_id?: number }
+    | { msg: string; loc?: (string | number)[] }[];
 };
 
 /** Evento que se dispara cuando el backend rechaza un token (401): la sesión
@@ -30,13 +33,18 @@ export class ApiError extends Error {
       typeof detail === "string"
         ? detail
         : Array.isArray(detail)
-          ? detail.map(error => error.msg.replace(/^Value error, /, "")).join(" · ")
+          ? detail
+              .map((error) => error.msg.replace(/^Value error, /, ""))
+              .join(" · ")
           : (detail?.message ?? "No se pudo completar la operación.");
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.detail = message;
-    this.data = detail && typeof detail === "object" && !Array.isArray(detail) ? detail : undefined;
+    this.data =
+      detail && typeof detail === "object" && !Array.isArray(detail)
+        ? detail
+        : undefined;
   }
 }
 
