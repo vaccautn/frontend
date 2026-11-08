@@ -78,9 +78,13 @@ export function AnimalEvaluacionesTable({
                     style={{
                       fontWeight: 700,
                       color:
-                        NIVEL_CC_HEX[nivelCC(evaluacion.valor_cc, evaluacion.fecha)],
+                        evaluacion.valor_cc === null
+                          ? undefined
+                          : NIVEL_CC_HEX[nivelCC(evaluacion.valor_cc, evaluacion.fecha)],
                     }}>
-                    {evaluacion.valor_cc.toFixed(1)}
+                    {evaluacion.valor_cc === null
+                      ? "Pendiente de CC"
+                      : evaluacion.valor_cc.toFixed(1)}
                   </Table.Cell>
                   <Table.Cell>
                     {formatFechaDeTimestamp(evaluacion.fecha)}

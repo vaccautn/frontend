@@ -1,8 +1,8 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
+  import.meta.env?.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
 
 type ApiErrorBody = {
-  detail?: string | { message?: string; sesion_id?: number };
+  detail?: string | { message?: string; sesion_id?: number; code?: string };
 };
 
 /** Evento que se dispara cuando el backend rechaza un token (401): la sesión
@@ -20,7 +20,7 @@ function avisarSiSesionVencida(response: Response, accessToken?: string | null) 
 export class ApiError extends Error {
   status: number;
   detail: string;
-  data?: { message?: string; sesion_id?: number };
+  data?: { message?: string; sesion_id?: number; code?: string };
 
   constructor(status: number, detail: ApiErrorBody["detail"]) {
     const message =
@@ -188,12 +188,14 @@ export async function postFormData<TResponse>(
   path: string,
   formData: FormData,
   accessToken?: string | null,
+  extraHeaders: Record<string, string> = {},
 ): Promise<TResponse> {
   const headers: Record<string, string> = {};
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
   }
+  Object.assign(headers, extraHeaders);
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",
@@ -201,13 +203,13 @@ export async function postFormData<TResponse>(
     body: formData,
   });
 
-  const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
+  const body = (await response.json().catch(() => null)) as ApiErrorBody | null;
 
   avisarSiSesionVencida(response, accessToken);
   if (!response.ok) {
     throw new ApiError(
       response.status,
-      body.detail ?? "No se pudo completar la operación. Probá nuevamente.",
+      body?.detail ?? "No se pudo completar la operación. Probá nuevamente.",
     );
   }
 

@@ -1,4 +1,4 @@
-import type { AuthUser } from "../types/authTypes";
+import type { AuthUser } from "../types/authTypes.ts";
 
 const authStorageKeys = {
   accessToken: "auth.accessToken",

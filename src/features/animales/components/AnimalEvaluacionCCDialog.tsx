@@ -64,7 +64,7 @@ export function AnimalEvaluacionCCDialog({
   onSaved,
   onDeleted,
 }: AnimalEvaluacionCCDialogProps) {
-  const [valorCc, setValorCc] = useState(evaluacion.valor_cc);
+  const [valorCc, setValorCc] = useState<number | null>(evaluacion.valor_cc);
   const [observaciones, setObservaciones] = useState(evaluacion.observaciones);
   const [isSaving, setIsSaving] = useState(false);
   const [formError, setFormError] = useState("");
@@ -114,7 +114,7 @@ export function AnimalEvaluacionCCDialog({
     setIsSaving(true);
     try {
       await updateEvaluacionCc(evaluacion.id, {
-        valor_cc: valorCc,
+        ...(valorCc !== null ? { valor_cc: valorCc } : {}),
         observaciones,
       });
       await onSaved();
@@ -161,11 +161,13 @@ export function AnimalEvaluacionCCDialog({
     // servidor en vez de confiar en el estado local.
     try {
       const evaluacionActualizada = await getEvaluacionCc(evaluacion.id);
-      setValorCc(evaluacionActualizada.valor_cc);
+       setValorCc(evaluacionActualizada.valor_cc);
       await onSaved();
       if (subidaOk) {
         toast.success(
-          `${files.length > 1 ? "Imágenes subidas" : "Imagen subida"} correctamente. Condición corporal detectada por IA: ${evaluacionActualizada.valor_cc}.`,
+          evaluacionActualizada.valor_cc == null
+            ? `${files.length > 1 ? "Imágenes subidas" : "Imagen subida"} correctamente. La evaluación sigue pendiente de CC.`
+            : `${files.length > 1 ? "Imágenes subidas" : "Imagen subida"} correctamente. CC registrada: ${evaluacionActualizada.valor_cc}.`,
         );
       }
     } catch {
@@ -262,7 +264,7 @@ export function AnimalEvaluacionCCDialog({
                           className="animal-evaluacion__valor-trigger"
                           disabled={pending}
                           aria-label="Seleccionar valor de CC">
-                          <span>{valorCc}</span>
+                          <span>{valorCc ?? "Sin CC (pendiente)"}</span>
                           <IconChevronDown
                             className="animal-evaluacion__valor-caret"
                             size={16}
@@ -274,7 +276,7 @@ export function AnimalEvaluacionCCDialog({
                         <Menu.Positioner>
                           <Menu.Content className="animal-evaluacion__valor-menu">
                             <Menu.RadioItemGroup
-                              value={String(valorCc)}
+                              value={String(valorCc ?? "")}
                               onValueChange={(details) =>
                                 setValorCc(Number(details.value))
                               }>
