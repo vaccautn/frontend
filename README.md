@@ -14,7 +14,7 @@
 | `pnpm build`      | Genera el build de producción en `/dist`             |
 | `pnpm preview`    | Previsualiza el build de producción localmente       |
 | `pnpm lint`       | Ejecuta el linter (ESLint)                           |
-| `pnpm type-check` | Verifica los tipos de TypeScript sin compilar        |
+| `pnpm exec tsc -b` | Verifica los tipos con la configuración del proyecto |
 | `pnpm test:video` | Ejecuta pruebas de reglas de la integración de video |
 
 ## Ingresos de animales en una sesión
@@ -54,7 +54,8 @@ anterior.
 ## Análisis de video en una sesión
 
 La carga está disponible en la página de evaluación de una sesión abierta. Antes
-de probarla, el backend debe tener aplicada la migración de análisis de video y
+de probarla, el backend debe tener aplicadas las migraciones de análisis de video,
+incluida `c3a9e7b2d6f1` para el diario de reintentos, y
 el servicio IA debe estar ejecutándose en loopback según la configuración del
 backend. El navegador solo se comunica con la API autenticada; no sube archivos
 directamente a IA ni a R2.
@@ -66,12 +67,24 @@ directamente a IA ni a R2.
    la sesión. Si la conexión se interrumpe durante el envío, volvé a seleccionar
    el mismo archivo para reintentar con la misma clave idempotente.
 
-El backend asocia pasajes según el snapshot ordenado de ingresos. Si la cantidad
-detectada difiere de los ingresos, la interfaz muestra un aviso breve; los
-resultados y las CC manuales siguen disponibles en la sesión. Un error terminal
-se muestra como error, no como éxito: se puede reintentar el mismo análisis
-guardado o resolverlo explícitamente. Resolver es irreversible, libera el
-bloqueo de la sesión y conserva los resultados y artefactos retenidos.
+El backend solo asocia pasajes al snapshot ordenado si las cantidades coinciden.
+Si difieren, incluso con cero pasajes, queda `ERROR / RETENIDA`: no se atribuyen
+imágenes ni CC nuevas a ningún animal y se conservan manifiesto y artefactos.
+La interfaz ofrece **Descartar análisis y cargar otro video** con confirmación, o
+cancelar la sesión completa. Descartar es idempotente, no borra ingresos ni archivos
+y permite una nueva carga con otra clave si la sesión está abierta y no quedan
+resultados aplicados de otro análisis. Ni Reintentar ni Resolver sustituyen ese paso.
+Un descarte histórico devuelve `409` si ya aplicó CC sin historial de correcciones
+o la procedencia de una imagen no se puede verificar: requiere revisión manual
+auditada o cancelación lógica, nunca una reversión automática de valores manuales.
+
+Para otros errores retenidos, se puede reintentar el análisis guardado o resolverlo
+explícitamente. La importación usa presupuestos durables independientes de cinco
+intentos por preparación, pasaje y confirmación final, con esperas de 2/4/8/16 segundos.
+Al agotarlos, muestra `reintentos_importacion_agotados`; **Reintentar** reinicia los
+presupuestos sin duplicar resultados ni perder CC manuales. Resolver es irreversible,
+libera el bloqueo de la sesión y conserva los resultados/artefactos; no habilita otra
+carga si quedan resultados aplicados. Para cancelar en ese caso, resolver primero.
 Si IA rechazó la admisión antes de crear un trabajo, el reintento vuelve a enviar
 el mismo archivo con la clave original; los errores de importación con un trabajo
 ya creado usan la acción de reintento del análisis guardado. Si se pierde
@@ -91,6 +104,11 @@ mínimo y puede resolver un error retenido o abandonar una admisión incierta `E
 sin `ia_job_id`; no puede reintentar ni consultar datos del snapshot, resultados o
 imágenes. Resolver esa admisión no afirma que IA haya rechazado el video ni que sus
 artefactos remotos se hayan borrado.
+Si la proyección restringida indica `requiere_cancelacion_sesion`, no ofrece Resolver,
+Reintentar ni Descartar: el propietario debe cancelar la sesión completa. La cancelación
+anula sus evaluaciones sin borrar el historial. Un fallo al refrescar los ingresos
+permanece visible y permite reintentar la actualización sin reenviar el video ni perder
+un borrador manual abierto.
 El video fuente no se archiva; las imágenes importadas se consultan mediante URL
 firmada protegida por el backend.
 
@@ -113,6 +131,38 @@ de la clave tras limpiar `sessionStorage`, el error restringido y su resolución
 limpieza de errores de polling sin borrar errores de acciones, la preservación del
 diálogo manual durante un refresco y el bloqueo de una segunda carga después de aplicar
 resultados.
+
+## Imágenes de evaluaciones y mensajes de error
+
+El navegador envía JPG/PNG de hasta 10 MB al backend, en el campo multipart `imagenes`.
+Backend valida `/detect` (al menos una detección `cow` con confianza ≥ 0,80) y luego
+consulta `/bcs` sobre la imagen completa. No exige exactamente una vaca ni selecciona
+el animal objetivo; una foto individual es recomendable, no una regla de rechazo.
+Una CC inferida completa solo una CC ausente y nunca reemplaza la manual. El diálogo
+de carga refresca la evaluación para mostrar la CC registrada o que continúa pendiente
+si BCS no estuvo disponible o no entregó categoría. Una respuesta BCS inválida rechaza
+el lote; no se inventa una categoría.
+
+Los mensajes distinguen detección negativa, confianza insuficiente, validación `422`,
+sesión/permisos, tamaño/formato, detector y almacenamiento. Los códigos conocidos se
+traducen mediante una lista permitida; un `400` desconocido no muestra texto remoto.
+Una falla de conexión no permite afirmar que sea CORS ni que no se haya guardado:
+recargar la evaluación antes de repetir una carga incierta.
+
+Pruebas focalizadas desde la raíz de `frontend`, sin instalar dependencias nuevas:
+
+```powershell
+node --experimental-strip-types --test src/features/animales/utils/imagenUploadErrors.test.ts
+pnpm build
+$env:PLAYWRIGHT_MODULE_PATH = "C:\ruta\a\playwright-core\index.mjs"
+node --test scripts/image-upload.browser.test.mjs
+```
+
+La prueba de imágenes inicia su propio preview en `127.0.0.1:4189` (el puerto debe estar
+libre), usa Edge y la instalación existente de `playwright-core`; requiere el build
+anterior. Intercepta todas las solicitudes API y no contacta datos reales. Verifica CC
+inferida, pendiente, manual y rechazos/conexión con respuestas simuladas: no mide la
+precisión del modelo ni establece la causa de una foto rechazada.
 
 ---
 
