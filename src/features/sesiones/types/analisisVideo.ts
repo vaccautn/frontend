@@ -20,6 +20,7 @@ type AnalisisVideoCore = {
 
 export type AnalisisVideoAccesoRestringido = AnalisisVideoCore & {
   acceso_restringido: true;
+  requiere_cancelacion_sesion?: boolean;
   resultados_aplicados: boolean;
 };
 

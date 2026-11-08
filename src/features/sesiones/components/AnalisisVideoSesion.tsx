@@ -7,12 +7,14 @@ import {
   asociarClaveReintentoAnalisis,
   confirmarClaveReintentoAceptada,
   descartarClaveReintento,
+  descartarAnalisisVideo,
   esMismoArchivoReintento,
   hayResultadosVideoAplicados,
   hayClaveReintento,
   listarAnalisisVideo,
   obtenerClaveReintento,
   puedeResolverAnalisis,
+  puedeDescartarAnalisis,
   puedeIniciarCarga,
   puedeReintentarAnalisis,
   obtenerIntentoPendiente,
@@ -122,10 +124,11 @@ export function AnalisisVideoSesion({
   const activo = analisisActivo(analisis);
   const analisisVisible = seleccionarAnalisisVisible(analisis);
   const erroresRetenidos = analisis.filter(
-    (item) => puedeResolverAnalisis(item) && item.id !== analisisVisible?.id,
+    (item) => (puedeResolverAnalisis(item) || puedeDescartarAnalisis(item) ||
+      (item.acceso_restringido && item.requiere_cancelacion_sesion)) && item.id !== analisisVisible?.id,
   );
   const discrepancia = analisis.find(
-    (item) => !item.acceso_restringido && item.discrepancia,
+    (item) => !item.acceso_restringido && puedeDescartarAnalisis(item),
   );
   const resultadosYaAplicados = hayResultadosVideoAplicados(analisis);
   const errorArchivo = archivo ? validarArchivoVideo(archivo) : null;
@@ -223,7 +226,10 @@ export function AnalisisVideoSesion({
     setError(null);
   };
 
-  const accionar = async (item: AnalisisVideo, accion: "retry" | "resolve") => {
+  const accionar = async (item: AnalisisVideo, accion: "retry" | "resolve" | "discard") => {
+    if (accion === "discard" && !window.confirm(
+      "Se descartará este análisis para permitir otra carga. Se conservarán la sesión, los ingresos, las evaluaciones manuales y los archivos de auditoría. Si existen valores históricos sin procedencia verificable, el servidor rechazará el descarte. ¿Desea continuar?",
+    )) return;
     if (
       accion === "resolve" &&
       !window.confirm(
@@ -243,9 +249,17 @@ export function AnalisisVideoSesion({
           actuales.map((actual) => (actual.id === item.id ? actualizado : actual)),
         );
       } else {
-        await resolverAnalisisVideo(sesionId, item.id);
+        if (accion === "discard") await descartarAnalisisVideo(sesionId, item.id);
+        else await resolverAnalisisVideo(sesionId, item.id);
         const respuesta = await listarAnalisisVideo(sesionId);
         setAnalisis(respuesta.items);
+        if (accion === "discard") {
+          try {
+            await actualizarTabla();
+          } catch {
+            setAvisoRefresco("El análisis se descartó, pero no se pudo actualizar la tabla. Se volverá a intentar automáticamente.");
+          }
+        }
       }
     } catch (actionError) {
       setError(mensajeError(actionError));
@@ -332,7 +346,9 @@ export function AnalisisVideoSesion({
         <div className="analisis-video__estado" role="status" aria-live="polite">
           <span>
             {analisisVisible.acceso_restringido
-              ? "Este análisis conserva su estado, pero el acceso a sus datos fue revocado. Podés resolver el bloqueo sin consultar el contenido."
+              ? analisisVisible.requiere_cancelacion_sesion
+                ? mensajeEstadoAnalisis(analisisVisible)
+                : "Este análisis conserva su estado, pero el acceso a sus datos fue revocado. Podés resolver el bloqueo sin consultar el contenido."
               : mensajeEstadoAnalisis(analisisVisible)}
           </span>
           {!["COMPLETADO", "ERROR"].includes(analisisVisible.estado) &&
@@ -344,24 +360,28 @@ export function AnalisisVideoSesion({
                 aria-valuetext="Progreso indeterminado"
               />
             )}
-          {(analisisVisible.estado === "ERROR" ||
+          {(analisisVisible.estado === "ERROR" || puedeDescartarAnalisis(analisisVisible) ||
             (analisisVisible.acceso_restringido && analisisVisible.estado === "ENVIANDO")) && (
             <div className="analisis-video__acciones">
+              {puedeDescartarAnalisis(analisisVisible) && <Button size="sm" variant="outline" onClick={() => void accionar(analisisVisible, "discard")} loading={accionId === analisisVisible.id}>Descartar análisis y cargar otro video</Button>}
               {!analisisVisible.acceso_restringido && puedeReintentarAnalisis(analisisVisible) && <Button size="sm" onClick={() => void accionar(analisisVisible, "retry")} loading={accionId === analisisVisible.id}>Reintentar</Button>}
               {puedeResolverAnalisis(analisisVisible) && <Button size="sm" variant="outline" onClick={() => void accionar(analisisVisible, "resolve")} loading={accionId === analisisVisible.id}>Resolver error</Button>}
             </div>
           )}
         </div>
       )}
-      {discrepancia && <p className="analisis-video__alerta">La cantidad detectada no coincide con los ingresos de la sesión.</p>}
+      {discrepancia && !discrepancia.acceso_restringido && <p className="analisis-video__alerta">Ingresos esperados: {discrepancia.entradas_count}. Pasajes detectados: {discrepancia.pasajes_count}. {discrepancia.aplicados_count > 0 ? "Este análisis histórico tiene resultados aplicados: no se revertirán valores manuales automáticamente." : "No se aplicaron evaluaciones ni imágenes a los animales porque no se puede identificar dónde falta o sobra un pasaje."} Puede descartar el análisis para cargar otro video o usar la opción de cancelar la sesión.</p>}
       {erroresRetenidos.map((item) => (
         <div className="analisis-video__error" key={item.id}>
           <span>
             {item.acceso_restringido
-              ? "El análisis conserva un error y acceso restringido. Podés resolver el bloqueo sin consultar el contenido."
+              ? item.requiere_cancelacion_sesion
+                ? mensajeEstadoAnalisis(item)
+                : "El análisis conserva un error y acceso restringido. Podés resolver el bloqueo sin consultar el contenido."
               : mensajeEstadoAnalisis(item)}
           </span>
           <div className="analisis-video__acciones">
+            {puedeDescartarAnalisis(item) && <Button size="sm" variant="outline" onClick={() => void accionar(item, "discard")} loading={accionId === item.id}>Descartar análisis y cargar otro video</Button>}
             {!item.acceso_restringido && puedeReintentarAnalisis(item) && <Button size="sm" onClick={() => void accionar(item, "retry")} loading={accionId === item.id}>Reintentar</Button>}
             {puedeResolverAnalisis(item) && <Button size="sm" variant="outline" onClick={() => void accionar(item, "resolve")} loading={accionId === item.id}>Resolver error</Button>}
           </div>

@@ -112,6 +112,12 @@ function createFixture() {
     uploads: [],
     retries: 0,
     resolutions: 0,
+    discards: 0,
+    cancellations: 0,
+    discardError: null,
+    discardGate: null,
+    failEntries: false,
+    failRefreshAfterDiscard: false,
     requests: [],
     unhandledApi: [],
     async handle(request, route) {
@@ -134,9 +140,14 @@ function createFixture() {
       let result;
       if (method === "GET" && path === `/sesiones-captura/${sesion.id}`) {
         result = jsonResponse(sesion);
+      } else if (method === "DELETE" && path === `/sesiones-captura/${sesion.id}`) {
+        this.cancellations += 1;
+        result = { status: 204, body: "" };
+      } else if (method === "GET" && path === "/sesiones-captura/") {
+        result = jsonResponse({ items: [], has_more: false, next_offset: null });
       } else if (method === "GET" && path === `/sesiones-captura/${sesion.id}/entradas`) {
         this.entriesRequests += 1;
-        result = jsonResponse({
+        result = this.failEntries ? jsonResponse({ detail: "fallo de refresco de prueba" }, 503) : jsonResponse({
           orden_disponible: true,
           items: this.showAnimal ? [entrada(this.entriesValue)] : [],
         });
@@ -166,7 +177,26 @@ function createFixture() {
           result = jsonResponse({ detail: "El contenido no coincide con el envío pendiente." }, 409);
         } else {
           if (this.uploadGate) await this.uploadGate.promise;
-          result = jsonResponse(analisisCompleto({ estado: "EN_COLA" }), 202);
+          const accepted = analisisCompleto({
+            estado: "EN_COLA",
+            ...(this.analysisItems.some((item) => item.error_code === "analisis_descartado")
+              ? { id: "analysis-browser-replacement" } : {}),
+          });
+          this.analysisItems = [accepted, ...this.analysisItems.filter((item) => item.id !== accepted.id)];
+          result = jsonResponse(accepted, 202);
+        }
+      } else if (method === "POST" && path.endsWith("/discard")) {
+        this.discards += 1;
+        if (this.discardGate) await this.discardGate.promise;
+        if (this.discardError) {
+          result = jsonResponse({ detail: this.discardError }, 409);
+        } else {
+          const id = path.split("/").at(-2);
+          this.analysisItems = this.analysisItems.map((item) => item.id === id ? {
+            ...item, estado: "ERROR", error_code: "analisis_descartado", limpieza: "RESUELTA", aplicados_count: 0,
+          } : item);
+          this.failEntries = this.failRefreshAfterDiscard;
+          result = { status: 204, body: "" };
         }
       } else if (method === "POST" && path.endsWith("/resolve")) {
         this.resolutions += 1;
@@ -233,6 +263,165 @@ const restrictedAdmission = () => ({
   estado: "ENVIANDO",
   error_code: null,
   limpieza: "PENDIENTE",
+});
+
+const mismatchJob = (overrides = {}) => analisisCompleto({
+  estado: "ERROR", error_code: "cantidad_pasajes_distinta_a_entradas", limpieza: "RETENIDA",
+  pasajes_count: 0, discrepancia: true, ...overrides,
+});
+
+function gate() {
+  let release;
+  return { promise: new Promise((resolve) => { release = resolve; }), release: () => release() };
+}
+
+async function openRecoveryTest(t, fixture) {
+  const view = await openSessionPage(fixture);
+  t.after(async () => {
+    fixture.discardGate?.release();
+    await view.context.close();
+    assert.deepEqual(view.errors, []);
+    assert.deepEqual(fixture.unhandledApi, [], "No recovery API request may fall through the fixture");
+  });
+  return view;
+}
+
+test("discard confirmation can be cancelled; confirmed discard enables file input and a new submission", { timeout: 30000 }, async (t) => {
+  const fixture = createFixture();
+  fixture.analysisItems = [mismatchJob()];
+  const { page } = await openRecoveryTest(t, fixture);
+  const discard = page.getByRole("button", { name: "Descartar análisis y cargar otro video" });
+  const input = page.getByLabel("Archivo MP4 o MOV (máximo 50 MiB)");
+  await discard.waitFor();
+  assert.equal(await input.isDisabled(), true);
+  await page.getByText("Ingresos esperados: 1. Pasajes detectados: 0.", { exact: false }).waitFor();
+  page.once("dialog", (dialog) => dialog.dismiss());
+  await discard.click();
+  assert.equal(fixture.discards, 0);
+  assert.equal(await input.isDisabled(), true);
+
+  const discarded = page.waitForResponse((response) => response.url().endsWith("/discard"));
+  page.once("dialog", (dialog) => dialog.accept());
+  await discard.click();
+  assert.equal((await discarded).status(), 204);
+  await page.getByText("Análisis descartado.", { exact: false }).waitFor();
+  await page.waitForFunction(() => !document.querySelector('input[type="file"]').disabled);
+  assert.equal(fixture.discards, 1);
+  assert.equal(fixture.entriesValue, 3);
+  await input.setInputFiles({ name: "replacement.mp4", mimeType: "video/mp4", buffer: Buffer.from("synthetic-valid-video") });
+  const accepted = page.waitForResponse((response) =>
+    response.request().method() === "POST" && response.url().endsWith("/analisis-video"));
+  await page.getByRole("button", { name: "Enviar video", exact: true }).click();
+  const acceptedResponse = await accepted;
+  assert.equal(acceptedResponse.status(), 202);
+  assert.notEqual((await acceptedResponse.json()).id, "analysis-browser-1");
+  await page.getByText("Esperando procesamiento…").waitFor();
+  assert.equal(fixture.uploads.length, 1);
+  assert.match(fixture.uploads[0].key, /^[0-9a-f-]{36}$/);
+  assert.equal(fixture.resolutions, 0);
+  assert.equal(fixture.retries, 0);
+});
+
+test("legacy discard 409 preserves a manual dialog edited while the response is pending", { timeout: 30000 }, async (t) => {
+  const fixture = createFixture();
+  fixture.analysisItems = [mismatchJob({ estado: "COMPLETADO", aplicados_count: 1 })];
+  fixture.discardError = "Este análisis histórico requiere una revisión manual auditada; puede cancelar la sesión.";
+  fixture.discardGate = gate();
+  const { page } = await openRecoveryTest(t, fixture);
+  page.once("dialog", (dialog) => dialog.accept());
+  const pending = page.waitForRequest((request) => request.url().endsWith("/discard"));
+  await page.getByRole("button", { name: "Descartar análisis y cargar otro video" }).click();
+  await pending;
+  await page.getByRole("button", { name: "Editar a BROWSER-01" }).click();
+  const dialog = page.getByRole("dialog");
+  await dialog.getByRole("button", { name: "Seleccionar valor de CC" }).click();
+  await page.getByRole("menuitem", { name: "4", exact: true }).click();
+  const observation = dialog.getByRole("textbox", { name: "Observación" });
+  await observation.fill("manual draft must survive denial");
+  const denied = page.waitForResponse((response) => response.url().endsWith("/discard"));
+  fixture.discardGate.release();
+  assert.equal((await denied).status(), 409);
+  // The open modal intentionally hides background roles from accessibility queries.
+  await page.locator('.analisis-video [role="alert"]').filter({ hasText: "requiere una revisión manual auditada" }).waitFor();
+  assert.equal(await observation.inputValue(), "manual draft must survive denial");
+  assert.equal(await dialog.getByRole("button", { name: "Seleccionar valor de CC" }).innerText(), "4");
+  assert.equal(fixture.entriesValue, 3);
+  assert.equal(fixture.analysisItems[0].aplicados_count, 1);
+  assert.equal(fixture.uploads.length, 0);
+  await dialog.getByRole("button", { name: "Cerrar", exact: true }).click();
+  await page.getByRole("alert").filter({ hasText: "requiere una revisión manual auditada" }).waitFor();
+  assert.equal(await page.getByLabel("Archivo MP4 o MOV (máximo 50 MiB)").isDisabled(), true);
+});
+
+test("discard refresh failure remains visible and explicit recovery preserves a manual draft", { timeout: 30000 }, async (t) => {
+  const fixture = createFixture();
+  fixture.analysisItems = [mismatchJob()];
+  fixture.failRefreshAfterDiscard = true;
+  const { page } = await openRecoveryTest(t, fixture);
+  const initialRequests = fixture.entriesRequests;
+  page.once("dialog", (dialog) => dialog.accept());
+  await page.getByRole("button", { name: "Descartar análisis y cargar otro video" }).click();
+  const retry = page.getByRole("button", { name: "Reintentar actualización de ingresos" });
+  await retry.waitFor();
+  assert.ok(fixture.entriesRequests > initialRequests);
+  assert.equal(fixture.discards, 1);
+  assert.equal(await page.getByLabel("Archivo MP4 o MOV (máximo 50 MiB)").isDisabled(), false);
+  fixture.failEntries = false;
+  const recovered = page.waitForResponse((response) => response.url().endsWith("/entradas") && response.ok());
+  await retry.click();
+  await recovered;
+  await retry.waitFor({ state: "hidden" });
+
+  await page.getByRole("button", { name: "Editar a BROWSER-01" }).click();
+  const dialog = page.getByRole("dialog");
+  const observation = dialog.getByRole("textbox", { name: "Observación" });
+  await observation.fill("draft retained during polling");
+  fixture.entriesValue = 5;
+  fixture.analysisItems = [analisisCompleto({ id: "later-analysis", estado: "COMPLETADO", aplicados_count: 1 }), ...fixture.analysisItems];
+  const refreshed = page.waitForResponse(async (response) => response.url().endsWith("/entradas") &&
+    response.ok() && (await response.json()).items[0]?.valor_cc === 5);
+  await refreshed;
+  assert.equal(await observation.inputValue(), "draft retained during polling");
+  assert.equal(fixture.discards, 1);
+});
+
+test("restricted terminal mismatch offers owner cancellation guidance, not impossible resolve or discard", { timeout: 30000 }, async (t) => {
+  const fixture = createFixture();
+  fixture.analysisItems = [{ ...restrictedJob(), requiere_cancelacion_sesion: true }];
+  const { page } = await openRecoveryTest(t, fixture);
+  await page.getByText("El propietario de la sesión puede cancelarla", { exact: false }).waitFor();
+  assert.equal(await page.getByRole("button", { name: "Resolver error" }).count(), 0);
+  assert.equal(await page.getByRole("button", { name: "Descartar análisis y cargar otro video" }).count(), 0);
+  assert.equal(await page.getByRole("button", { name: "Reintentar", exact: true }).count(), 0);
+  assert.equal(await page.getByLabel("Archivo MP4 o MOV (máximo 50 MiB)").isDisabled(), true);
+  assert.equal(await page.getByText("Ingresos esperados:", { exact: false }).count(), 0);
+  await page.getByRole("button", { name: "Eliminar sesión", exact: true }).click();
+  await page.getByRole("dialog").getByRole("button", { name: "Cancelar", exact: true }).click();
+  assert.equal(fixture.cancellations, 0);
+  await page.getByRole("button", { name: "Eliminar sesión", exact: true }).click();
+  const cancelled = page.waitForResponse((response) => response.request().method() === "DELETE" &&
+    response.url().endsWith(`/sesiones-captura/${sesion.id}`));
+  await page.getByRole("dialog").getByRole("button", { name: "Eliminar", exact: true }).click();
+  assert.equal((await cancelled).status(), 204);
+  await page.waitForURL(`${baseUrl}/sesiones`);
+  assert.equal(fixture.cancellations, 1);
+  assert.equal(fixture.resolutions, 0);
+  assert.equal(fixture.discards, 0);
+});
+
+test("exhausted import renders terminal recovery actions without an active progress bar or destructive discard", { timeout: 30000 }, async (t) => {
+  const fixture = createFixture();
+  fixture.analysisItems = [analisisCompleto({
+    estado: "ERROR", error_code: "reintentos_importacion_agotados", limpieza: "RETENIDA", aplicados_count: 1,
+  })];
+  const { page } = await openRecoveryTest(t, fixture);
+  await page.getByText("Se agotaron los reintentos automáticos.", { exact: false }).waitFor();
+  assert.equal(await page.getByRole("button", { name: "Reintentar", exact: true }).isVisible(), true);
+  assert.equal(await page.getByRole("button", { name: "Resolver error", exact: true }).isVisible(), true);
+  assert.equal(await page.getByRole("button", { name: "Descartar análisis y cargar otro video" }).count(), 0);
+  assert.equal(await page.locator(".analisis-video").getByRole("progressbar").count(), 0);
+  assert.equal(await page.getByLabel("Archivo MP4 o MOV (máximo 50 MiB)").isDisabled(), true);
+  assert.equal(fixture.entriesValue, 3);
 });
 
 test("la vista real recupera la clave del servidor y conserva el formulario durante las consultas", { timeout: 60000 }, async (t) => {

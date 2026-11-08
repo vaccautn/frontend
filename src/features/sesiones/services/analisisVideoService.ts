@@ -22,6 +22,7 @@ export {
   obtenerClaveReintento,
   obtenerIntentoPendiente,
   puedeIniciarCarga,
+  puedeDescartarAnalisis,
   puedeResolverAnalisis,
   puedeReintentarAnalisis,
   validarArchivoVideo,
@@ -62,6 +63,7 @@ export function reintentarAnalisisVideo(
 export async function resolverAnalisisVideo(
   sesionId: number,
   analisisId: string,
+  accion: "resolve" | "discard" = "resolve",
 ): Promise<void> {
   const usuarioId = getStoredUser()?.id;
   const accessToken = getAccessToken();
@@ -70,7 +72,7 @@ export async function resolverAnalisisVideo(
       ? null
       : obtenerIntentoPendiente(sesionId, usuarioId);
   await postJson<void, undefined>(
-    `/sesiones-captura/${sesionId}/analisis-video/${analisisId}/resolve`,
+    `/sesiones-captura/${sesionId}/analisis-video/${analisisId}/${accion}`,
     undefined,
     accessToken,
   );
@@ -85,4 +87,8 @@ export async function resolverAnalisisVideo(
       analisisId,
     );
   }
+}
+
+export function descartarAnalisisVideo(sesionId: number, analisisId: string): Promise<void> {
+  return resolverAnalisisVideo(sesionId, analisisId, "discard");
 }

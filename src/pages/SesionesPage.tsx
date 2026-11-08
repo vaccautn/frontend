@@ -61,8 +61,8 @@ export function SesionesPage() {
       await eliminarSesion(sesionAbierta);
       const nuevaSesion = await crearSesion({ fecha_inicio: localNaiveNow() });
       navigate(`/sesiones/${nuevaSesion.id}/cargar`);
-    } catch {
-      toast.error("No se pudo descartar la sesión abierta.");
+    } catch (error) {
+      toast.error(error instanceof ApiError ? error.detail : "No se pudo descartar la sesión abierta.");
     } finally {
       setIsStarting(false);
       setSesionAbierta(null);

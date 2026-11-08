@@ -8,6 +8,7 @@ import {
   listarAnalisisVideo,
   reintentarAnalisisVideo,
   resolverAnalisisVideo,
+  descartarAnalisisVideo,
   subirAnalisisVideo,
 } from "./analisisVideoService.ts";
 import { getJson, postJson } from "../../../services/httpClient.ts";
@@ -27,6 +28,7 @@ import {
   mensajeEstadoAnalisis,
   obtenerClaveReintento,
   puedeIniciarCarga,
+  puedeDescartarAnalisis,
   puedeResolverAnalisis,
   puedeReintentarAnalisis,
   seleccionarAnalisisVisible,
@@ -376,7 +378,7 @@ test("resolved historical work cannot erase the pending key for a newer lost-res
   }
 });
 
-test("resolve is allowed for every retained error; job retry excludes only admission rejection", () => {
+test("resolve and retry retain their behavior for non-mismatch errors", () => {
   const rejected = analisis({ estado: "ERROR", error_code: "ia_admision_rechazada", limpieza: "RETENIDA" });
   const processingFailure = analisis({ estado: "ERROR", error_code: "analisis_ia_fallido", limpieza: "RETENIDA" });
   assert.equal(puedeResolverAnalisis(rejected), true);
@@ -396,6 +398,84 @@ test("resolve is allowed for every retained error; job retry excludes only admis
   const key = obtenerClaveReintento(7, 12, crearArchivo(), noKey, () => "key");
   assert.equal(key, "key");
   assert.equal(puedeResolverAnalisis(rejected), true);
+});
+
+test("exhausted import is terminal and offers retry or resolution before session cancellation, not discard", () => {
+  const exhausted = analisis({
+    estado: "ERROR", limpieza: "RETENIDA", error_code: "reintentos_importacion_agotados", aplicados_count: 1,
+  });
+  assert.equal(puedeReintentarAnalisis(exhausted), true);
+  assert.equal(puedeResolverAnalisis(exhausted), true);
+  assert.equal(puedeDescartarAnalisis(exhausted), false);
+  assert.equal(hayResultadosVideoAplicados([exhausted]), true);
+  assert.match(mensajeEstadoAnalisis(exhausted), /Se agotaron los reintentos automáticos/);
+  assert.match(mensajeEstadoAnalisis(exhausted), /para cancelar la sesión, primero use Resolver error/);
+});
+
+test("restricted terminal mismatch capability directs to session owner cancellation without exposing snapshot", () => {
+  for (const estado of ["ERROR", "COMPLETADO"]) {
+    const restricted = {
+      estado, limpieza: "RETENIDA", acceso_restringido: true, requiere_cancelacion_sesion: true,
+    };
+    assert.equal(puedeResolverAnalisis(restricted), false);
+    assert.equal(puedeReintentarAnalisis(restricted), false);
+    assert.equal(puedeDescartarAnalisis(restricted), false);
+    assert.equal(analisisActivo([restricted]), restricted);
+    assert.match(mensajeEstadoAnalisis(restricted), /El propietario de la sesión puede cancelarla/);
+    assert.doesNotMatch(mensajeEstadoAnalisis(restricted), /Ingresos esperados|Pasajes detectados/);
+  }
+  const otherRestrictedError = {
+    estado: "ERROR", limpieza: "RETENIDA", acceso_restringido: true, requiere_cancelacion_sesion: false,
+  };
+  assert.equal(puedeResolverAnalisis(otherRestrictedError), true);
+});
+
+test("mismatches require explicit discard, including legacy completed and zero detections", () => {
+  for (const estado of ["ERROR", "COMPLETADO"] as const) {
+    for (const count of [0, 1, 3]) {
+      const item = analisis({ estado, discrepancia: true, pasajes_count: count, limpieza: "RETENIDA" });
+      assert.equal(puedeDescartarAnalisis(item), true);
+      assert.equal(analisisActivo([item]), item);
+      assert.equal(puedeResolverAnalisis(item), false);
+      assert.equal(puedeReintentarAnalisis(item), false);
+      assert.match(mensajeEstadoAnalisis(item), /Revisión necesaria/);
+      const discarded = { ...item, estado: "ERROR" as const, limpieza: "RESUELTA", error_code: "analisis_descartado", aplicados_count: 0 };
+      assert.equal(puedeDescartarAnalisis(discarded), false);
+      assert.equal(analisisActivo([discarded]), undefined);
+      assert.equal(hayResultadosVideoAplicados([discarded]), false);
+      assert.match(mensajeEstadoAnalisis(discarded), /descartado/);
+    }
+  }
+  assert.equal(puedeDescartarAnalisis(analisis({ estado: "PROCESANDO", discrepancia: true })), false);
+  assert.equal(puedeDescartarAnalisis({ estado: "ERROR", discrepancia: true, acceso_restringido: true }), false);
+});
+
+test("discard uses the authenticated endpoint, preserves unrelated keys and surfaces legacy rollback denial", async () => {
+  const local = crearStorage();
+  const session = crearStorage();
+  installLocalStorage(local);
+  installSessionStorage(session);
+  saveSession("discard-token", "Bearer", { id: 12, nombre: "Test", apellido: "User", email: "test@example.invalid", rol: "USUARIO" });
+  const key = obtenerClaveReintento(7, 12, crearArchivo(), session, () => "newer-key");
+  asociarClaveReintentoAnalisis(7, 12, key, "newer-analysis", session);
+  const originalFetch = globalThis.fetch;
+  let denied = false;
+  globalThis.fetch = async (input, options = {}) => {
+    assert.match(String(input), /\/sesiones-captura\/7\/analisis-video\/legacy-analysis\/discard$/);
+    assert.equal(options.method, "POST");
+    assert.equal((options.headers as Record<string, string>).Authorization, "Bearer discard-token");
+    return denied
+      ? new Response(JSON.stringify({ detail: "Requiere revisión manual auditada" }), { status: 409 })
+      : new Response(null, { status: 204 });
+  };
+  try {
+    await descartarAnalisisVideo(7, "legacy-analysis");
+    assert.equal(hayClaveReintento(7, 12, session), true);
+    denied = true;
+    await assert.rejects(descartarAnalisisVideo(7, "legacy-analysis"), /revisión manual auditada/);
+  } finally {
+    globalThis.fetch = originalFetch;
+  }
 });
 
 test("uploads are disabled once any video result was applied, but empty resolved failures permit a new upload", () => {

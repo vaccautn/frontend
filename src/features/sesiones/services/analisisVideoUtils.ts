@@ -33,6 +33,8 @@ export function analisisActivo<T extends { estado: string }>(
 ): T | undefined {
   return items.find((item) =>
     ESTADOS_ACTIVOS.has(item.estado) ||
+    ("requiere_cancelacion_sesion" in item && item.requiere_cancelacion_sesion === true) ||
+    (item.estado === "COMPLETADO" && "discrepancia" in item && item.discrepancia === true) ||
     (item.estado === "ERROR" && "limpieza" in item && item.limpieza === "RETENIDA"),
   );
 }
@@ -47,7 +49,21 @@ export function mensajeEstadoAnalisis(item: {
   estado: string;
   limpieza: string;
   error_code?: string | null;
+  discrepancia?: boolean | null;
+  requiere_cancelacion_sesion?: boolean;
 }): string {
+  if (item.requiere_cancelacion_sesion) {
+    return "El acceso restringido no permite resolver ni descartar este análisis. El propietario de la sesión puede cancelarla con la opción Eliminar sesión: se anulan todas sus evaluaciones y se conserva el historial. Si no es el propietario, solicite su intervención.";
+  }
+  if (item.estado === "ERROR" && item.limpieza === "RETENIDA" && item.error_code === "reintentos_importacion_agotados") {
+    return "Se agotaron los reintentos automáticos. Se conservan los archivos, los resultados guardados y las evaluaciones manuales. Puede reintentar el análisis; para cancelar la sesión, primero use Resolver error.";
+  }
+  if (item.error_code === "analisis_descartado") {
+    return "Análisis descartado. Se conserva el historial y puede cargar otro video si la sesión sigue abierta.";
+  }
+  if (item.discrepancia) {
+    return "Revisión necesaria: no es seguro asignar pasajes por orden cuando las cantidades difieren. Descarte el análisis para cargar otro video o cancele la sesión. Los resultados históricos ya aplicados requieren revisión manual.";
+  }
   switch (item.estado) {
     case "ENVIANDO":
       return "Esperando confirmación del envío…";
@@ -76,10 +92,14 @@ export function puedeReintentarAnalisis(item: {
   estado: string;
   limpieza: string;
   error_code?: string | null;
+  discrepancia?: boolean | null;
+  requiere_cancelacion_sesion?: boolean;
 }): boolean {
   return (
     item.estado === "ERROR" &&
     item.limpieza === "RETENIDA" &&
+    !item.discrepancia &&
+    !item.requiere_cancelacion_sesion &&
     item.error_code !== "ia_admision_rechazada"
   );
 }
@@ -88,13 +108,27 @@ export function puedeResolverAnalisis(item: {
   estado: string;
   limpieza: string;
   acceso_restringido?: boolean;
+  discrepancia?: boolean | null;
+  requiere_cancelacion_sesion?: boolean;
 }): boolean {
   return (
-    (item.estado === "ERROR" && item.limpieza === "RETENIDA") ||
-    (item.acceso_restringido === true &&
-      item.estado === "ENVIANDO" &&
-      item.limpieza === "PENDIENTE")
+    !item.discrepancia &&
+    !item.requiere_cancelacion_sesion &&
+    ((item.estado === "ERROR" && item.limpieza === "RETENIDA") ||
+      (item.acceso_restringido === true &&
+        item.estado === "ENVIANDO" &&
+        item.limpieza === "PENDIENTE"))
   );
+}
+
+export function puedeDescartarAnalisis(item: {
+  estado: string;
+  discrepancia?: boolean | null;
+  error_code?: string | null;
+  acceso_restringido?: boolean;
+}): boolean {
+  return !item.acceso_restringido && item.discrepancia === true &&
+    ["ERROR", "COMPLETADO"].includes(item.estado) && item.error_code !== "analisis_descartado";
 }
 
 type PendingVideoUpload = {

@@ -344,8 +344,8 @@ export function CargarEvaluacionesPage() {
       await eliminarSesion(sesionId);
       toast.success("Sesión eliminada correctamente.");
       navigate("/sesiones");
-    } catch {
-      toast.error("No se pudo eliminar la sesión.");
+    } catch (error) {
+      toast.error(error instanceof ApiError ? normalizeBackendDetail(error.detail) : "No se pudo eliminar la sesión.");
       setIsDeletingSesion(false);
     }
   };
