@@ -6,6 +6,12 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getJson, postJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
+import { IconArrowUpRight, IconHeart, IconPlus } from "@tabler/icons-react";
+import { ESTADO_RESULTADO_SERVICIO_LABELS } from "@/features/servicios/constants";
+import { normalizarCaravana, esCaravanaValida, MENSAJE_FORMATO_CARAVANA } from "../utils/caravana";
+import { FechaInput } from "@/components/FechaInput";
+import { localNaiveNow } from "@/utils/localDateTime";
+import "./animal-reproduccion.css";
 type Resultado = {
   id: number;
   servicio_id: number;
@@ -22,9 +28,10 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
   const [caravana, setCaravana] = useState("");
   const [lote, setLote] = useState("");
   const [categoria, setCategoria] = useState("TERNERA");
-  const [fecha, setFecha] = useState(new Date().toLocaleDateString("en-CA"));
+  const [fecha, setFecha] = useState(localNaiveNow().slice(0, 10));
   const [mensaje, setMensaje] = useState("");
   const [busy, setBusy] = useState(false);
+  const [loading, setLoading] = useState(true);
   useEffect(() => {
     getLotes()
       .then(setLotes)
@@ -35,35 +42,67 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
     let cancel = false;
     getJson<Resultado[]>(`/animales/${animalId}/reproduccion`, getAccessToken())
       .then((data) => {
-        if (!cancel) setItems(data);
+        if (!cancel) {
+          setItems(data);
+          setError(false);
+        }
       })
       .catch(() => {
         if (!cancel) setError(true);
+      })
+      .finally(() => {
+        if (!cancel) setLoading(false);
       });
     return () => {
       cancel = true;
     };
   }, [animalId, revision]);
   return (
-    <section className="animal-detail__section">
-      <h2>Servicios y crías</h2>
+    <section className="animal-detail__section reproduccion" aria-labelledby="reproduccion-titulo">
+      <div className="animal-detail__section-header">
+        <div>
+          <span className="animal-detail__section-eyebrow">Historial reproductivo</span>
+          <h2 id="reproduccion-titulo">Servicios y crías</h2>
+        </div>
+        <IconHeart size={24} stroke={1.5} aria-hidden="true" />
+      </div>
       {error ? (
-        <p role="alert">No se pudo cargar el historial reproductivo.</p>
+        <div role="alert" className="reproduccion__vacio">
+          <p>No se pudo cargar el historial reproductivo.</p>
+          <Button variant="outline" colorPalette="brand" onClick={() => {
+            setLoading(true);
+            setError(false);
+            setRevision((v) => v + 1);
+          }}>Reintentar</Button>
+        </div>
+      ) : loading ? (
+        <p className="reproduccion__vacio" role="status">Cargando historial reproductivo…</p>
       ) : !items.length ? (
-        <p>Sin resultados reproductivos registrados.</p>
+        <div className="reproduccion__vacio">
+          <p>Sin servicios registrados para este animal.</p>
+          <span>Sus diagnósticos y crías aparecerán acá.</span>
+        </div>
       ) : (
-        items.map((r) => (
-          <article className="gestion-card" key={r.id}>
-            <Link to={`/servicios/${r.servicio_id}`}>
-              Servicio #{r.servicio_id}
-            </Link>
-            <p>
-              {r.estado}
-              {r.fecha_diagnostico ? ` · ${r.fecha_diagnostico}` : ""}
+        <div className="reproduccion__lista">
+        {items.map((r) => (
+          <article className="reproduccion__item" key={r.id}>
+            <div className="reproduccion__item-header">
+              <Link className="reproduccion__enlace" to={`/servicios/${r.servicio_id}`}>
+                Servicio #{r.servicio_id} <IconArrowUpRight size={16} aria-hidden="true" />
+              </Link>
+              <span className="reproduccion__estado" data-estado={r.estado}>
+                {ESTADO_RESULTADO_SERVICIO_LABELS[r.estado] ?? r.estado}
+              </span>
+            </div>
+            <p className="reproduccion__fecha">
+              {r.fecha_diagnostico
+                ? `Diagnóstico · ${r.fecha_diagnostico.slice(0, 10).split("-").reverse().join("/")}`
+                : "Sin fecha de diagnóstico"}
             </p>
             {r.cria_id && (
-              <Link to={`/rodeo/${r.cria_id}`}>
-                Cría {r.cria_caravana ?? `#${r.cria_id}`}
+              <Link className="reproduccion__cria" to={`/rodeo/${r.cria_id}`}>
+                <span>Cría registrada <strong>{r.cria_caravana ?? `#${r.cria_id}`}</strong></span>
+                <IconArrowUpRight size={18} aria-hidden="true" />
               </Link>
             )}
             {!r.cria_id && ["PRENADA", "PARIDA"].includes(r.estado) && (
@@ -71,24 +110,38 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
                 colorPalette="brand"
                 variant="outline"
                 type="button"
+                disabled={busy}
                 onClick={() => {
                   setRegistrando(r.id);
+                  setCaravana("");
+                  setLote("");
+                  setCategoria("TERNERA");
+                  setFecha(localNaiveNow().slice(0, 10));
                   setMensaje("");
                 }}
               >
-                Registrar nacimiento
+                <IconPlus size={16} aria-hidden="true" /> Registrar nacimiento
               </Button>
             )}
           </article>
-        ))
+        ))}
+        </div>
       )}
       {mensaje && <p role="alert">{mensaje}</p>}
       {registrando && (
         <form
-          className="gestion-filter"
+          className="reproduccion__form"
           onSubmit={async (e) => {
             e.preventDefault();
             if (busy) return;
+            if (!esCaravanaValida(caravana)) {
+              setMensaje(MENSAJE_FORMATO_CARAVANA);
+              return;
+            }
+            if (!lote || !fecha) {
+              setMensaje("Completá el lote y la fecha de nacimiento.");
+              return;
+            }
             setBusy(true);
             setMensaje("");
             try {
@@ -116,18 +169,24 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
             }
           }}
         >
+          <div className="reproduccion__form-titulo">
+            <h3>Registrar nacimiento</h3>
+            <p>Servicio #{items.find((item) => item.id === registrando)?.servicio_id}</p>
+          </div>
           <label>
             Caravana de la cría
             <Input
               required
+              maxLength={15}
               value={caravana}
-              onChange={(e) => setCaravana(e.target.value)}
+              onChange={(e) => setCaravana(normalizarCaravana(e.target.value))}
             />
           </label>
           <label>
             Nuevo lote
             <NativeSelect.Root>
               <NativeSelect.Field
+                required
                 value={lote}
                 onChange={(e) => setLote(e.target.value)}
               >
@@ -158,17 +217,18 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
           </label>
           <label>
             Fecha de nacimiento
-            <Input
-              required
-              type="date"
+            <FechaInput
               value={fecha}
-              max={new Date().toLocaleDateString("en-CA")}
-              onChange={(e) => setFecha(e.target.value)}
+              aria-label="Fecha de nacimiento de la cría"
+              max={localNaiveNow().slice(0, 10)}
+              onChange={setFecha}
             />
           </label>
+          <div className="reproduccion__acciones">
           <Button
             colorPalette="brand"
-            variant="outline"
+            variant="solid"
+            loading={busy}
             disabled={busy}
             type="submit"
           >
@@ -178,10 +238,12 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
             colorPalette="brand"
             variant="outline"
             type="button"
+            disabled={busy}
             onClick={() => setRegistrando(null)}
           >
             Cancelar
           </Button>
+          </div>
         </form>
       )}
     </section>
