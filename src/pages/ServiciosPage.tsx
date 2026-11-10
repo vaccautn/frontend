@@ -78,7 +78,7 @@ export function ServiciosPage() {
   useEffect(() => {
     if (seleccionadoId !== null || servicioPorDefectoId === null) return;
     setSeleccionadoId(servicioPorDefectoId);
-  }, [servicioPorDefectoId, seleccionadoId]);
+  }, [servicioPorDefectoId, seleccionadoId, setSeleccionadoId]);
 
   const pendientes = pendientesPorServicio(
     dashboard.servicios,

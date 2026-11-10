@@ -47,9 +47,9 @@ export function RodeoPage() {
 
   const handleLoteClick = useCallback((loteId: number) => {
     setLoteSeleccionadoId((actual) => (actual === loteId ? null : loteId));
-  }, []);
+  }, [setLoteSeleccionadoId]);
 
-  const handleDeselect = useCallback(() => setLoteSeleccionadoId(null), []);
+  const handleDeselect = useCallback(() => setLoteSeleccionadoId(null), [setLoteSeleccionadoId]);
 
   const lotes = useMemo(() => features.map((f) => f.properties), [features]);
 

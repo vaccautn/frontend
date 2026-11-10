@@ -44,4 +44,11 @@ describe("usePageState", () => {
     const { result } = renderHook(() => usePageState("pagina", 0));
     expect(result.current[0]).toBe(0);
   });
+
+  it("mantiene estable el setter mientras no cambia el campo", () => {
+    const { result, rerender } = renderHook(() => usePageState("pagina", 0));
+    const setter = result.current[1];
+    rerender();
+    expect(result.current[1]).toBe(setter);
+  });
 });
