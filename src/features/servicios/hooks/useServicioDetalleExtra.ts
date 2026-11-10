@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { getLotes } from "@/features/lotes/services/lotesService";
 import type { LoteOption } from "@/features/lotes/types";
 import { getServicio, getServicios } from "../services/serviciosService";
@@ -32,20 +32,19 @@ export function useServicioDetalleExtra(
   servicioOrigenId: number | null,
 ): ServicioDetalleExtra {
   const [state, setState] = useState<Omit<ServicioDetalleExtra, never>>({
-    status: "idle",
+    status: servicioId === null ? "idle" : "loading",
     ...VACIO,
   });
-  const generacionRef = useRef(0);
 
+  const [scope, setScope] = useState({ servicioId, servicioOrigenId });
+  if (scope.servicioId !== servicioId || scope.servicioOrigenId !== servicioOrigenId) {
+    setScope({ servicioId, servicioOrigenId });
+    setState({ status: servicioId === null ? "idle" : "loading", ...VACIO });
+  }
   useEffect(() => {
-    const generacion = ++generacionRef.current;
+    let active = true;
 
-    if (servicioId === null) {
-      setState({ status: "idle", ...VACIO });
-      return;
-    }
-
-    setState({ status: "loading", ...VACIO });
+    if (servicioId === null) return;
 
     void (async () => {
       const [reservicios, origen, todosLosLotes] = await Promise.all([
@@ -55,9 +54,10 @@ export function useServicioDetalleExtra(
           : Promise.resolve(null),
         getLotes().catch(() => []),
       ]);
-      if (generacionRef.current !== generacion) return;
+      if (!active) return;
       setState({ status: "ready", reservicios, origen, todosLosLotes });
     })();
+    return () => { active = false; };
   }, [servicioId, servicioOrigenId]);
 
   return state;

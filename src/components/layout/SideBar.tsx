@@ -40,6 +40,12 @@ const navItems = [
     to: "/servicios",
     icon: <IconCalendarHeart size={20} stroke={1.5} />,
   },
+  {
+    label: "Historial",
+    to: "/actividad",
+    icon: <IconClipboardText size={20} stroke={1.5} />,
+  },
+  { label: "Campo", to: "/campo", icon: <VacaIcon size={20} /> },
 ];
 
 type SidebarProps = {
@@ -75,13 +81,15 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
   return (
     <aside
       className={`sidebar${isOpen ? "" : " sidebar--collapsed"}`}
-      aria-label="Navegación principal">
+      aria-label="Navegación principal"
+    >
       <div className="sidebar__top">
         <NavLink
           to="/inicio"
           className="sidebar__brand"
           aria-label="Vacca, ir al inicio"
-          title="Inicio">
+          title="Inicio"
+        >
           <VaccaIsotipo size={32} />
           {isOpen && (
             <span className="sidebar__brand-texto">
@@ -96,7 +104,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
           variant="ghost"
           size="md"
           className="sidebar__toggle"
-          onClick={onToggle}>
+          onClick={onToggle}
+        >
           <IconMenu2 size={24} stroke={1.75} />
         </IconButton>
       </div>
@@ -109,11 +118,13 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               key={to}
               disabled={isOpen}
               openDelay={100}
-              positioning={{ placement: "right" }}>
+              positioning={{ placement: "right" }}
+            >
               <Tooltip.Trigger asChild>
                 <NavLink
                   to={to}
-                  className={`sidebar__link${isActive ? " sidebar__link--active" : ""}`}>
+                  className={`sidebar__link${isActive ? " sidebar__link--active" : ""}`}
+                >
                   <span className="sidebar__icon">{icon}</span>
                   {isOpen && label}
                 </NavLink>
@@ -139,18 +150,21 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
               placement: isOpen ? "top" : "right-end",
               sameWidth: isOpen,
               gutter: 8,
-            }}>
+            }}
+          >
             <Menu.Trigger asChild>
               <button
                 type="button"
                 className="sidebar__user"
                 aria-label={`Cuenta de ${user.nombre} ${user.apellido}`}
-                title={isOpen ? undefined : `${user.nombre} ${user.apellido}`}>
+                title={isOpen ? undefined : `${user.nombre} ${user.apellido}`}
+              >
                 <Avatar.Root
                   size="sm"
                   variant="solid"
                   colorPalette="brand"
-                  className="sidebar__avatar">
+                  className="sidebar__avatar"
+                >
                   <Avatar.Fallback>
                     {getInitials(user.nombre, user.apellido)}
                   </Avatar.Fallback>
@@ -195,7 +209,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   <Menu.Item
                     value="cerrar-sesion"
                     className="sidebar__user-menu-item--danger"
-                    onSelect={() => setIsLogoutConfirmOpen(true)}>
+                    onSelect={() => setIsLogoutConfirmOpen(true)}
+                  >
                     <IconLogout stroke={1.5} size={18} />
                     Cerrar sesión
                   </Menu.Item>
@@ -209,7 +224,8 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
       <Dialog.Root
         open={isLogoutConfirmOpen}
         onOpenChange={(details) => setIsLogoutConfirmOpen(details.open)}
-        role="alertdialog">
+        role="alertdialog"
+      >
         <Portal>
           <Dialog.Backdrop className="logout-confirm__backdrop" />
           <Dialog.Positioner>
@@ -225,14 +241,16 @@ export function Sidebar({ isOpen, onToggle }: SidebarProps) {
                   type="button"
                   className="logout-confirm__cancel"
                   onClick={() => setIsLogoutConfirmOpen(false)}
-                  disabled={isLoggingOut}>
+                  disabled={isLoggingOut}
+                >
                   Cancelar
                 </button>
                 <button
                   type="button"
                   className="logout-confirm__confirm"
                   onClick={handleConfirmLogout}
-                  disabled={isLoggingOut}>
+                  disabled={isLoggingOut}
+                >
                   {isLoggingOut ? "Cerrando..." : "Cerrar sesión"}
                 </button>
               </Dialog.Footer>

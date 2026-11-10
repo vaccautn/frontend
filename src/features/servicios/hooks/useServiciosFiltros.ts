@@ -1,10 +1,17 @@
-import { useMemo, useState } from "react";
-import type { EstadoServicio, ServicioListParams } from "@/features/servicios/types";
+import { usePageState } from "@/hooks/usePageState";
+import { useMemo } from "react";
+import type {
+  EstadoServicio,
+  ServicioListParams,
+} from "@/features/servicios/types";
 
 export function useServiciosFiltros() {
-  const [estado, setEstado] = useState<EstadoServicio | null>(null);
-  const [fechaDesde, setFechaDesde] = useState("");
-  const [fechaHasta, setFechaHasta] = useState("");
+  const [estado, setEstado] = usePageState<EstadoServicio | null>(
+    "servicios.estado",
+    null,
+  );
+  const [fechaDesde, setFechaDesde] = usePageState("servicios.desde", "");
+  const [fechaHasta, setFechaHasta] = usePageState("servicios.hasta", "");
 
   const params = useMemo<ServicioListParams>(
     () => ({

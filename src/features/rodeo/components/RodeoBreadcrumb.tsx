@@ -1,19 +1,23 @@
-type Props = {
-  loteNombre?: string;
-  onClear: () => void;
-};
-
+type Props = { loteNombre?: string; onClear: () => void };
 export function RodeoBreadcrumb({ loteNombre, onClear }: Props) {
   return (
     <div className="rodeo-breadcrumb">
-      <span className="rodeo-breadcrumb__todo" onClick={onClear}>
-        Todo el rodeo
-      </span>
-      {loteNombre && (
+      {loteNombre ? (
         <>
-          <span className="rodeo-breadcrumb__separador">›</span>
+          <button
+            type="button"
+            className="rodeo-breadcrumb__todo"
+            onClick={onClear}
+          >
+            Rodeo
+          </button>
+          <span className="rodeo-breadcrumb__separador" aria-hidden="true">
+            ?
+          </span>
           <span>{loteNombre}</span>
         </>
+      ) : (
+        <span>Rodeo</span>
       )}
     </div>
   );

@@ -1,3 +1,4 @@
+import { normalizarCaravana, esCaravanaValida, MENSAJE_FORMATO_CARAVANA } from "@/features/animales/utils/caravana";
 import { useEffect, useState, type ChangeEvent, type FormEvent } from "react";
 import { useNavigate } from "react-router-dom";
 import {
@@ -20,11 +21,10 @@ import {
 } from "@/features/animales/utils/animalesValidation";
 import { normalizeBackendDetail, useAuth } from "@/features/auth";
 import {
-  CATEGORIA_ANIMAL_LABELS,
   CATEGORIAS_ANIMAL,
-  CATEGORIAS_POR_SEXO,
   RAZAS,
   SEXOS,
+  sexoDeCategoria,
 } from "@/features/animales/constants";
 import type { LoteOption } from "@/features/lotes/types";
 import { SelectOpciones } from "@/components/SelectOpciones";
@@ -53,18 +53,16 @@ function AnimalesNuevoPage() {
 
   useEffect(() => {
     getLotes()
-      .then(setLotes)
+      .then((data) => {
+        const activos = data.filter((lote) => lote.activo);
+        setLotes(activos);
+        if (activos.length === 0) setIsCreatingLote(true);
+      })
       .catch(() =>
         setLotesError("No se pudieron cargar los lotes disponibles."),
       )
       .finally(() => setLotesLoading(false));
   }, []);
-
-  useEffect(() => {
-    if (!lotesLoading && !lotesError && lotes.length === 0) {
-      setIsCreatingLote(true);
-    }
-  }, [lotesLoading, lotesError, lotes.length]);
 
   const close = (refresh = false) => {
     setOpen(false);
@@ -72,8 +70,9 @@ function AnimalesNuevoPage() {
   };
 
   const setField = (field: keyof RodeoNuevoValues, value: string) => {
+    if (field === "caravana") value = normalizarCaravana(value);
     setValues((current) => ({ ...current, [field]: value }));
-    setErrors((current) => ({ ...current, [field]: undefined }));
+    setErrors((current) => ({ ...current, [field]: field === "caravana" && value && !esCaravanaValida(value) ? MENSAJE_FORMATO_CARAVANA : undefined }));
     setFormError("");
   };
 
@@ -82,18 +81,8 @@ function AnimalesNuevoPage() {
     (event: ChangeEvent<HTMLInputElement | HTMLSelectElement>) =>
       setField(field, event.target.value);
 
-  // Cambiar el sexo invalida la categoría elegida (HEMBRA y MACHO tienen
-  // categorías disjuntas en el backend), así que se limpia junto con el sexo.
-  const updateSexo = (sexo: string) => {
-    setValues((current) => ({ ...current, sexo, categoria: "" }));
-    setErrors((current) => ({ ...current, sexo: undefined, categoria: undefined }));
-    setFormError("");
-  };
-
-  const categoriasDisponibles =
-    values.sexo === "MACHO" || values.sexo === "HEMBRA"
-      ? CATEGORIAS_POR_SEXO[values.sexo]
-      : [];
+  // El sexo no se elige: se deduce de la categoría.
+  const sexo = SEXOS.find((s) => s.value === sexoDeCategoria(values.categoria));
 
   const toggleCreatingLote = () => {
     setIsCreatingLote((current) => !current);
@@ -151,11 +140,12 @@ function AnimalesNuevoPage() {
       }
 
       await registerAnimal({
-        caravana: values.caravana.trim(),
-        raza: values.raza,
-        sexo: values.sexo,
-        categoria: values.categoria,
-        fecha_nacimiento: values.fecha_nacimiento,
+        caravana: normalizarCaravana(values.caravana),
+        ...(values.raza ? { raza: values.raza } : {}),
+        ...(values.categoria ? { categoria: values.categoria } : {}),
+        ...(values.fecha_nacimiento
+          ? { fecha_nacimiento: values.fecha_nacimiento }
+          : {}),
         lote_id: loteId,
       });
 
@@ -186,7 +176,8 @@ function AnimalesNuevoPage() {
         if (!details.open) close();
       }}
       placement="end"
-      size="md">
+      size="md"
+    >
       <Portal>
         <Drawer.Backdrop className="animal-form__backdrop" />
         <Drawer.Positioner>
@@ -197,7 +188,8 @@ function AnimalesNuevoPage() {
                 <button
                   type="button"
                   className="animal-form__close"
-                  aria-label="Cerrar">
+                  aria-label="Cerrar"
+                >
                   ✕
                 </button>
               </Drawer.CloseTrigger>
@@ -214,69 +206,58 @@ function AnimalesNuevoPage() {
                 id="animal-nuevo-form"
                 onSubmit={handleSubmit}
                 noValidate
-                className="animal-form__fields">
+                className="animal-form__fields"
+              >
                 <Field.Root invalid={!!errors.caravana}>
                   <Field.Label>Caravana</Field.Label>
                   <Input
-                    value={values.caravana}
+                    maxLength={15} value={values.caravana}
                     onChange={updateField("caravana")}
+                    placeholder="AB123 0001"
                   />
+                  <Field.HelperText>
+                    CUIG y número de animal, o los 15 dígitos de la caravana
+                    electrónica.
+                  </Field.HelperText>
                   <Field.ErrorText>{errors.caravana}</Field.ErrorText>
                 </Field.Root>
 
                 <Field.Root invalid={!!errors.raza}>
-                  <Field.Label>Raza</Field.Label>
+                  <Field.Label>Raza (opcional)</Field.Label>
                   <SelectOpciones
                     aria-label="Raza"
                     placeholder="Seleccioná una raza"
-                    opciones={RAZAS.map((raza) => ({ value: raza, label: raza }))}
+                    opciones={RAZAS.map((raza) => ({
+                      value: raza,
+                      label: raza,
+                    }))}
                     value={values.raza}
                     onChange={(raza) => setField("raza", raza)}
                   />
                   <Field.ErrorText>{errors.raza}</Field.ErrorText>
                 </Field.Root>
 
-                <Field.Root invalid={!!errors.sexo}>
-                  <Field.Label>Sexo</Field.Label>
-                  <SelectOpciones
-                    aria-label="Sexo"
-                    placeholder="Seleccioná el sexo"
-                    opciones={[...SEXOS]}
-                    value={values.sexo}
-                    onChange={updateSexo}
-                  />
-                  <Field.ErrorText>{errors.sexo}</Field.ErrorText>
-                </Field.Root>
-
                 <Field.Root invalid={!!errors.categoria}>
-                  <Field.Label>Categoría</Field.Label>
+                  <Field.Label>
+                    Categoría (por defecto, la del lote)
+                  </Field.Label>
                   <SelectOpciones
                     aria-label="Categoría"
-                    disabled={!values.sexo}
-                    placeholder={
-                      values.sexo
-                        ? "Seleccioná una categoría"
-                        : "Elegí el sexo primero"
-                    }
-                    opciones={categoriasDisponibles.map((value) => ({
-                      value,
-                      label: CATEGORIA_ANIMAL_LABELS[value] ?? value,
-                    }))}
+                    placeholder="Seleccioná una categoría"
+                    opciones={[...CATEGORIAS_ANIMAL]}
                     value={values.categoria}
-                    onChange={(categoria) => {
-                      setValues((current) => ({ ...current, categoria }));
-                      setErrors((current) => ({
-                        ...current,
-                        categoria: undefined,
-                      }));
-                      setFormError("");
-                    }}
+                    onChange={(categoria) => setField("categoria", categoria)}
                   />
+                  <Field.HelperText>
+                    {sexo
+                      ? `Sexo: ${sexo.label} ${sexo.symbol} (sale de la categoría)`
+                      : "El sexo sale de la categoría."}
+                  </Field.HelperText>
                   <Field.ErrorText>{errors.categoria}</Field.ErrorText>
                 </Field.Root>
 
                 <Field.Root invalid={!!errors.fecha_nacimiento}>
-                  <Field.Label>Fecha de nacimiento</Field.Label>
+                  <Field.Label>Fecha de nacimiento (opcional)</Field.Label>
                   <FechaInput
                     value={values.fecha_nacimiento}
                     onChange={(fecha) => setField("fecha_nacimiento", fecha)}
@@ -293,7 +274,8 @@ function AnimalesNuevoPage() {
                         <button
                           type="button"
                           className="animal-form__link-button"
-                          onClick={toggleCreatingLote}>
+                          onClick={toggleCreatingLote}
+                        >
                           {isCreatingLote
                             ? "Usar lote existente"
                             : "Crear nuevo lote"}
@@ -303,7 +285,9 @@ function AnimalesNuevoPage() {
                     <SelectOpciones
                       aria-label="Lote"
                       placeholder={
-                        lotesLoading ? "Cargando lotes..." : "Seleccioná un lote"
+                        lotesLoading
+                          ? "Cargando lotes..."
+                          : "Seleccioná un lote"
                       }
                       opciones={lotes.map((lote) => ({
                         value: String(lote.id),
@@ -329,7 +313,8 @@ function AnimalesNuevoPage() {
                           <button
                             type="button"
                             className="animal-form__link-button"
-                            onClick={toggleCreatingLote}>
+                            onClick={toggleCreatingLote}
+                          >
                             {isCreatingLote
                               ? "Usar lote existente"
                               : "Crear nuevo lote"}
@@ -389,7 +374,8 @@ function AnimalesNuevoPage() {
                 type="button"
                 variant="outline"
                 className="animal-form__cancel"
-                onClick={() => close()}>
+                onClick={() => close()}
+              >
                 Cancelar
               </Button>
               <Button
@@ -397,7 +383,8 @@ function AnimalesNuevoPage() {
                 form="animal-nuevo-form"
                 colorPalette="brand"
                 loading={isSubmitting}
-                loadingText="Registrando...">
+                loadingText="Registrando..."
+              >
                 Registrar animal
               </Button>
             </Drawer.Footer>

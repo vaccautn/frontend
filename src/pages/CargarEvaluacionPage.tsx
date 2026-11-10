@@ -1,4 +1,5 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { Paginador } from "@/components/ui/Paginador";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { Button, Dialog, Portal, Table } from "@chakra-ui/react";
 import { toast } from "react-toastify";
@@ -6,8 +7,7 @@ import { IconCheck, IconChevronRight, IconTrash } from "@tabler/icons-react";
 import { getSesion } from "@/features/sesiones/services/sesionesService";
 import {
   getAnimalesAgrupadosPorLote,
-  getEvaluacionesCc,
-  FotoRechazadaError,
+  getEntradasSesion,
   registrarEvaluacionCCCompleta,
   updateEvaluacionCcEnSesion,
 } from "@/features/animales/services/animalesService";
@@ -28,15 +28,18 @@ import type {
   AnimalLoteGroup,
   EvaluacionCC,
 } from "@/features/animales/types";
+import type { EntradasSesionRead } from "@/features/animales/types";
 import type { LoteOption } from "@/features/lotes/types";
 import { localNaiveNow } from "@/utils/localDateTime";
-import { normalizeBackendDetail } from "@/features/auth";
+import { getStoredUser, normalizeBackendDetail } from "@/features/auth";
 import { ApiError } from "@/services/httpClient";
 import {
   CATEGORIA_ANIMAL_LABELS,
   CATEGORIAS_VACA,
 } from "@/features/animales/constants";
 import { nivelCC } from "@/features/animales/utils/ccColor";
+import { AnalisisVideoSesion } from "@/features/sesiones/components/AnalisisVideoSesion";
+import { aplicarEntradasVideoRefrescadas } from "@/features/sesiones/services/analisisVideoRecovery";
 import { FechaInput } from "@/components/FechaInput";
 import "@/features/animales/components/animales.css";
 import "@/features/sesiones/components/sesiones.css";
@@ -46,7 +49,7 @@ type Vista = "todos" | "pendientes" | "evaluados";
 const VISTAS: { value: Vista; label: string }[] = [
   { value: "todos", label: "Todos" },
   { value: "pendientes", label: "Pendientes" },
-  { value: "evaluados", label: "Evaluados" },
+  { value: "evaluados", label: "Registrados" },
 ];
 
 /** "27 de octubre de 2026" a partir de un "YYYY-MM-DD..." (sin zona horaria:
@@ -64,7 +67,9 @@ export function CargarEvaluacionesPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const sesionId = Number(id);
+  const usuarioId = getStoredUser()?.id ?? 0;
 
+  const [paginaAnimales, setPaginaAnimales] = useState(0);
   const [sesion, setSesion] = useState<SesionCapturaRead | null>(null);
   const [grupos, setGrupos] = useState<AnimalLoteGroup[]>([]);
   const [lotes, setLotes] = useState<LoteOption[]>([]);
@@ -72,6 +77,7 @@ export function CargarEvaluacionesPage() {
   const [animalSeleccionado, setAnimalSeleccionado] = useState<Animal | null>(
     null,
   );
+  const animalSeleccionadoRef = useRef<Animal | null>(null);
   const [loading, setLoading] = useState(true);
   const [refetchingGrupos, setRefetchingGrupos] = useState(false);
   const [isFinalizando, setIsFinalizando] = useState(false);
@@ -84,6 +90,57 @@ export function CargarEvaluacionesPage() {
   const [evaluacionesPersistidas, setEvaluacionesPersistidas] = useState<
     Map<number, EvaluacionCC>
   >(new Map());
+  const [entradasSesion, setEntradasSesion] = useState<EntradasSesionRead>({
+    orden_disponible: false,
+    items: [],
+  });
+  const requestVideoEntriesRefreshRef = useRef<(() => Promise<void>) | null>(
+    null,
+  );
+  const sesionActualRef = useRef(sesionId);
+
+  useEffect(() => {
+    sesionActualRef.current = sesionId;
+  }, [sesionId]);
+
+  const refrescarEntradasVideo = useCallback(async () => {
+    const entradas = await getEntradasSesion(sesionId);
+    if (sesionActualRef.current !== sesionId) return;
+    aplicarEntradasVideoRefrescadas(
+      entradas,
+      animalSeleccionadoRef.current !== null,
+      setEntradasSesion,
+      setEvaluacionesPersistidas,
+    );
+  }, [sesionId]);
+
+  const seleccionarAnimal = (animal: Animal | null) => {
+    animalSeleccionadoRef.current = animal;
+    setAnimalSeleccionado(animal);
+  };
+
+  const handleCerrarDialogEvaluacion = () => {
+    seleccionarAnimal(null);
+    const requestRefresh = requestVideoEntriesRefreshRef.current;
+    if (requestRefresh) {
+      void requestRefresh().catch(() => {
+        // The recovery panel keeps the request pending and exposes its retry action.
+      });
+    } else {
+      void refrescarEntradasVideo().catch(() =>
+        toast.error(
+          "No se pudieron actualizar los ingresos. Volvé a cargar la sesión.",
+        ),
+      );
+    }
+  };
+
+  const registrarRefrescoEntradasVideo = useCallback(
+    (request: (() => Promise<void>) | null) => {
+      requestVideoEntriesRefreshRef.current = request;
+    },
+    [],
+  );
 
   const {
     caravanaInput,
@@ -105,28 +162,54 @@ export function CargarEvaluacionesPage() {
       .finally(() => setLoadingLotes(false));
   }, []);
 
-  useEffect(() => {
+  const [sesionEnCarga, setSesionEnCarga] = useState(sesionId);
+  if (sesionEnCarga !== sesionId) {
+    setSesionEnCarga(sesionId);
     setLoading(true);
-    Promise.all([getSesion(sesionId), getEvaluacionesCc({ sesionId })])
-      .then(([sesionData, evaluacionesData]) => {
+  }
+  useEffect(() => {
+    Promise.allSettled([getSesion(sesionId), getEntradasSesion(sesionId)])
+      .then(([sesionResult, entradasResult]) => {
+        if (sesionActualRef.current !== sesionId) return;
+        if (sesionResult.status === "rejected") {
+          toast.error("No se pudo cargar la sesión.");
+          return;
+        }
+        const sesionData = sesionResult.value;
         setSesion(sesionData);
         setFechaSesionInput(sesionData.fecha_inicio.slice(0, 10));
-        setEvaluacionesPersistidas(
-          new Map(evaluacionesData.map((item) => [item.animal_id, item])),
-        );
+        if (entradasResult.status === "fulfilled") {
+          setEntradasSesion(entradasResult.value);
+          setEvaluacionesPersistidas(
+            new Map(
+              entradasResult.value.items.map((item) => [item.animal_id, item]),
+            ),
+          );
+        } else {
+          toast.error(
+            "No se pudieron cargar los ingresos. Se intentará recuperarlos automáticamente.",
+          );
+        }
       })
-      .catch(() => toast.error("No se pudo cargar la sesión."))
-      .finally(() => setLoading(false));
+      .finally(() => {
+        if (sesionActualRef.current === sesionId) setLoading(false);
+      });
   }, [sesionId]);
 
   // Los mismos filtros que la página de animales (caravana, raza, estado,
   // lote), para encontrar rápido a quién falta evaluar en la sesión.
-  useEffect(() => {
+  const [filtrosEnCarga, setFiltrosEnCarga] = useState(filtrosParams);
+  if (filtrosEnCarga !== filtrosParams) {
+    setFiltrosEnCarga(filtrosParams);
     setRefetchingGrupos(true);
+  }
+  useEffect(() => {
+    let active = true;
     getAnimalesAgrupadosPorLote(filtrosParams)
-      .then(setGrupos)
-      .catch(() => toast.error("No se pudieron cargar los animales."))
-      .finally(() => setRefetchingGrupos(false));
+      .then((data) => { if (active) setGrupos(data); })
+      .catch(() => { if (active) toast.error("No se pudieron cargar los animales."); })
+      .finally(() => { if (active) setRefetchingGrupos(false); });
+    return () => { active = false; };
   }, [filtrosParams]);
 
   // El backend no filtra por categoría de lote, así que se aplica acá sobre
@@ -198,8 +281,8 @@ export function CargarEvaluacionesPage() {
             existente.id,
             sesionId,
             {
-              valor_cc: data.valorCc,
               observaciones: data.observaciones,
+              ...(data.valorCc !== null ? { valor_cc: data.valorCc } : {}),
             },
           );
           setEvaluacionesPersistidas((prev) =>
@@ -223,7 +306,6 @@ export function CargarEvaluacionesPage() {
             sesionId,
             animalId,
             valorCc: data.valorCc,
-            valorCcInferido: data.valorCcInferido,
             escalaMin: data.escalaMin,
             escalaMax: data.escalaMax,
             observaciones: data.observaciones,
@@ -239,8 +321,12 @@ export function CargarEvaluacionesPage() {
         } else {
           toast.success(
             data.files.length > 0
-              ? `Evaluación registrada e imágenes subidas correctamente. Condición corporal detectada: ${evaluacion.valor_cc}.`
-              : "Evaluación registrada.",
+              ? evaluacion.valor_cc == null
+                ? "Ingreso registrado e imágenes subidas. La evaluación sigue pendiente de CC."
+                : `Ingreso registrado e imágenes subidas. CC registrada: ${evaluacion.valor_cc}.`
+              : evaluacion.valor_cc == null
+                ? "Ingreso registrado como pendiente de CC."
+                : "Ingreso y evaluación registrados.",
           );
         }
         return true;
@@ -248,9 +334,7 @@ export function CargarEvaluacionesPage() {
         toast.error(
           error instanceof ApiError
             ? normalizeBackendDetail(error.detail)
-            : error instanceof FotoRechazadaError
-              ? error.message
-              : "No se pudo registrar la evaluación. Probá nuevamente.",
+            : "No se pudo registrar la evaluación. Probá nuevamente.",
         );
         return false;
       }
@@ -304,7 +388,8 @@ export function CargarEvaluacionesPage() {
   if (!sesion) return <p>Sesión no encontrada.</p>;
 
   const fechaGuardada = sesion.fecha_inicio.slice(0, 10);
-  const fechaCambiada = !!fechaSesionInput && fechaSesionInput !== fechaGuardada;
+  const fechaCambiada =
+    !!fechaSesionInput && fechaSesionInput !== fechaGuardada;
 
   const animalesListados = gruposFiltrados.flatMap((grupo) =>
     grupo.animales.map((animal) => ({ animal, lote: grupo.lote })),
@@ -348,7 +433,8 @@ export function CargarEvaluacionesPage() {
                 colorPalette="brand"
                 size="sm"
                 onClick={handleConfirmarFechaSesion}
-                loading={isActualizandoFecha}>
+                loading={isActualizandoFecha}
+              >
                 Guardar fecha
               </Button>
             )}
@@ -358,7 +444,8 @@ export function CargarEvaluacionesPage() {
           <button
             type="button"
             className="animal-detail__action animal-detail__action--danger"
-            onClick={() => setConfirmDeleteSesion(true)}>
+            onClick={() => setConfirmDeleteSesion(true)}
+          >
             <IconTrash size={16} stroke={1.5} />
             Eliminar sesión
           </button>
@@ -367,14 +454,16 @@ export function CargarEvaluacionesPage() {
               cantidadEvaluaciones === 0
                 ? "Cargá al menos una evaluación para finalizar."
                 : undefined
-            }>
+            }
+          >
             <Button
               colorPalette="brand"
               size="lg"
               onClick={handleFinalizarCarga}
               loading={isFinalizando}
               loadingText="Guardando..."
-              disabled={cantidadEvaluaciones === 0}>
+              disabled={cantidadEvaluaciones === 0}
+            >
               <IconCheck size={18} stroke={2} />
               Finalizar carga
             </Button>
@@ -387,15 +476,15 @@ export function CargarEvaluacionesPage() {
           <strong>{cantidadEvaluaciones}</strong>
           <span>
             {cantidadEvaluaciones === 1
-              ? "evaluación cargada"
-              : "evaluaciones cargadas"}
+              ? "ingreso registrado"
+              : "ingresos registrados"}
           </span>
         </div>
         <div className="carga-sesion__progreso-detalle">
           <div className="carga-sesion__progreso-texto">
             <span>
               {pendientesListados === 0 && animalesListados.length > 0
-                ? "Todos los animales de la lista están evaluados"
+                ? "Todos los animales de la lista tienen un ingreso registrado"
                 : `Faltan ${pendientesListados} de ${animalesListados.length} ${
                     animalesListados.length === 1 ? "animal" : "animales"
                   } de la lista`}
@@ -408,22 +497,41 @@ export function CargarEvaluacionesPage() {
             aria-valuemin={0}
             aria-valuemax={100}
             aria-valuenow={porcentaje}
-            aria-label="Animales de la lista evaluados">
+            aria-label="Animales de la lista evaluados"
+          >
             <div style={{ width: `${porcentaje}%` }} />
           </div>
         </div>
       </div>
 
+      <AnalisisVideoSesion
+        key={`${usuarioId}-${sesionId}`}
+        sesionId={sesionId}
+        sesionAbierta={sesion.estado === "ABIERTA"}
+        ordenDisponible={entradasSesion.orden_disponible}
+        entradasCount={
+          entradasSesion.items.filter((item) => item.estado !== "ANULADA")
+            .length
+        }
+        onResultadosActualizados={refrescarEntradasVideo}
+        onRegistrarRefrescoEntradas={registrarRefrescoEntradasVideo}
+      />
+
       <div className="carga-sesion__lista">
         <div className="carga-sesion__toolbar">
-          <div className="carga-sesion__vistas" role="group" aria-label="Mostrar">
+          <div
+            className="carga-sesion__vistas"
+            role="group"
+            aria-label="Mostrar"
+          >
             {VISTAS.map(({ value, label }) => (
               <button
                 key={value}
                 type="button"
                 aria-pressed={vista === value}
                 data-activo={vista === value}
-                onClick={() => setVista(value)}>
+                onClick={() => setVista(value)}
+              >
                 {label}
                 <span className="carga-sesion__vistas-cantidad">
                   {value === "todos"
@@ -456,10 +564,20 @@ export function CargarEvaluacionesPage() {
           style={{
             opacity: refetchingGrupos ? 0.6 : 1,
             transition: "opacity 160ms",
-          }}>
+          }}
+        >
+          <Paginador
+            pagina={Math.min(
+              paginaAnimales,
+              Math.max(0, Math.ceil(filas.length / 50) - 1),
+            )}
+            total={filas.length}
+            onChange={setPaginaAnimales}
+          />
           <Table.Root className="animales-table" interactive>
             <Table.Header>
               <Table.Row>
+                <Table.ColumnHeader>Ingreso</Table.ColumnHeader>
                 <Table.ColumnHeader>Caravana</Table.ColumnHeader>
                 <Table.ColumnHeader>Raza</Table.ColumnHeader>
                 <Table.ColumnHeader>Lote</Table.ColumnHeader>
@@ -471,7 +589,7 @@ export function CargarEvaluacionesPage() {
             <Table.Body>
               {filas.length === 0 ? (
                 <Table.Row>
-                  <Table.Cell colSpan={6} className="carga-sesion__vacio">
+                  <Table.Cell colSpan={7} className="carga-sesion__vacio">
                     {vista === "pendientes" && animalesListados.length > 0
                       ? "No quedan animales pendientes en la lista."
                       : vista === "evaluados"
@@ -480,57 +598,83 @@ export function CargarEvaluacionesPage() {
                   </Table.Cell>
                 </Table.Row>
               ) : (
-                filas.map(({ animal, lote }) => {
-                  const evaluacion = evaluacionesPersistidas.get(animal.id);
-                  const caravana = animal.caravana ?? `#${animal.id}`;
-                  return (
-                    <Table.Row
-                      key={animal.id}
-                      className={`animales-table__row carga-sesion__fila${
-                        evaluacion ? " carga-sesion__fila--evaluada" : ""
-                      }`}
-                      tabIndex={0}
-                      role="button"
-                      aria-label={`${evaluacion ? "Editar" : "Evaluar"} a ${caravana}`}
-                      onClick={() => setAnimalSeleccionado(animal)}
-                      onKeyDown={(event) => {
-                        if (event.key === "Enter" || event.key === " ") {
-                          event.preventDefault();
-                          setAnimalSeleccionado(animal);
-                        }
-                      }}>
-                      <Table.Cell className="carga-sesion__caravana">
-                        {caravana}
-                      </Table.Cell>
-                      <Table.Cell>{animal.raza}</Table.Cell>
-                      <Table.Cell>{lote?.nombre ?? "Sin lote"}</Table.Cell>
-                      <Table.Cell>
-                        {lote
-                          ? (CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? "—")
-                          : "—"}
-                      </Table.Cell>
-                      <Table.Cell>
-                        {evaluacion ? (
-                          <span
-                            className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${nivelCC(
-                              evaluacion.valor_cc,
-                              evaluacion.fecha,
-                            )}`}>
-                            CC {evaluacion.valor_cc}
-                          </span>
-                        ) : (
-                          <span className="carga-sesion__sin-evaluar">
-                            Sin evaluar
-                          </span>
-                        )}
-                      </Table.Cell>
-                      <Table.Cell className="carga-sesion__accion">
-                        <span>{evaluacion ? "Editar" : "Evaluar"}</span>
-                        <IconChevronRight size={16} stroke={1.75} />
-                      </Table.Cell>
-                    </Table.Row>
-                  );
-                })
+                filas
+                  .slice(
+                    Math.min(
+                      paginaAnimales,
+                      Math.max(0, Math.ceil(filas.length / 50) - 1),
+                    ) * 50,
+                    (Math.min(
+                      paginaAnimales,
+                      Math.max(0, Math.ceil(filas.length / 50) - 1),
+                    ) +
+                      1) *
+                      50,
+                  )
+                  .map(({ animal, lote }) => {
+                    const evaluacion = evaluacionesPersistidas.get(animal.id);
+                    const caravana = animal.caravana ?? `#${animal.id}`;
+                    return (
+                      <Table.Row
+                        key={animal.id}
+                        className={`animales-table__row carga-sesion__fila${
+                          evaluacion ? " carga-sesion__fila--evaluada" : ""
+                        }`}
+                        tabIndex={0}
+                        role="button"
+                        aria-label={`${evaluacion ? "Editar" : "Evaluar"} a ${caravana}`}
+                        onClick={() => seleccionarAnimal(animal)}
+                        onKeyDown={(event) => {
+                          if (event.key === "Enter" || event.key === " ") {
+                            event.preventDefault();
+                            seleccionarAnimal(animal);
+                          }
+                        }}
+                      >
+                        <Table.Cell>
+                          {evaluacion?.orden_entrada != null
+                            ? `#${evaluacion.orden_entrada}`
+                            : evaluacion
+                              ? "Orden histórico desconocido"
+                              : "—"}
+                        </Table.Cell>
+                        <Table.Cell className="carga-sesion__caravana">
+                          {caravana}
+                        </Table.Cell>
+                        <Table.Cell>{animal.raza}</Table.Cell>
+                        <Table.Cell>{lote?.nombre ?? "Sin lote"}</Table.Cell>
+                        <Table.Cell>
+                          {lote
+                            ? (CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? "—")
+                            : "—"}
+                        </Table.Cell>
+                        <Table.Cell>
+                          {evaluacion?.valor_cc != null ? (
+                            <span
+                              className={`animal-evaluaciones-table__cc animal-evaluaciones-table__cc--${nivelCC(
+                                evaluacion.valor_cc,
+                                evaluacion.fecha,
+                              )}`}
+                            >
+                              CC {evaluacion.valor_cc}
+                            </span>
+                          ) : evaluacion ? (
+                            <span className="carga-sesion__sin-evaluar">
+                              Pendiente de CC
+                            </span>
+                          ) : (
+                            <span className="carga-sesion__sin-evaluar">
+                              Sin evaluar
+                            </span>
+                          )}
+                        </Table.Cell>
+                        <Table.Cell className="carga-sesion__accion">
+                          <span>{evaluacion ? "Editar" : "Evaluar"}</span>
+                          <IconChevronRight size={16} stroke={1.75} />
+                        </Table.Cell>
+                      </Table.Row>
+                    );
+                  })
               )}
             </Table.Body>
           </Table.Root>
@@ -546,7 +690,7 @@ export function CargarEvaluacionesPage() {
             : null
         }
         fechaBase={fechaEvaluacionBase}
-        onClose={() => setAnimalSeleccionado(null)}
+        onClose={handleCerrarDialogEvaluacion}
         onGuardar={handleGuardarEvaluacion}
         onEvaluacionActualizada={(evaluacion) =>
           setEvaluacionesPersistidas((prev) =>
@@ -559,7 +703,8 @@ export function CargarEvaluacionesPage() {
         open={confirmDeleteSesion}
         onOpenChange={(details) =>
           !details.open && setConfirmDeleteSesion(false)
-        }>
+        }
+      >
         <Portal>
           <Dialog.Backdrop className="animal-evaluacion__backdrop" />
           <Dialog.Positioner>
@@ -575,13 +720,15 @@ export function CargarEvaluacionesPage() {
                 <Button
                   variant="ghost"
                   onClick={() => setConfirmDeleteSesion(false)}
-                  disabled={isDeletingSesion}>
+                  disabled={isDeletingSesion}
+                >
                   Cancelar
                 </Button>
                 <Button
                   colorPalette="red"
                   onClick={handleDeleteSesion}
-                  loading={isDeletingSesion}>
+                  loading={isDeletingSesion}
+                >
                   Eliminar
                 </Button>
               </Dialog.Footer>

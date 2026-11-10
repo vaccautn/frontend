@@ -18,8 +18,8 @@ export function SesionesFiltros({
   return (
     <div className="sesiones-filtros" role="search" aria-label="Filtros de sesiones">
       <div className="sesiones-filtros__campo">
-        <label htmlFor="fecha-desde" className="sr-only">
-          Filtrar desde
+        <label htmlFor="fecha-desde" className="sesiones-filtros__campo-label">
+          Desde
         </label>
         <FechaInput
           id="fecha-desde"
@@ -31,8 +31,8 @@ export function SesionesFiltros({
       </div>
 
       <div className="sesiones-filtros__campo">
-        <label htmlFor="fecha-hasta" className="sr-only">
-          Filtrar hasta
+        <label htmlFor="fecha-hasta" className="sesiones-filtros__campo-label">
+          Hasta
         </label>
         <FechaInput
           id="fecha-hasta"

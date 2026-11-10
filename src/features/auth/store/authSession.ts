@@ -1,4 +1,4 @@
-import type { AuthUser } from "../types/authTypes";
+import type { AuthUser } from "../types/authTypes.ts";
 
 const authStorageKeys = {
   accessToken: "auth.accessToken",
@@ -17,6 +17,10 @@ export function saveSession(
 }
 
 export function clearSession() {
+  for (let i = sessionStorage.length - 1; i >= 0; i--) {
+    const key = sessionStorage.key(i);
+    if (key?.startsWith("vacca.")) sessionStorage.removeItem(key);
+  }
   localStorage.removeItem(authStorageKeys.accessToken);
   localStorage.removeItem(authStorageKeys.tokenType);
   localStorage.removeItem(authStorageKeys.user);

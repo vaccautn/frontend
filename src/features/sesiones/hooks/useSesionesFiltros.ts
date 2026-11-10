@@ -1,9 +1,10 @@
-import { useMemo, useState } from "react";
+import { usePageState } from "@/hooks/usePageState";
+import { useMemo } from "react";
 import type { SesionListParams } from "@/features/sesiones/types";
 
 export function useSesionesFiltros() {
-  const [fechaDesde, setFechaDesde] = useState("");
-  const [fechaHasta, setFechaHasta] = useState("");
+  const [fechaDesde, setFechaDesde] = usePageState("sesiones.desde", "");
+  const [fechaHasta, setFechaHasta] = usePageState("sesiones.hasta", "");
 
   const params = useMemo<SesionListParams>(
     () => ({

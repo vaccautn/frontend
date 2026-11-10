@@ -1,15 +1,21 @@
 const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
+  import.meta.env?.VITE_API_BASE_URL ?? "http://127.0.0.1:8000/api";
 
 type ApiErrorBody = {
-  detail?: string | { message?: string; sesion_id?: number };
+  detail?:
+    | string
+    | { message?: string; sesion_id?: number }
+    | { msg: string; loc?: (string | number)[] }[];
 };
 
 /** Evento que se dispara cuando el backend rechaza un token (401): la sesión
  * venció o es inválida. AuthProvider lo escucha y cierra la sesión. */
 export const SESION_VENCIDA_EVENT = "vacca:sesion-vencida";
 
-function avisarSiSesionVencida(response: Response, accessToken?: string | null) {
+function avisarSiSesionVencida(
+  response: Response,
+  accessToken?: string | null,
+) {
   // Sin token es un 401 esperable (p. ej. credenciales incorrectas en el
   // login): no es una sesión vencida.
   if (response.status === 401 && accessToken) {
@@ -26,12 +32,19 @@ export class ApiError extends Error {
     const message =
       typeof detail === "string"
         ? detail
-        : detail?.message ?? "No se pudo completar la operacion.";
+        : Array.isArray(detail)
+          ? detail
+              .map((error) => error.msg.replace(/^Value error, /, ""))
+              .join(" · ")
+          : (detail?.message ?? "No se pudo completar la operación.");
     super(message);
     this.name = "ApiError";
     this.status = status;
     this.detail = message;
-    this.data = typeof detail === "object" ? detail : undefined;
+    this.data =
+      detail && typeof detail === "object" && !Array.isArray(detail)
+        ? detail
+        : undefined;
   }
 }
 
@@ -46,6 +59,8 @@ export async function postJson<TResponse, TPayload>(
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
+    const campo = sessionStorage.getItem("vacca.campoActivo");
+    if (campo && /^\d+$/.test(campo)) headers["X-Campo-ID"] = campo;
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -75,6 +90,8 @@ export async function getJson<TResponse>(
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
+    const campo = sessionStorage.getItem("vacca.campoActivo");
+    if (campo && /^\d+$/.test(campo)) headers["X-Campo-ID"] = campo;
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -106,6 +123,8 @@ export async function patchJson<TResponse, TPayload>(
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
+    const campo = sessionStorage.getItem("vacca.campoActivo");
+    if (campo && /^\d+$/.test(campo)) headers["X-Campo-ID"] = campo;
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -138,6 +157,8 @@ export async function putJson<TResponse, TPayload>(
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
+    const campo = sessionStorage.getItem("vacca.campoActivo");
+    if (campo && /^\d+$/.test(campo)) headers["X-Campo-ID"] = campo;
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -167,6 +188,8 @@ export async function deleteRequest(
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
+    const campo = sessionStorage.getItem("vacca.campoActivo");
+    if (campo && /^\d+$/.test(campo)) headers["X-Campo-ID"] = campo;
   }
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
@@ -184,16 +207,54 @@ export async function deleteRequest(
   }
 }
 
+/** POST con JSON que devuelve un archivo (p. ej. un Excel generado). */
+export async function postJsonBlob<TPayload>(
+  path: string,
+  payload: TPayload,
+  accessToken?: string | null,
+): Promise<Blob> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  if (accessToken) {
+    headers.Authorization = `Bearer ${accessToken}`;
+    const campo = sessionStorage.getItem("vacca.campoActivo");
+    if (campo && /^\d+$/.test(campo)) headers["X-Campo-ID"] = campo;
+  }
+
+  const response = await fetch(`${API_BASE_URL}${path}`, {
+    method: "POST",
+    headers,
+    body: JSON.stringify(payload),
+  });
+
+  avisarSiSesionVencida(response, accessToken);
+  if (!response.ok) {
+    const body = (await response.json().catch(() => ({}))) as ApiErrorBody;
+    throw new ApiError(
+      response.status,
+      body.detail ?? "No se pudo completar la operación. Probá nuevamente.",
+    );
+  }
+
+  return response.blob();
+}
+
 export async function postFormData<TResponse>(
   path: string,
   formData: FormData,
   accessToken?: string | null,
+  extraHeaders: Record<string, string> = {},
 ): Promise<TResponse> {
   const headers: Record<string, string> = {};
 
   if (accessToken) {
     headers.Authorization = `Bearer ${accessToken}`;
+    const campo = sessionStorage.getItem("vacca.campoActivo");
+    if (campo && /^\d+$/.test(campo)) headers["X-Campo-ID"] = campo;
   }
+  Object.assign(headers, extraHeaders);
 
   const response = await fetch(`${API_BASE_URL}${path}`, {
     method: "POST",

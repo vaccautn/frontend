@@ -32,12 +32,17 @@ export const CATEGORIA_ANIMAL_LABELS: Record<string, string> =
   Object.fromEntries(CATEGORIAS_ANIMAL.map(({ value, label }) => [value, label]));
 
 // Debe reflejar CATEGORIAS_HEMBRA / CATEGORIAS_MACHO del backend
-// (app/models/animal.py): la categoría de un animal tiene que ser
-// consistente con su sexo o el registro/actualización devuelve 422.
+// (app/models/animal.py). El sexo no se elige: se deduce de la categoría.
 export const CATEGORIAS_POR_SEXO: Record<"MACHO" | "HEMBRA", readonly string[]> = {
   HEMBRA: ["TERNERA", "VAQUILLA", "VACA_SECA", "VACA_LACTANDO"],
   MACHO: ["TERNERO", "NOVILLITO", "NOVILLO", "TORITO", "TORO"],
 };
+
+/** Sexo según la categoría ("" si todavía no hay categoría). */
+export function sexoDeCategoria(categoria: string): "MACHO" | "HEMBRA" | "" {
+  if (!categoria) return "";
+  return CATEGORIAS_POR_SEXO.MACHO.includes(categoria) ? "MACHO" : "HEMBRA";
+}
 
 /** Categorías de vaca: las únicas que van a la evaluación de condición
  * corporal. */

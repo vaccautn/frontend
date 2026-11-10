@@ -99,7 +99,8 @@ function LoginPage() {
           <Alert.Root
             status="success"
             colorPalette="success"
-            className="auth-alert">
+            className="auth-alert"
+          >
             <Alert.Indicator />
             <Alert.Content>
               <Alert.Description>{successMessage}</Alert.Description>
@@ -122,7 +123,8 @@ function LoginPage() {
           <Alert.Root
             status="error"
             colorPalette="danger"
-            className="auth-alert">
+            className="auth-alert"
+          >
             <Alert.Indicator />
             <Alert.Content>
               <Alert.Description>{formError}</Alert.Description>
@@ -159,14 +161,18 @@ function LoginPage() {
             size="lg"
             className="auth-submit"
             loading={isSubmitting}
-            loadingText="Ingresando...">
+            loadingText="Ingresando..."
+          >
             Continuar
           </Button>
         </form>
 
-        {/* <p className="auth-footer">
+        <p className="auth-footer">
+          <a href="/landing">Conocer el proyecto VACCA</a>
+        </p>
+        <p className="auth-footer">
           ¿Todavía no tenés cuenta? <a href="/register">Creá una acá</a>
-        </p> */}
+        </p>
       </section>
     </main>
   );

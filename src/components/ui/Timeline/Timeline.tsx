@@ -292,7 +292,8 @@ export function Timeline({
     const period = periods.find((p) => p.id === selectedId);
     if (!period || !esFechaValida(period.startDate)) return;
     if (periodoEnRango(period, limitesDelAnio(anio))) return;
-    irAAnio(period.startDate.getFullYear());
+    const frame = window.requestAnimationFrame(() => irAAnio(period.startDate.getFullYear()));
+    return () => window.cancelAnimationFrame(frame);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedId, periods]);
 

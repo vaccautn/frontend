@@ -42,9 +42,7 @@ import {
 import { localNaiveNow } from "@/utils/localDateTime";
 
 export interface EvaluacionCCPendiente {
-  valorCc: number;
-  /** true si no se cargó a mano: valorCc es un provisorio que calcula la IA. */
-  valorCcInferido: boolean;
+  valorCc: number | null;
   escalaMin: number;
   escalaMax: number;
   observaciones: string;
@@ -91,14 +89,17 @@ export function RegistrarEvaluacionCCDialog({
   onGuardar,
   onEvaluacionActualizada,
 }: RegistrarEvaluacionCCDialogProps) {
-  const [values, setValues] = useState<FormValues>(INITIAL_VALUES);
+  const [values, setValues] = useState<FormValues>(() => evaluacionExistente ? {
+    valorCc: evaluacionExistente.valor_cc?.toString() ?? "",
+    observaciones: evaluacionExistente.observaciones,
+  } : INITIAL_VALUES);
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const [imagenes, setImagenes] = useState<EvidenciaImagenRead[]>([]);
-  const [imagenesLoading, setImagenesLoading] = useState(false);
+  const [imagenesLoading, setImagenesLoading] = useState(open && !!evaluacionExistente);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [confirmDeleteImage, setConfirmDeleteImage] =
     useState<EvidenciaImagenRead | null>(null);
@@ -120,10 +121,12 @@ export function RegistrarEvaluacionCCDialog({
     return opts;
   }, []);
 
-  useEffect(() => {
+  const [formScope, setFormScope] = useState({ open, evaluacionExistente });
+  if (formScope.open !== open || formScope.evaluacionExistente !== evaluacionExistente) {
+    setFormScope({ open, evaluacionExistente });
     if (open && evaluacionExistente) {
       setValues({
-        valorCc: String(evaluacionExistente.valor_cc),
+        valorCc: evaluacionExistente.valor_cc?.toString() ?? "",
         observaciones: evaluacionExistente.observaciones,
       });
     } else if (open) {
@@ -133,19 +136,17 @@ export function RegistrarEvaluacionCCDialog({
     setErrors({});
     setFormError("");
     setIsSaving(false);
-  }, [open, evaluacionExistente]);
+    setImagenes([]);
+    setImagenesLoading(open && !!evaluacionExistente);
+  }
 
   // Las evaluaciones ya persistidas manejan sus fotos contra el servidor
   // (subida/lectura inmediata), igual que en el historial del animal — así
   // el preview no depende de un array local que se pisa al cerrar el diálogo.
   useEffect(() => {
-    if (!open || !evaluacionExistente) {
-      setImagenes([]);
-      return;
-    }
+    if (!open || !evaluacionExistente) return;
 
     let isMounted = true;
-    setImagenesLoading(true);
 
     getImagenesEvaluacion(evaluacionExistente.id)
       .then((data) => {
@@ -213,7 +214,9 @@ export function RegistrarEvaluacionCCDialog({
       onEvaluacionActualizada?.(evaluacionActualizada);
       if (subidaOk) {
         toast.success(
-          `${nuevosArchivos.length > 1 ? "Imágenes subidas" : "Imagen subida"} correctamente. Condición corporal detectada por IA: ${evaluacionActualizada.valor_cc}.`,
+          evaluacionActualizada.valor_cc == null
+            ? `${nuevosArchivos.length > 1 ? "Imágenes subidas" : "Imagen subida"} correctamente. La evaluación sigue pendiente de CC.`
+            : `${nuevosArchivos.length > 1 ? "Imágenes subidas" : "Imagen subida"} correctamente. CC registrada: ${evaluacionActualizada.valor_cc}.`,
         );
       }
     } catch {
@@ -273,18 +276,7 @@ export function RegistrarEvaluacionCCDialog({
 
     const nextErrors: FormErrors = {};
     const normalizedScore = values.valorCc.trim();
-    // Una evaluación nueva con fotos adjuntas no necesita un valor manual: la
-    // IA lo calcula al procesar la imagen apenas se crea la evaluación. Sin
-    // fotos no hay otra forma de obtener el valor, así que ahí sigue siendo
-    // obligatorio.
-    const puedeInferirPorFoto = !evaluacionExistente && files.length > 0;
-
-    if (!normalizedScore) {
-      if (!puedeInferirPorFoto) {
-        nextErrors.valorCc =
-          "Debés ingresar un valor de condición corporal, o adjuntar una foto para obtener una inferencia automática.";
-      }
-    } else {
+    if (normalizedScore) {
       const parsedScore = Number(normalizedScore);
       if (
         Number.isNaN(parsedScore) ||
@@ -299,19 +291,10 @@ export function RegistrarEvaluacionCCDialog({
     setErrors(nextErrors);
     if (Object.keys(nextErrors).length > 0) return;
 
-    // Placeholder neutro (mitad de la escala) para la creación cuando no se
-    // eligió un valor a mano: la IA lo va a sobreescribir apenas procese la
-    // foto adjunta. Si la foto termina rechazada, la evaluación se anula (ver
-    // registrarEvaluacionCCCompleta) para que el provisorio no quede guardado.
-    const valorCcFinal = normalizedScore
-      ? Number(normalizedScore)
-      : Math.round((DEFAULT_CC_SCALE.min + DEFAULT_CC_SCALE.max) / 2);
-
     setFormError("");
     setIsSaving(true);
     const guardado = await onGuardar({
-      valorCc: valorCcFinal,
-      valorCcInferido: !normalizedScore,
+      valorCc: normalizedScore ? Number(normalizedScore) : null,
       escalaMin: DEFAULT_CC_SCALE.min,
       escalaMax: DEFAULT_CC_SCALE.max,
       observaciones: values.observaciones.trim(),
@@ -508,16 +491,12 @@ export function RegistrarEvaluacionCCDialog({
                       placeholder="Agregá una observación si hace falta."
                     />
                   </Field.Root>
-                  <Field.Root
-                    invalid={!!errors.valorCc}
-                    required={!!evaluacionExistente || files.length === 0}>
+                  <Field.Root invalid={!!errors.valorCc}>
                     <Field.Label>
                       Condición corporal
-                      {!evaluacionExistente && files.length > 0 && (
-                        <span className="animal-evaluacion__valor-hint">
-                          (Al subir una foto se infiere automáticamente)
-                        </span>
-                      )}
+                      <span className="animal-evaluacion__valor-hint">
+                        (Opcional: podés dejar la evaluación pendiente)
+                      </span>
                     </Field.Label>
                     <Menu.Root>
                       <Menu.Trigger asChild>
@@ -526,10 +505,7 @@ export function RegistrarEvaluacionCCDialog({
                           className="animal-evaluacion__valor-trigger"
                           aria-label="Seleccionar valor de CC">
                           <span>
-                            {values.valorCc ||
-                              (!evaluacionExistente && files.length > 0
-                                ? "Evaluación automática"
-                                : "Seleccioná un valor")}
+                            {values.valorCc || "Sin CC (pendiente)"}
                           </span>
                           <IconChevronDown
                             className="animal-evaluacion__valor-caret"
@@ -583,7 +559,7 @@ export function RegistrarEvaluacionCCDialog({
                   loading={isSaving}
                   loadingText="Guardando..."
                   disabled={!animal || animal.estado !== "ACTIVO"}>
-                  Guardar valor
+                    Guardar ingreso
                 </Button>
               </Dialog.Footer>
             </Dialog.Content>

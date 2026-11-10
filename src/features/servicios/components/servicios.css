@@ -755,6 +755,27 @@
   min-width: 0;
 }
 
+.servicios-lista-panel__fecha {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 6px;
+  min-width: 0;
+}
+
+.servicios-lista-panel__fecha > * {
+  min-width: 0;
+}
+
+.servicios-lista-panel__fecha > label {
+  color: var(--text);
+  font-size: 0.78rem;
+  font-weight: 600;
+}
+
+.servicios-lista-panel__filtros .rodeo-lote-selector__trigger {
+  width: 100%;
+}
+
 /* Mismo margen lateral que los filtros (18px): las tarjetas no quedan
  * pegadas al borde y su sombra tiene lugar. */
 .servicios-lista-panel__scroll {

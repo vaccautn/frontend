@@ -70,8 +70,6 @@ export function SesionesPage() {
   };
 
   const fetchSesiones = useCallback(() => {
-    setRefetching(true);
-    setError("");
     getTodasLasSesionesConResumen(params)
       .then(setSesiones)
       .catch(() => setError("No se pudieron cargar las sesiones."))
@@ -80,6 +78,13 @@ export function SesionesPage() {
         setInitialLoading(false);
       });
   }, [params]);
+
+  const [filtrosEnCarga, setFiltrosEnCarga] = useState(params);
+  if (filtrosEnCarga !== params) {
+    setFiltrosEnCarga(params);
+    setRefetching(true);
+    setError("");
+  }
 
   useEffect(() => {
     fetchSesiones();
@@ -101,6 +106,8 @@ export function SesionesPage() {
 
   const handleEliminada = () => {
     setSearchParams({}, { replace: true });
+    setRefetching(true);
+    setError("");
     fetchSesiones();
   };
 

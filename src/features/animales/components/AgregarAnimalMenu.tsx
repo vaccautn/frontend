@@ -1,3 +1,4 @@
+import { useNavigate } from "react-router-dom";
 import { Menu, Portal } from "@chakra-ui/react";
 import {
   IconFileSpreadsheet,
@@ -22,6 +23,7 @@ export function AgregarAnimalMenu({
   onImportar,
   placement = "bottom-end",
 }: Props) {
+  const navigate = useNavigate();
   return (
     <Menu.Root positioning={{ placement, gutter: 10 }}>
       <Menu.Trigger asChild>
@@ -29,7 +31,8 @@ export function AgregarAnimalMenu({
           type="button"
           className="agregar-animal__trigger"
           aria-label="Agregar animales"
-          title="Agregar animales">
+          title="Agregar animales"
+        >
           <VacaIcon size={24} />
           <span className="agregar-animal__mas" aria-hidden="true">
             <IconPlus size={11} stroke={3.5} />
@@ -46,6 +49,15 @@ export function AgregarAnimalMenu({
               <span className="agregar-animal__texto">
                 <strong>Agregar animal</strong>
                 <span>Cargá uno con el formulario</span>
+              </span>
+            </Menu.Item>
+            <Menu.Item
+              value="tabla"
+              onSelect={() => navigate("/rodeo/carga-tabla")}
+            >
+              <span className="agregar-animal__texto">
+                <strong>Cargar en tabla</strong>
+                <span>Varios animales en una tanda</span>
               </span>
             </Menu.Item>
             <Menu.Item value="importar" onSelect={onImportar}>

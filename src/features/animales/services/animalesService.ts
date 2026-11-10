@@ -22,6 +22,8 @@ import type {
   UpdateEvaluacionCCSesionPayload,
   RegistrarEvaluacionCCParams,
   RegistrarEvaluacionCCResult,
+  EntradasSesionRead,
+  RegistrarEntradaSesionPayload,
 } from "@/features/animales/types";
 import { getSesionActiva } from "@/features/sesiones/services/sesionesService";
 import { getImagenUploadErrorMessage } from "@/features/animales/utils/imagenUploadErrors";
@@ -78,6 +80,12 @@ function buildAnimalSearchParams(params: AnimalListParams): URLSearchParams {
   if (params.lote_id !== undefined) {
     searchParams.set("lote_id", params.lote_id.toString());
   }
+  if (params.alta_desde) {
+    searchParams.set("alta_desde", params.alta_desde);
+  }
+  if (params.alta_hasta) {
+    searchParams.set("alta_hasta", params.alta_hasta);
+  }
 
   return searchParams;
 }
@@ -111,6 +119,28 @@ export function getEvaluacionesCc(
 
   return getJson<EvaluacionCC[]>(
     `/evaluaciones-cc/?${searchParams.toString()}`,
+    token,
+  );
+}
+
+export function getEntradasSesion(
+  sesionId: number,
+): Promise<EntradasSesionRead> {
+  const token = getAccessToken();
+  return getJson<EntradasSesionRead>(
+    `/sesiones-captura/${sesionId}/entradas`,
+    token,
+  );
+}
+
+export function registrarEntradaSesion(
+  sesionId: number,
+  payload: RegistrarEntradaSesionPayload,
+): Promise<EvaluacionCC> {
+  const token = getAccessToken();
+  return postJson<EvaluacionCC, RegistrarEntradaSesionPayload>(
+    `/sesiones-captura/${sesionId}/entradas`,
+    payload,
     token,
   );
 }
@@ -220,7 +250,10 @@ export function getAnimalesDashboard(
     loteId != null
       ? `/animales/dashboard?lote_id=${loteId}`
       : "/animales/dashboard";
-  return getJson<DashboardAnimalesData>(path, token);
+  return getJson<DashboardAnimalesData>(path, token).then((data) => ({
+    ...data,
+    alertas: data.alertas_manejo ?? data.alertas,
+  }));
 }
 
 export function getAnimalDashboard(
@@ -230,22 +263,15 @@ export function getAnimalDashboard(
   return getJson<DashboardAnimalData>(`/animales/${animalId}/dashboard`, token);
 }
 
-/** La evaluación no se guardó porque su CC dependía de la foto y la IA la
- * rechazó (p. ej. no detectó un bovino). */
-export class FotoRechazadaError extends Error {}
-
 export async function registrarEvaluacionCCCompleta(
   params: RegistrarEvaluacionCCParams,
 ): Promise<RegistrarEvaluacionCCResult> {
   const fecha = params.fecha ?? localNaiveNow();
   const sesionIdFinal = params.sesionId ?? (await getSesionActiva(fecha)).id;
 
-  const evaluacion = await registerEvaluacionCc({
-    sesion_id: sesionIdFinal,
+  const evaluacion = await registrarEntradaSesion(sesionIdFinal, {
     animal_id: params.animalId,
     valor_cc: params.valorCc,
-    escala_min: params.escalaMin,
-    escala_max: params.escalaMax,
     observaciones: params.observaciones,
     fecha,
   });
@@ -259,27 +285,8 @@ export async function registrarEvaluacionCCCompleta(
       imagenesError = getImagenUploadErrorMessage(error, params.files.length);
     }
 
-    // Sin CC manual, el valor con el que se creó es solo un provisorio. Si
-    // ninguna foto quedó guardada, la IA no calculó nada: se anula la
-    // evaluación para no dejar ese provisorio como si fuera una calificación.
-    if (imagenesError && params.valorCcInferido) {
-      const imagenes = await getImagenesEvaluacion(evaluacion.id).catch(() => []);
-      if (imagenes.length === 0) {
-        await anularEvaluacionCcEnSesion(evaluacion.id, sesionIdFinal).catch(
-          () => {
-            /* si falla la anulación, el error de la foto igual se informa */
-          },
-        );
-        throw new FotoRechazadaError(
-          `${imagenesError} No se guardó la evaluación: cargá la condición corporal a mano o probá con otra foto.`,
-        );
-      }
-    }
-
-    // La IA puede haber recalculado valor_cc aunque la subida termine en
-    // error (una imagen del lote puede fallar después de que otra ya haya
-    // sido inferida y committeada), así que siempre se refresca desde el
-    // servidor en vez de confiar en el valor manual con el que se creó.
+    // Si la imagen produjo una CC, el backend solo la incorpora cuando la
+    // evaluación todavía no tiene una calificación manual.
     try {
       evaluacionFinal = await getEvaluacionCc(evaluacion.id);
     } catch {
@@ -290,4 +297,61 @@ export async function registrarEvaluacionCCCompleta(
   }
 
   return { evaluacion: evaluacionFinal, imagenesError };
+}
+
+export type PaginaAnimales = {
+  items: Animal[];
+  total: number;
+  has_more: boolean;
+  cc: Record<
+    string,
+    {
+      valor_cc: number | null;
+      fecha_cc: string | null;
+      escala_min: number;
+      escala_max: number;
+    }
+  >;
+};
+export function getAnimalesPagina(
+  params: AnimalListParams,
+  pagina: number,
+  categoriaLote?: string | null,
+): Promise<PaginaAnimales> {
+  const query = buildAnimalSearchParams(params);
+  query.set("limit", "50");
+  query.set("offset", String(pagina * 50));
+  if (categoriaLote) query.set("categoria_lote", categoriaLote);
+  return getJson<PaginaAnimales>(`/animales/pagina?${query}`, getAccessToken());
+}
+
+export function getEvaluacionesPagina(
+  animalId: number,
+  pagina: number,
+  desde = "",
+  hasta = "",
+  cc = "",
+): Promise<{ items: EvaluacionCC[]; total: number }> {
+  const query = new URLSearchParams({
+    animal_id: String(animalId),
+    paginar: "true",
+    limit: "50",
+    offset: String(pagina * 50),
+  });
+  if (desde) query.set("fecha_desde", desde);
+  if (hasta) query.set("fecha_hasta", hasta);
+  if (cc) {
+    query.set("valor_cc_min", cc);
+    query.set("valor_cc_max", cc);
+  }
+  return getJson(`/evaluaciones-cc/?${query}`, getAccessToken());
+}
+
+export function getUltimaEvaluacionConfirmada(
+  animalId: number,
+): Promise<{ items: EvaluacionCC[] }> {
+  return getJson(
+    `/evaluaciones-cc/?animal_id=${animalId}&estado=CONFIRMADA&paginar=true&limit=1`,
+    getAccessToken(),
+  );
 }

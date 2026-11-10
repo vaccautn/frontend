@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Table } from "@chakra-ui/react";
 import type { Animal } from "../types";
 import type { LoteFiltroOption } from "./AnimalesFiltros";
-import { formatFecha } from "../utils/formatDate";
+import { formatFecha, formatMomento } from "../utils/formatDate";
 import { nivelCC, type NivelCC } from "../utils/ccColor";
 import { CATEGORIA_ANIMAL_LABELS } from "../constants";
 
@@ -19,8 +19,10 @@ function colorPorNivelCC(valorCc: number, fechaCc: string | null): string {
   return NIVEL_COLORS[nivelCC(valorCc, fechaCc ?? new Date().toISOString())];
 }
 
+// Ordenada por fecha de alta, la más reciente arriba (así la devuelve el backend).
 const COLUMNAS = [
   "Caravana",
+  "Alta",
   "Raza",
   "Sexo",
   "Fecha de nacimiento",
@@ -44,6 +46,8 @@ type Props = {
   onLoteNombreClick?: (loteId: number) => void;
   loading?: boolean;
   error?: string;
+  seleccionados?: ReadonlySet<number>;
+  onSeleccionar?: (id: number) => void;
 };
 
 export function AnimalesTabla({
@@ -53,6 +57,8 @@ export function AnimalesTabla({
   onLoteNombreClick,
   loading = false,
   error = "",
+  seleccionados,
+  onSeleccionar,
 }: Props) {
   const navigate = useNavigate();
 
@@ -84,11 +90,15 @@ export function AnimalesTabla({
     <div className="animales-table__wrapper">
       <div className="animales-table__summary">
         <div>
-          <span className="animales-table__summary-label">Lotes representados</span>
+          <span className="animales-table__summary-label">
+            Lotes representados
+          </span>
           <strong>{lotesRepresentados}</strong>
         </div>
         <div>
-          <span className="animales-table__summary-label">Animales listados</span>
+          <span className="animales-table__summary-label">
+            Animales listados
+          </span>
           <strong>{animales.length}</strong>
         </div>
       </div>
@@ -96,6 +106,9 @@ export function AnimalesTabla({
       <Table.Root className="animales-table" interactive>
         <Table.Header>
           <Table.Row>
+            {onSeleccionar && (
+              <Table.ColumnHeader>Seleccionar</Table.ColumnHeader>
+            )}
             {COLUMNAS.map((columna) => (
               <Table.ColumnHeader key={columna}>{columna}</Table.ColumnHeader>
             ))}
@@ -104,13 +117,16 @@ export function AnimalesTabla({
         <Table.Body>
           {animales.length === 0 ? (
             <Table.Row>
-              <Table.Cell colSpan={COLUMNAS.length}>
+              <Table.Cell colSpan={COLUMNAS.length + (onSeleccionar ? 1 : 0)}>
                 No se encontraron animales con los filtros aplicados.
               </Table.Cell>
             </Table.Row>
           ) : (
             animales.map((animal) => {
-              const lote = animal.lote_id !== null ? lotePorId.get(animal.lote_id) : undefined;
+              const lote =
+                animal.lote_id !== null
+                  ? lotePorId.get(animal.lote_id)
+                  : undefined;
               const cc = ccPorAnimal?.get(animal.id);
               return (
                 <Table.Row
@@ -120,22 +136,49 @@ export function AnimalesTabla({
                   role="button"
                   aria-label={`Ver detalle de ${animal.caravana ?? `animal #${animal.id}`}`}
                   onClick={() => navigate(`/rodeo/${animal.id}`)}
-                  onKeyDown={(event) => handleRowKeyDown(event, animal)}>
+                  onKeyDown={(event) => handleRowKeyDown(event, animal)}
+                >
+                  {onSeleccionar && (
+                    <Table.Cell
+                      onClick={(event) => event.stopPropagation()}
+                      onKeyDown={(event) => event.stopPropagation()}
+                    >
+                      <input
+                        type="checkbox"
+                        aria-label={`Seleccionar ${animal.caravana ?? animal.id}`}
+                        checked={seleccionados?.has(animal.id) ?? false}
+                        onChange={() => onSeleccionar(animal.id)}
+                        disabled={animal.estado !== "ACTIVO"}
+                      />
+                    </Table.Cell>
+                  )}
                   <Table.Cell>{animal.caravana ?? "—"}</Table.Cell>
+                  <Table.Cell className="animales-table__alta">
+                    {formatMomento(animal.creado_en)}
+                  </Table.Cell>
                   <Table.Cell>{animal.raza}</Table.Cell>
                   <Table.Cell>{animal.sexo}</Table.Cell>
                   <Table.Cell>
-                    {animal.fecha_nacimiento ? formatFecha(animal.fecha_nacimiento) : "—"}
+                    {animal.fecha_nacimiento
+                      ? formatFecha(animal.fecha_nacimiento)
+                      : "—"}
                   </Table.Cell>
                   <Table.Cell>
                     {animal.lote_id !== null ? (
                       <span
-                        onClick={(event) => handleLoteClick(event, animal.lote_id)}
+                        onClick={(event) =>
+                          handleLoteClick(event, animal.lote_id)
+                        }
                         style={
                           onLoteNombreClick
-                            ? { cursor: "pointer", color: "var(--accent-strong)", fontWeight: 600 }
+                            ? {
+                                cursor: "pointer",
+                                color: "var(--accent-strong)",
+                                fontWeight: 600,
+                              }
                             : undefined
-                        }>
+                        }
+                      >
                         {lote?.nombre ?? "—"}
                       </span>
                     ) : (
@@ -143,9 +186,19 @@ export function AnimalesTabla({
                     )}
                   </Table.Cell>
                   <Table.Cell>
-                    {lote ? (CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? "—") : "—"}
+                    {lote
+                      ? (CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? "—")
+                      : "—"}
                   </Table.Cell>
-                  <Table.Cell style={{ fontWeight: 700, color: cc?.valor_cc != null ? colorPorNivelCC(cc.valor_cc, cc.fecha_cc) : undefined }}>
+                  <Table.Cell
+                    style={{
+                      fontWeight: 700,
+                      color:
+                        cc?.valor_cc != null
+                          ? colorPorNivelCC(cc.valor_cc, cc.fecha_cc)
+                          : undefined,
+                    }}
+                  >
                     {cc?.valor_cc != null ? cc.valor_cc.toFixed(1) : "—"}
                   </Table.Cell>
                   <Table.Cell>{animal.estado}</Table.Cell>

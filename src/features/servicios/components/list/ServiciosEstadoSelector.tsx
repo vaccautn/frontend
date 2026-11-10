@@ -4,6 +4,7 @@ import { IconChevronDown } from "@tabler/icons-react";
 import { ESTADOS_SERVICIO } from "../../constants";
 import type { EstadoServicio, ServicioRead } from "../../types";
 import { colorPorEstadoServicio } from "../../utils/servicioEstadoColor";
+import "@/features/rodeo/rodeo.css";
 
 type Props = {
   servicios: ServicioRead[];
@@ -62,10 +63,11 @@ export function ServiciosEstadoSelector({
       <Portal>
         <Menu.Positioner>
           <Menu.Content className="rodeo-lote-selector__menu">
-            <div
+            <Menu.Item
+              value="todos"
               className="rodeo-lote-selector__item"
               data-activo={estado === null}
-              onClick={() => handleSelect(null)}>
+              onSelect={() => handleSelect(null)}>
               <span
                 className="rodeo-lote-selector__dot"
                 style={{ background: "#1d2420" }}
@@ -77,14 +79,15 @@ export function ServiciosEstadoSelector({
               {estado === null && (
                 <span className="rodeo-lote-selector__check">✓</span>
               )}
-            </div>
+            </Menu.Item>
 
             {ESTADOS_FILTRABLES.map((e) => (
-              <div
+              <Menu.Item
+                value={e.value}
                 key={e.value}
                 className="rodeo-lote-selector__item"
                 data-activo={estado === e.value}
-                onClick={() => handleSelect(e.value)}>
+                onSelect={() => handleSelect(e.value)}>
                 <span
                   className="rodeo-lote-selector__dot"
                   style={{ background: colorPorEstadoServicio(e.value) }}
@@ -95,7 +98,7 @@ export function ServiciosEstadoSelector({
                 <span className="rodeo-lote-selector__item-count">
                   {conteoPorEstado.get(e.value) ?? 0}
                 </span>
-              </div>
+              </Menu.Item>
             ))}
           </Menu.Content>
         </Menu.Positioner>

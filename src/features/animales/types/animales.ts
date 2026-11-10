@@ -60,26 +60,29 @@ export type AnimalLoteGroup = {
   animales: Animal[];
 };
 
+/** El sexo no se manda: el backend lo deduce de la categoría. */
 export type RegisterAnimalPayload = {
   caravana: string;
-  raza: string;
-  sexo: string;
-  categoria: string;
-  fecha_nacimiento: string;
+  raza?: string;
+  categoria?: string;
+  fecha_nacimiento?: string | null;
   lote_id: number | null;
 };
 
 export type UpdateAnimalPayload = {
   caravana?: string;
   raza?: string;
-  sexo?: string;
-  fecha_nacimiento?: string;
+  categoria?: string;
+  fecha_nacimiento?: string | null;
   estado?: EstadoAnimal;
   observacion?: string;
   lote_id?: number | null;
 };
 
 export type AnimalListParams = {
+  /** Fecha de alta: momentos ISO, `alta_desde` incluido y `alta_hasta` excluido. */
+  alta_desde?: string;
+  alta_hasta?: string;
   estado?: EstadoFiltro;
   sexo?: SexoAnimal;
   raza?: string;
@@ -96,7 +99,8 @@ export type EvaluacionCC = {
   animal_rfid: string | null;
   usuario_id: number;
   fecha: string;
-  valor_cc: number;
+  valor_cc: number | null;
+  orden_entrada: number | null;
   escala_min: number;
   escala_max: number;
   observaciones: string;
@@ -115,6 +119,18 @@ export type RegisterEvaluacionCCPayload = {
   fecha?: string;
 };
 
+export type RegistrarEntradaSesionPayload = {
+  animal_id: number;
+  valor_cc?: number | null;
+  observaciones?: string;
+  fecha?: string;
+};
+
+export type EntradasSesionRead = {
+  orden_disponible: boolean;
+  items: EvaluacionCC[];
+};
+
 export type UpdateEvaluacionCCPayload = {
   animal_id?: number;
   valor_cc?: number;
@@ -125,8 +141,8 @@ export type UpdateEvaluacionCCPayload = {
 };
 
 export type UpdateEvaluacionCCSesionPayload = {
-  valor_cc: number;
-  observaciones: string;
+  valor_cc?: number;
+  observaciones?: string;
 };
 
 export type EvidenciaImagenRead = {
@@ -143,10 +159,7 @@ export type EvidenciaImagenRead = {
 export interface RegistrarEvaluacionCCParams {
   sesionId?: number;
   animalId: number;
-  valorCc: number;
-  /** true si `valorCc` es un provisorio a la espera de la inferencia por foto
-   * (no lo eligió el usuario). */
-  valorCcInferido?: boolean;
+  valorCc: number | null;
   escalaMin: number;
   escalaMax: number;
   observaciones: string;
@@ -185,6 +198,7 @@ export type DashboardAnimalesData = {
   promedio_actual: number | null; // null when no evaluations exist at all
   histograma: HistogramaBin[]; // always length 5 (CC 1–5)
   evolucion: EvolucionPunto[]; // empty array if no history
+  alertas_manejo?: AlertaAnimal[];
   alertas: AlertaAnimal[]; // animals whose last confirmed CC = 1 or 5; sorted recent-first
 };
 

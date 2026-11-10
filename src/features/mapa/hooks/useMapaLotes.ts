@@ -17,8 +17,13 @@ export function useMapaLotes() {
   }, []);
 
   useEffect(() => {
-    refetch();
-  }, [refetch]);
+    let active = true;
+    getMapaLotes()
+      .then((data) => { if (active) setFeatures(data.features); })
+      .catch(() => { if (active) setError("No se pudieron cargar los lotes del mapa."); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
+  }, []);
 
   return { features, loading, error, refetch };
 }

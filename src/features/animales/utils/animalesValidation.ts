@@ -1,7 +1,12 @@
+import {
+  MENSAJE_FORMATO_CARAVANA,
+  esCaravanaValida,
+  normalizarCaravana,
+} from "@/features/animales/utils/caravana";
+
 export type RodeoNuevoValues = {
   caravana: string;
   raza: string;
-  sexo: string;
   categoria: string;
   fecha_nacimiento: string;
   lote_id: string;
@@ -10,7 +15,6 @@ export type RodeoNuevoValues = {
 export const initialRodeoNuevoValues: RodeoNuevoValues = {
   caravana: "",
   raza: "",
-  sexo: "",
   categoria: "",
   fecha_nacimiento: "",
   lote_id: "",
@@ -25,24 +29,9 @@ export function validateRodeoNuevoForm(
 ): RodeoNuevoFieldErrors {
   const errors: RodeoNuevoFieldErrors = {};
 
-  if (!values.caravana.trim()) {
-    errors.caravana = "El ID de caravana es obligatorio.";
-  }
-
-  if (!values.raza.trim()) {
-    errors.raza = "La raza es obligatoria.";
-  }
-
-  if (!values.sexo) {
-    errors.sexo = "El sexo es obligatorio.";
-  }
-
-  if (!values.categoria) {
-    errors.categoria = "La categoría es obligatoria.";
-  }
-
-  if (!values.fecha_nacimiento) {
-    errors.fecha_nacimiento = "La fecha de nacimiento es obligatoria.";
+  const errorCaravana = validarCaravana(values.caravana);
+  if (errorCaravana) {
+    errors.caravana = errorCaravana;
   }
 
   if (!values.lote_id) {
@@ -55,7 +44,7 @@ export function validateRodeoNuevoForm(
 export type RodeoEditarValues = {
   caravana: string;
   raza: string;
-  sexo: string;
+  categoria: string;
   fecha_nacimiento: string;
   estado: string;
   observacion: string;
@@ -65,7 +54,7 @@ export type RodeoEditarValues = {
 export const initialRodeoEditarValues: RodeoEditarValues = {
   caravana: "",
   raza: "",
-  sexo: "",
+  categoria: "",
   fecha_nacimiento: "",
   estado: "",
   observacion: "",
@@ -80,22 +69,16 @@ export function validateRodeoEditarForm(
   values: RodeoEditarValues,
 ): RodeoEditarFieldErrors {
   const errors: RodeoEditarFieldErrors = {};
-
-  if (!values.caravana.trim()) {
-    errors.caravana = "El ID de caravana es obligatorio.";
+  const errorCaravana = validarCaravana(values.caravana);
+  if (errorCaravana) {
+    errors.caravana = errorCaravana;
   }
 
-  if (!values.raza.trim()) {
-    errors.raza = "La raza es obligatoria.";
+  if (!values.categoria) {
+    errors.categoria = "La categoría es obligatoria.";
   }
 
-  if (!values.sexo) {
-    errors.sexo = "El sexo es obligatorio.";
-  }
-
-  if (!values.fecha_nacimiento) {
-    errors.fecha_nacimiento = "La fecha de nacimiento es obligatoria.";
-  } else {
+  if (values.fecha_nacimiento) {
     const hoy = new Date();
     hoy.setHours(0, 0, 0, 0);
     const fechaNac = new Date(values.fecha_nacimiento);
@@ -113,4 +96,11 @@ export function validateRodeoEditarForm(
   }
 
   return errors;
+}
+
+function validarCaravana(valor: string): string | null {
+  if (!valor.trim()) return "El ID de caravana es obligatorio.";
+  return esCaravanaValida(normalizarCaravana(valor))
+    ? null
+    : MENSAJE_FORMATO_CARAVANA;
 }
