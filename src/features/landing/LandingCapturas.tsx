@@ -41,7 +41,7 @@ const pantallas = [
     nombre: "Evaluaciones",
     titulo: "De la jornada al seguimiento",
     texto:
-      "Consultá el resumen de una sesión y volvé a las evaluaciones para revisar sus registros.",
+      "Cargá las evaluaciones una por una o subí el video de la manga, y revisá el resumen de cada sesión.",
     alt: "Detalle de una sesión de evaluación de condición corporal en VACCA.",
   },
   {
@@ -49,7 +49,7 @@ const pantallas = [
     nombre: "Servicios",
     titulo: "Seguí el ciclo reproductivo",
     texto:
-      "Recorré los servicios en una línea de tiempo y consultá sus resultados, participantes y fechas.",
+      "Recorré los servicios en una línea de tiempo, filtralos por fecha y consultá resultados, participantes y nacimientos.",
     alt: "Vista de servicios de VACCA con línea de tiempo y resumen del servicio seleccionado.",
   },
   {
@@ -81,7 +81,7 @@ const pantallas = [
     nombre: "Campo",
     titulo: "Un campo, un equipo",
     texto:
-      "Accedé a tus campos y administrá las personas que colaboran en el mismo rodeo.",
+      "Accedé a tus campos y sumá colaboradores que trabajan sobre el mismo rodeo, desde las evaluaciones hasta los videos.",
     alt: "Administración del campo de demostración y acceso a sus colaboradores.",
   },
 ];

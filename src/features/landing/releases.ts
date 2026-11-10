@@ -98,6 +98,23 @@ export const releases: Release[] = [
       "Pantalla Rodeo que une mapa y listado",
     ],
   },
+  {
+    id: "r7",
+    etiqueta: "Etapa 7",
+    titulo: "Carga masiva, video y trabajo en equipo",
+    fecha: "Noviembre 2026",
+    resumen:
+      "Menos tiempo cargando datos y un mismo campo compartido con el equipo.",
+    funciones: [
+      "Importación de animales desde CSV o Excel con revisión previa y archivo de errores",
+      "Carga en tabla de varios animales juntos, registrada como una tanda",
+      "Sesiones con video: se sube la grabación de la manga y se analiza cada pasada",
+      "Colaboradores del campo, que también pueden cargar videos",
+      "Historial de actividad con el responsable de cada carga",
+      "Filtros de fecha en sesiones y servicios",
+      "Servicios y crías ordenados en la ficha del animal",
+    ],
+  },
 ];
 
 export const metricasIA = [
