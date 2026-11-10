@@ -6,17 +6,20 @@ export function useAnimalesLote(loteId: number | null) {
   const [animales, setAnimales] = useState<AnimalLoteDetalle[]>([]);
   const [loading, setLoading] = useState(loteId !== null);
 
+  const [scope, setScope] = useState(loteId);
+  if (scope !== loteId) {
+    setScope(loteId);
+    setAnimales([]);
+    setLoading(loteId !== null);
+  }
   useEffect(() => {
-    if (loteId === null) {
-      setAnimales([]);
-      setLoading(false);
-      return;
-    }
-    setLoading(true);
+    if (loteId === null) return;
+    let active = true;
     getAnimalesLote(loteId)
-      .then(setAnimales)
-      .catch(() => setAnimales([]))
-      .finally(() => setLoading(false));
+      .then((data) => { if (active) setAnimales(data); })
+      .catch(() => { if (active) setAnimales([]); })
+      .finally(() => { if (active) setLoading(false); });
+    return () => { active = false; };
   }, [loteId]);
 
   return { animales, loading };

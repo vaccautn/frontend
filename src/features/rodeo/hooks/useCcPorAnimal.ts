@@ -10,16 +10,18 @@ import type { AnimalLoteDetalle } from "@/features/mapa/types";
 export function useCcPorAnimal(loteIds: number[]) {
   const key = [...new Set(loteIds)].sort((a, b) => a - b).join(",");
   const [ccPorAnimal, setCcPorAnimal] = useState<Map<number, AnimalLoteDetalle>>(new Map());
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(key !== "");
 
+  const [scope, setScope] = useState(key);
+  if (scope !== key) {
+    setScope(key);
+    setCcPorAnimal(new Map());
+    setLoading(key !== "");
+  }
   useEffect(() => {
     const ids = key ? key.split(",").map(Number) : [];
-    if (ids.length === 0) {
-      setCcPorAnimal(new Map());
-      return;
-    }
+    if (ids.length === 0) return;
     let cancelado = false;
-    setLoading(true);
     Promise.all(ids.map((id) => getAnimalesLote(id).catch(() => [] as AnimalLoteDetalle[])))
       .then((resultados) => {
         if (cancelado) return;
@@ -33,7 +35,6 @@ export function useCcPorAnimal(loteIds: number[]) {
     return () => {
       cancelado = true;
     };
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- `key` ya representa el set de ids
   }, [key]);
 
   return { ccPorAnimal, loading };

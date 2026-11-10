@@ -203,6 +203,7 @@ export function useMapaCapas({
   }, [mapDivRef]);
 
   // ── Sincronizar los lotes-potrero (backend) con la capa vectorial ───────────
+  const paddingKey = fitPadding.join(",");
   useEffect(() => {
     lotesSourceRef.current.clear();
     const olFeatures = features
@@ -225,13 +226,11 @@ export function useMapaCapas({
         // definitivo en el primer render (p.ej. dentro de un grid), y sin esto OL puede
         // calcular el zoom del fit contra un viewport de 0x0.
         mapRef.current?.updateSize();
-        mapRef.current?.getView().fit(extent, { padding: fitPadding, maxZoom: 17 });
+        mapRef.current?.getView().fit(extent, { padding: paddingKey.split(",").map(Number), maxZoom: 17 });
         huboAjusteInicialRef.current = true;
       }
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- fitPadding es una constante
-    // por call-site; incluirla recrearía el efecto en cada render (nueva identidad de array).
-  }, [features]);
+  }, [features, paddingKey]);
 
   return { mapRef, lotesSourceRef, baseTileLayerRef };
 }
