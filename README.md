@@ -1,3 +1,9 @@
+# Vacca · Frontend
+
+Aplicación web de Vacca, sistema de soporte de decisiones para el manejo nutricional de rodeos de cría. Proyecto final de Ingeniería en Sistemas de Información (UTN).
+
+La arquitectura completa del sistema (frontend, backend e IA) está en [ARQUITECTURA.md](ARQUITECTURA.md).
+
 ## índice
 
 - [Comandos](#comandos)
