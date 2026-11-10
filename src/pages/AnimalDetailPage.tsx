@@ -353,7 +353,6 @@ export function AnimalDetailPage() {
               ampliable
             />
           </div>
-          <AnimalReproduccion key={animal.id} animalId={animal.id} />
           <Ficha
             titulo="Ficha del animal"
             abierta={isDetailsOpen}
@@ -654,6 +653,10 @@ export function AnimalDetailPage() {
       )}
       {!evaluacionesLoading && !evaluacionesError && (
         <div>
+          <AnimalEvaluacionesTable
+            evaluaciones={historyItems}
+            onEdit={setEvaluacionSeleccionada}
+          />
           <Paginador
             pagina={pagina}
             total={totalEvaluaciones}
@@ -668,12 +671,9 @@ export function AnimalDetailPage() {
               )
             }
           />
-          <AnimalEvaluacionesTable
-            evaluaciones={historyItems}
-            onEdit={setEvaluacionSeleccionada}
-          />
         </div>
       )}
+      {animal && <AnimalReproduccion key={animal.id} animalId={animal.id} />}
       {evaluacionSeleccionada && (
         <AnimalEvaluacionCCDialog
           key={evaluacionSeleccionada.id}

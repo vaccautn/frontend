@@ -6,7 +6,7 @@ import { useEffect, useState } from "react";
 import { Link } from "react-router-dom";
 import { getJson, postJson } from "@/services/httpClient";
 import { getAccessToken } from "@/features/auth";
-import { IconArrowUpRight, IconHeart, IconPlus } from "@tabler/icons-react";
+import { IconArrowUpRight, IconPlus } from "@tabler/icons-react";
 import { ESTADO_RESULTADO_SERVICIO_LABELS } from "@/features/servicios/constants";
 import { normalizarCaravana, esCaravanaValida, MENSAJE_FORMATO_CARAVANA } from "../utils/caravana";
 import { FechaInput } from "@/components/FechaInput";
@@ -64,7 +64,6 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
           <span className="animal-detail__section-eyebrow">Historial reproductivo</span>
           <h2 id="reproduccion-titulo">Servicios y crías</h2>
         </div>
-        <IconHeart size={24} stroke={1.5} aria-hidden="true" />
       </div>
       {error ? (
         <div role="alert" className="reproduccion__vacio">

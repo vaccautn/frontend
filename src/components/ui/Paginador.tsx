@@ -11,6 +11,8 @@ export function Paginador({
   onChange: (pagina: number) => void;
 }) {
   const paginas = Math.max(1, Math.ceil(total / tamano));
+  // Con una sola página los botones no hacen nada: no se muestra.
+  if (paginas === 1 && pagina === 0) return null;
   return (
     <nav className="paginador" aria-label="Paginación">
       <Button

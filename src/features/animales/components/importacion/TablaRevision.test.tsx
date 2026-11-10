@@ -36,6 +36,7 @@ describe("revisión de archivos grandes", () => {
     expect(within(tabla).getAllByRole("row")).toHaveLength(2);
     expect(screen.getByRole("button", { name: "Siguiente" })).toBeDisabled();
     await userEvent.click(screen.getByRole("button", { name: /Con errores/ }));
-    expect(screen.getByRole("status")).toHaveTextContent("Página 1 de 1");
+    // Vuelve a la primera página y, al quedar una sola, el paginador se oculta.
+    expect(screen.queryByRole("navigation", { name: "Paginación" })).not.toBeInTheDocument();
   });
 });
