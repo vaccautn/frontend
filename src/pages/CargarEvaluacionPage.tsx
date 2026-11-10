@@ -162,8 +162,12 @@ export function CargarEvaluacionesPage() {
       .finally(() => setLoadingLotes(false));
   }, []);
 
-  useEffect(() => {
+  const [sesionEnCarga, setSesionEnCarga] = useState(sesionId);
+  if (sesionEnCarga !== sesionId) {
+    setSesionEnCarga(sesionId);
     setLoading(true);
+  }
+  useEffect(() => {
     Promise.allSettled([getSesion(sesionId), getEntradasSesion(sesionId)])
       .then(([sesionResult, entradasResult]) => {
         if (sesionActualRef.current !== sesionId) return;
@@ -194,12 +198,18 @@ export function CargarEvaluacionesPage() {
 
   // Los mismos filtros que la página de animales (caravana, raza, estado,
   // lote), para encontrar rápido a quién falta evaluar en la sesión.
-  useEffect(() => {
+  const [filtrosEnCarga, setFiltrosEnCarga] = useState(filtrosParams);
+  if (filtrosEnCarga !== filtrosParams) {
+    setFiltrosEnCarga(filtrosParams);
     setRefetchingGrupos(true);
+  }
+  useEffect(() => {
+    let active = true;
     getAnimalesAgrupadosPorLote(filtrosParams)
-      .then(setGrupos)
-      .catch(() => toast.error("No se pudieron cargar los animales."))
-      .finally(() => setRefetchingGrupos(false));
+      .then((data) => { if (active) setGrupos(data); })
+      .catch(() => { if (active) toast.error("No se pudieron cargar los animales."); })
+      .finally(() => { if (active) setRefetchingGrupos(false); });
+    return () => { active = false; };
   }, [filtrosParams]);
 
   // El backend no filtra por categoría de lote, así que se aplica acá sobre
