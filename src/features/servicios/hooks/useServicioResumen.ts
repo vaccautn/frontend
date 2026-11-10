@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { getAnimales } from "@/features/animales/services/animalesService";
 import type { Animal } from "@/features/animales/types";
 import {
@@ -81,18 +81,15 @@ function calcularHayResultadosPendientes(participantes: ParticipanteServicio[]):
  * expandido (ServicioDetalleCompleto) actualice la misma fuente de datos
  * que usa el header/resumen colapsado, en vez de mantener su propia copia. */
 export function useServicioResumen(servicioId: number | null): ServicioResumen {
-  const [data, setData] = useState<ServicioResumenState>({ status: "idle", ...VACIO });
-  const generacionRef = useRef(0);
+  const [data, setData] = useState<ServicioResumenState>({ status: servicioId === null ? "idle" : "loading", ...VACIO });
+  const [revision, setRevision] = useState(0);
 
-  const cargar = useCallback(async (id: number | null) => {
-    const generacion = ++generacionRef.current;
-
-    if (id === null) {
-      setData({ status: "idle", ...VACIO });
-      return;
-    }
-
-    setData({ status: "loading", ...VACIO });
+  const [scope, setScope] = useState({ servicioId, revision });
+  if (scope.servicioId !== servicioId || scope.revision !== revision) {
+    setScope({ servicioId, revision });
+    setData({ status: servicioId === null ? "idle" : "loading", ...VACIO });
+  }
+  const cargar = useCallback(async (id: number): Promise<ServicioResumenState> => {
 
     try {
       const servicio = await getServicio(id);
@@ -118,11 +115,7 @@ export function useServicioResumen(servicioId: number | null): ServicioResumen {
         animalesPorLoteId = new Map(entradas);
       }
 
-      // Si mientras esperábamos arrancó un pedido más nuevo (cambió el id,
-      // o se llamó a refetch), descartamos este resultado desactualizado.
-      if (generacionRef.current !== generacion) return;
-
-      setData({
+      return {
         status: "ready",
         servicio,
         lotes,
@@ -132,27 +125,27 @@ export function useServicioResumen(servicioId: number | null): ServicioResumen {
         cantidadVacas: calcularCantidadVacas(servicio, lotes, animalesPorLoteId, participantes),
         hayResultadosPendientes: calcularHayResultadosPendientes(participantes),
         errorMessage: "",
-      });
+      };
     } catch (error) {
-      if (generacionRef.current !== generacion) return;
-      setData({
+      return {
         status: "error",
         ...VACIO,
         errorMessage:
           error instanceof ApiError
             ? error.detail
             : "No se pudo cargar el resumen del servicio.",
-      });
+      };
     }
   }, []);
 
   useEffect(() => {
-    void cargar(servicioId);
-  }, [servicioId, cargar]);
+    if (servicioId === null) return;
+    let active = true;
+    void cargar(servicioId).then((result) => { if (active) setData(result); });
+    return () => { active = false; };
+  }, [servicioId, revision, cargar]);
 
-  const refetch = useCallback(() => {
-    void cargar(servicioId);
-  }, [cargar, servicioId]);
+  const refetch = useCallback(() => setRevision((value) => value + 1), []);
 
   const setServicio = useCallback((servicio: ServicioRead) => {
     setData((prev) => {
