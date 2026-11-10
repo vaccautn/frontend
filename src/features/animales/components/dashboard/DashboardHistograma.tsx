@@ -62,7 +62,7 @@ export function DashboardHistograma({ histograma, loading, fecha }: Props) {
           <BarChart
             data={histograma}
             barCategoryGap="24%"
-            margin={{ top: 20, right: 20, bottom: 4, left: 4 }}>
+            margin={{ top: 20, right: 20, bottom: 4, left: 8 }}>
             <CartesianGrid stroke={GRID_COLOR} vertical={false} />
             <XAxis
               dataKey="valor_cc"
@@ -80,7 +80,7 @@ export function DashboardHistograma({ histograma, loading, fecha }: Props) {
               tick={{ fontSize: 12, fill: TICK_COLOR }}
               axisLine={false}
               tickLine={false}
-              width={28}
+              width={Math.max(32, String(maxCantidad).length * 8 + 16)}
             />
             <Tooltip
               formatter={(value) => [`${value} animal(es)`, "Cantidad"]}

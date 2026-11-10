@@ -40,9 +40,9 @@ export function RodeoResumenCompacto({
     <div className="rodeo-dashboard-full__card rodeo-dashboard-full__resumen">
       <div className="rodeo-dashboard-full__resumen-top">
         <div>
-          <div className="rodeo-dashboard-full__resumen-titulo">
-            {lote ? lote.nombre : "Todo el rodeo"}
-          </div>
+          {lote && <div className="rodeo-dashboard-full__resumen-titulo">
+            {lote.nombre}
+          </div>}
           <div className="rodeo-dashboard-full__resumen-subtitulo">
             {lote
               ? `${CATEGORIA_ANIMAL_LABELS[lote.categoria] ?? lote.categoria} · ${formatearNumero(lote.superficie_ha)} ha`
