@@ -57,18 +57,26 @@ export function ServiciosListaPanel({
     <div className="servicios-lista-panel">
       <div className="servicios-lista-panel__filtros">
         <div className="servicios-lista-panel__fechas">
+          <div className="servicios-lista-panel__fecha">
+          <label htmlFor="servicios-desde">Desde</label>
           <FechaInput
+            id="servicios-desde"
             value={fechaDesde}
             onChange={onFechaDesdeChange}
             aria-label="Filtrar servicios desde una fecha de inicio"
             className="animales-filtros__input"
           />
+          </div>
+          <div className="servicios-lista-panel__fecha">
+          <label htmlFor="servicios-hasta">Hasta</label>
           <FechaInput
+            id="servicios-hasta"
             value={fechaHasta}
             onChange={onFechaHastaChange}
             aria-label="Filtrar servicios hasta una fecha de inicio"
             className="animales-filtros__input"
           />
+          </div>
         </div>
         <ServiciosEstadoSelector servicios={servicios} estado={estado} onChange={onEstadoChange} />
       </div>
