@@ -55,11 +55,17 @@ export function EvaluacionCCItem({ evaluacion, onUpdated }: EvaluacionCCItemProp
   const [confirmDeleteImage, setConfirmDeleteImage] = useState<EvidenciaImagenRead | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  const [imagenesEvaluacionId, setImagenesEvaluacionId] = useState(evaluacion.id);
+  if (imagenesEvaluacionId !== evaluacion.id) {
+    setImagenesEvaluacionId(evaluacion.id);
+    setImagenes([]);
+    setImagenesLoading(true);
+    setImagenesError("");
+  }
+
   useEffect(() => {
     let isMounted = true;
 
-    setImagenesLoading(true);
-    setImagenesError("");
 
     getImagenesEvaluacion(evaluacion.id)
       .then((data) => {

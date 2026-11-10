@@ -186,7 +186,6 @@ export function AnimalReproduccion({ animalId }: { animalId: number }) {
             Nuevo lote
             <NativeSelect.Root>
               <NativeSelect.Field
-                required
                 value={lote}
                 onChange={(e) => setLote(e.target.value)}
               >

@@ -53,18 +53,16 @@ function AnimalesNuevoPage() {
 
   useEffect(() => {
     getLotes()
-      .then((data) => setLotes(data.filter((lote) => lote.activo)))
+      .then((data) => {
+        const activos = data.filter((lote) => lote.activo);
+        setLotes(activos);
+        if (activos.length === 0) setIsCreatingLote(true);
+      })
       .catch(() =>
         setLotesError("No se pudieron cargar los lotes disponibles."),
       )
       .finally(() => setLotesLoading(false));
   }, []);
-
-  useEffect(() => {
-    if (!lotesLoading && !lotesError && lotes.length === 0) {
-      setIsCreatingLote(true);
-    }
-  }, [lotesLoading, lotesError, lotes.length]);
 
   const close = (refresh = false) => {
     setOpen(false);

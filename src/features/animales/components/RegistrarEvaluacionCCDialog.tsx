@@ -89,14 +89,17 @@ export function RegistrarEvaluacionCCDialog({
   onGuardar,
   onEvaluacionActualizada,
 }: RegistrarEvaluacionCCDialogProps) {
-  const [values, setValues] = useState<FormValues>(INITIAL_VALUES);
+  const [values, setValues] = useState<FormValues>(() => evaluacionExistente ? {
+    valorCc: evaluacionExistente.valor_cc?.toString() ?? "",
+    observaciones: evaluacionExistente.observaciones,
+  } : INITIAL_VALUES);
   const [errors, setErrors] = useState<FormErrors>({});
   const [formError, setFormError] = useState("");
   const [files, setFiles] = useState<File[]>([]);
   const [isSaving, setIsSaving] = useState(false);
 
   const [imagenes, setImagenes] = useState<EvidenciaImagenRead[]>([]);
-  const [imagenesLoading, setImagenesLoading] = useState(false);
+  const [imagenesLoading, setImagenesLoading] = useState(open && !!evaluacionExistente);
   const [isUploadingImage, setIsUploadingImage] = useState(false);
   const [confirmDeleteImage, setConfirmDeleteImage] =
     useState<EvidenciaImagenRead | null>(null);
@@ -118,7 +121,9 @@ export function RegistrarEvaluacionCCDialog({
     return opts;
   }, []);
 
-  useEffect(() => {
+  const [formScope, setFormScope] = useState({ open, evaluacionExistente });
+  if (formScope.open !== open || formScope.evaluacionExistente !== evaluacionExistente) {
+    setFormScope({ open, evaluacionExistente });
     if (open && evaluacionExistente) {
       setValues({
         valorCc: evaluacionExistente.valor_cc?.toString() ?? "",
@@ -131,19 +136,17 @@ export function RegistrarEvaluacionCCDialog({
     setErrors({});
     setFormError("");
     setIsSaving(false);
-  }, [open, evaluacionExistente]);
+    setImagenes([]);
+    setImagenesLoading(open && !!evaluacionExistente);
+  }
 
   // Las evaluaciones ya persistidas manejan sus fotos contra el servidor
   // (subida/lectura inmediata), igual que en el historial del animal — así
   // el preview no depende de un array local que se pisa al cerrar el diálogo.
   useEffect(() => {
-    if (!open || !evaluacionExistente) {
-      setImagenes([]);
-      return;
-    }
+    if (!open || !evaluacionExistente) return;
 
     let isMounted = true;
-    setImagenesLoading(true);
 
     getImagenesEvaluacion(evaluacionExistente.id)
       .then((data) => {
