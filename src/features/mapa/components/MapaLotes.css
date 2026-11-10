@@ -311,6 +311,16 @@
   width: fit-content;
 }
 
+/* En pantallas angostas la leyenda y "Abrir mapa" no entran en la misma
+ * línea: la leyenda sube por encima del botón. */
+@media (max-width: 600px) {
+  .rodeo-minimapa > .mapa-leyenda {
+    left: 10px;
+    right: auto;
+    bottom: 52px;
+  }
+}
+
 .mapa-leyenda__item {
   display: flex;
   align-items: center;

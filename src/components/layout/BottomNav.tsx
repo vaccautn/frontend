@@ -57,7 +57,7 @@ export function BottomNav() {
             <span className="bottom-nav__icon">
               <IconSettings size={22} stroke={1.5} />
             </span>
-            Configuración
+            Ajustes
           </button>
         </Dialog.Trigger>
         <Dialog.Backdrop className="sidebar__settings-backdrop" />

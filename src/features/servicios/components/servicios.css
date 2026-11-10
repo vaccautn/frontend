@@ -757,7 +757,13 @@
 
 .servicios-lista-panel__fecha {
   display: grid;
+  grid-template-columns: minmax(0, 1fr);
   gap: 6px;
+  min-width: 0;
+}
+
+.servicios-lista-panel__fecha > * {
+  min-width: 0;
 }
 
 .servicios-lista-panel__fecha > label {
