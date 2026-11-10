@@ -1,256 +1,210 @@
-# Vacca · Frontend
+# VACCA · Frontend
 
-Aplicación web de Vacca, sistema de soporte de decisiones para el manejo nutricional de rodeos de cría. Proyecto final de Ingeniería en Sistemas de Información (UTN).
+Aplicación web de **VACCA**, un sistema de soporte de decisiones para el manejo
+nutricional de rodeos de cría. El productor gestiona su rodeo, evalúa la condición
+corporal (CC) de cada vaca a mano, con una foto o con un video de la manga, y recibe
+tableros, alertas y recomendaciones para la temporada de servicio.
 
-La arquitectura completa del sistema (frontend, backend e IA) está en [ARQUITECTURA.md](ARQUITECTURA.md).
+> **Proyecto Final de Ingeniería en Sistemas de Información** · Universidad
+> Tecnológica Nacional, Facultad Regional Resistencia (UTN FRRe) · 2026.
 
-## índice
+📐 **Arquitectura del sistema completo:** [ARQUITECTURA.md](ARQUITECTURA.md)
 
+## Índice
+
+- [Qué hace](#qué-hace)
+- [Cómo encaja en VACCA](#cómo-encaja-en-vacca)
+- [Stack](#stack)
+- [Puesta en marcha](#puesta-en-marcha)
 - [Comandos](#comandos)
-- [Estructura de Carpetas](#estructura-de-carpetas)
-- [Convención de Commits](#convención-de-commits)
-- [Flujo de Ramas (Git Flow)](#flujo-de-ramas-git-flow)
+- [Rutas](#rutas)
+- [Estructura de carpetas](#estructura-de-carpetas)
+- [Tests](#tests)
+- [Despliegue](#despliegue)
+- [Documentación adicional](#documentación-adicional)
+- [Convención de commits](#convención-de-commits)
+- [Flujo de ramas (Git Flow)](#flujo-de-ramas-git-flow)
+
+## Qué hace
+
+- **Rodeo:** alta, edición y baja lógica de animales; búsqueda por caravana y filtros
+  por sexo, raza, estado y categoría; carga en tabla de varios animales juntos e
+  importación masiva desde CSV/XLSX con revisión previa y archivo de errores.
+- **Lotes y mapa:** potreros sobre imagen satelital (Esri World Imagery), importación
+  desde KMZ, buscador de localidades y panel lateral con los animales y la CC del lote.
+- **Sesiones de evaluación:** carga de CC 1 a 5 por animal, fotos de evidencia validadas
+  por IA, CC estimada desde la imagen y análisis de video de la manga por pasaje.
+- **Tableros:** del rodeo, de cada animal y de cada sesión (distribución de CC,
+  evolución, alertas tipo semáforo).
+- **Servicios (temporada de monta):** lotes participantes, estados automáticos según
+  fechas, resultados (preñada, vacía, parida), terneros y reservicio de vacas vacías.
+- **Recomendaciones de manejo** según CC y categoría, con alerta de pendientes.
+- **Trabajo en equipo:** colaboradores por campo e historial de actividad con el
+  responsable de cada carga.
+- **Landing pública** en `/landing` con la presentación del proyecto y sus etapas.
+
+## Cómo encaja en VACCA
+
+```mermaid
+flowchart LR
+    U[Navegador] --> FE["frontend<br/>(este repo, Vercel)"]
+    FE -->|"REST /api + JWT"| BE[backend FastAPI]
+    BE --> DB[(PostgreSQL)]
+    BE --> IA[IA · VACCA Vision]
+    BE --> R2[(Cloudflare R2)]
+```
+
+El frontend solo se comunica con la API del backend. Nunca llama directo a IA ni sube
+archivos a R2: las imágenes se leen con URLs firmadas que entrega el backend.
+
+## Stack
+
+| Tecnología | Uso |
+| --- | --- |
+| React 19 + TypeScript | UI |
+| Vite 8 | Dev server y build |
+| React Router 7 | Ruteo con carga diferida por página |
+| Chakra UI 3 | Componentes y tema |
+| Recharts | Gráficos de los tableros |
+| OpenLayers + JSZip | Mapa de lotes e importación de KMZ |
+| React Toastify, Tabler Icons | Avisos e íconos |
+| Vitest + Testing Library | Tests unitarios y de componentes |
+| Playwright | Tests end-to-end |
+| ESLint | Linter |
+
+## Puesta en marcha
+
+Requisitos: Node.js `^20.19.0 || ^22.13.0 || >=24` y pnpm.
+
+```bash
+pnpm install
+pnpm dev
+```
+
+La app queda en `http://localhost:5173`. Para trabajar con datos reales tiene que estar
+corriendo el backend (ver su README); el orden completo para levantar todo en local es
+PostgreSQL → IA → backend → frontend.
+
+La URL de la API se configura con `VITE_API_BASE_URL`. El `.env` versionado apunta a
+`http://localhost:8000/api`; si la variable no está definida, `src/services/httpClient.ts`
+usa `http://127.0.0.1:8000/api`.
 
 ## Comandos
 
-| Comando           | Descripción                                          |
-| ----------------- | ---------------------------------------------------- |
-| `pnpm install`    | Instala las dependencias del proyecto                |
-| `pnpm dev`        | Inicia el servidor de desarrollo en `localhost:5173` |
-| `pnpm build`      | Genera el build de producción en `/dist`             |
-| `pnpm preview`    | Previsualiza el build de producción localmente       |
-| `pnpm lint`       | Ejecuta el linter (ESLint)                           |
-| `pnpm type-check` | Verifica los tipos de TypeScript sin compilar        |
-| `pnpm test`       | Tests unitarios y de componentes (Vitest + Testing Library) |
-| `pnpm test:watch` | Lo mismo, en modo watch                              |
-| `pnpm test:e2e`   | Tests end-to-end con Playwright contra el stack real (ver `e2e/README.md`) |
-| `pnpm test:video` | Ejecuta pruebas de reglas de la integración de video |
+| Comando | Descripción |
+| --- | --- |
+| `pnpm dev` | Servidor de desarrollo en `localhost:5173` |
+| `pnpm build` | Chequeo de tipos (`tsc -b`) y build de producción en `dist/` |
+| `pnpm preview` | Sirve localmente el build de producción |
+| `pnpm lint` / `pnpm lint:fix` | ESLint, con o sin correcciones automáticas |
+| `pnpm test` | Tests unitarios y de componentes (Vitest) |
+| `pnpm test:watch` | Lo mismo, en modo watch |
+| `pnpm test:e2e` | End-to-end con Playwright contra el stack real (ver `e2e/README.md`) |
+| `pnpm test:video` | Reglas de recuperación del análisis de video |
+| `pnpm test:video:browser` | Flujo de video renderizado en navegador, con la API interceptada |
 
-## Ingresos de animales en una sesión
+## Rutas
 
-La página de carga usa los endpoints autenticados:
+| Ruta | Pantalla |
+| --- | --- |
+| `/landing` | Landing pública del proyecto |
+| `/login`, `/register` | Ingreso y registro |
+| `/inicio` | Resumen del campo |
+| `/rodeo` | Mapa de lotes y listado de animales |
+| `/rodeo/nuevo`, `/rodeo/carga-tabla`, `/rodeo/importar` | Alta individual, carga en tabla e importación masiva |
+| `/rodeo/:id` | Ficha del animal con historial, servicios y crías |
+| `/sesiones`, `/sesiones/:id`, `/sesiones/:id/cargar` | Sesiones de evaluación, detalle y carga |
+| `/servicios`, `/servicios/nuevo`, `/servicios/:id`, `/servicios/:id/reservicio` | Temporadas de servicio |
+| `/actividad` | Historial de cargas y responsables |
+| `/campo` | Campo y colaboradores |
 
-| Método | Ruta | Uso |
-|---|---|---|
-| `POST` | `/api/sesiones-captura/{sesion_id}/entradas` | Registrar un animal y recibir su orden asignado por el servidor |
-| `GET` | `/api/sesiones-captura/{sesion_id}/entradas` | Recuperar los ingresos y sus órdenes guardados |
+Las rutas privadas pasan por `ProtectedRoute`. Las rutas viejas `/animales/*` y `/mapa`
+redirigen a `/rodeo`.
 
-Ejemplo de alta pendiente:
-
-```json
-{
-  "animal_id": 42,
-  "valor_cc": null,
-  "observaciones": "Pendiente de evaluación"
-}
-```
-
-El `POST` devuelve `201` para un ingreso nuevo y `200` al reintentar un animal ya
-registrado; el reintento no cambia la CC ni el orden existentes. El ordinal es
-asignado en backend, no por la lista filtrada de la interfaz. `valor_cc` puede ser
-`null` en estado `BORRADOR` se muestra como **Pendiente de CC**; una evaluación
-`ANULADA` también puede conservar `null`. Solo `CONFIRMADA` requiere una CC entera
-entre 1 y 5. Registrar esa CC confirma el borrador sin cambiar su orden. La CC
-manual existente nunca se reemplaza al adjuntar imágenes.
-
-Las evaluaciones anteriores al orden persistido conservan `orden_entrada: null` y
-no se reordenan a partir de fechas o IDs. El GET indica `orden_disponible: false`
-si incluye filas históricas sin ordinal. Una sesión histórica vacía puede aceptar
-nuevos ingresos. El downgrade de la migración se rechaza si existen CC pendientes
-u órdenes nuevas; se deben resolver explícitamente antes de volver al esquema
-anterior.
-
-## Análisis de video en una sesión
-
-La carga está disponible en la página de evaluación de una sesión abierta. Antes
-de probarla, el backend debe tener aplicada la migración de análisis de video y
-el servicio IA debe estar ejecutándose en loopback según la configuración del
-backend. El navegador solo se comunica con la API autenticada; no sube archivos
-directamente a IA ni a R2.
-
-1. Registrá y ordená los ingresos de los animales en la sesión.
-2. Elegí un archivo MP4 o MOV de hasta 50 MiB y enviá el video.
-3. La interfaz muestra el estado actual con un mensaje breve y una barra de
-   progreso indeterminada; al completar, confirma que los resultados están en
-   la sesión. Si la conexión se interrumpe durante el envío, volvé a seleccionar
-   el mismo archivo para reintentar con la misma clave idempotente.
-
-El backend asocia pasajes según el snapshot ordenado de ingresos. Si la cantidad
-detectada difiere de los ingresos, la interfaz muestra un aviso breve; los
-resultados y las CC manuales siguen disponibles en la sesión. Un error terminal
-se muestra como error, no como éxito: se puede reintentar el mismo análisis
-guardado o resolverlo explícitamente. Resolver es irreversible, libera el
-bloqueo de la sesión y conserva los resultados y artefactos retenidos.
-Si IA rechazó la admisión antes de crear un trabajo, el reintento vuelve a enviar
-el mismo archivo con la clave original; los errores de importación con un trabajo
-ya creado usan la acción de reintento del análisis guardado. Si se pierde
-`sessionStorage` mientras el backend conserva un trabajo `ENVIANDO` sin `ia_job_id`,
-el creador recupera la clave durable desde la vista completa del listado, selecciona
-el archivo y lo reenvía; backend valida su SHA-256 y responde `409` si el contenido
-no coincide. La clave no aparece en las proyecciones de acceso restringido.
-La clave del navegador se conserva tras una respuesta incierta y solo se elimina
-al recibir una respuesta de admisión confirmada, resolver explícitamente el error
-retenido si la clave está vinculada a ese análisis, o descartar la clave de forma
-explícita si no se pudo establecer esa relación;
-los análisis históricos no alteran esa clave. Si ya se aplicó al menos un
-resultado, el backend no permite otro video para esa sesión. Los errores resueltos
-sin resultados aplicados no bloquean por sí solos un nuevo análisis.
-Si se revoca acceso a un animal del snapshot, el propietario ve únicamente el estado
-mínimo y puede resolver un error retenido o abandonar una admisión incierta `ENVIANDO`
-sin `ia_job_id`; no puede reintentar ni consultar datos del snapshot, resultados o
-imágenes. Resolver esa admisión no afirma que IA haya rechazado el video ni que sus
-artefactos remotos se hayan borrado.
-El video fuente no se archiva; las imágenes importadas se consultan mediante URL
-firmada protegida por el backend.
-
-### Prueba renderizada del flujo en Edge
-
-Con Vite disponible en `http://127.0.0.1:5173`, una instalación existente de
-`playwright-core` y Microsoft Edge, ejecutar desde PowerShell:
-
-```powershell
-$env:PLAYWRIGHT_MODULE_PATH = "C:\ruta\a\playwright-core\index.mjs"
-$env:VACCA_FRONTEND_E2E_URL = "http://127.0.0.1:5173"
-pnpm test:video:browser
-```
-
-La prueba crea un contexto de navegador nuevo, usa un usuario de fixture y archivos
-sintéticos, e intercepta todas las solicitudes `/api/`; no contacta el backend, IA ni
-R2. No agrega una dependencia de producción: `PLAYWRIGHT_MODULE_PATH` apunta a una
-instalación de Playwright ya disponible en el entorno. También verifica la recuperación
-de la clave tras limpiar `sessionStorage`, el error restringido y su resolución, la
-limpieza de errores de polling sin borrar errores de acciones, la preservación del
-diálogo manual durante un refresco y el bloqueo de una segunda carga después de aplicar
-resultados.
-
----
-
-## Estructura de Carpetas
+## Estructura de carpetas
 
 ```
 src/
-├── assets/                  # Recursos estáticos (imágenes,  fuentes, íconos SVG)
-│
-├── components/              # Componentes reutilizables y genéricos
-│   ├── ui/                  #   Componentes base: Button, Input, Modal, etc.
-│   └── layout/              #   Estructuras de layout: Header, Sidebar, Footer
-│
-├── features/                # Módulos por funcionalidad (dominio)
-│   └── [feature]/           #   Ej: auth/, dashboard/, users/
-│       ├── components/      #     Componentes exclusivos de este feature
-│       ├── hooks/           #     Custom hooks del feature
-│       ├── services/        #     Llamadas a la API relacionadas
-│       ├── store/           #     Estado local/global del feature (Zustand, Redux, etc.)
-│       ├── types/           #     Tipos e interfaces del feature
-│       └── index.ts         #     Barrel export del feature
-│
-├── hooks/                   # Custom hooks globales y reutilizables
-│
-├── lib/                     # Configuraciones de librerías externas (axios, i18n, etc.)
-│
-├── pages/                   # Páginas / Vistas de la aplicación (una por ruta)
-│
-├── router/                  # Configuración de React Router
-│
-├── services/                # Servicios globales (cliente HTTP base, helpers de API)
-│
-├── store/                   # Estado global de la aplicación
-│
-├── types/                   # Tipos e interfaces globales compartidos
-│
-├── utils/                   # Funciones utilitarias puras y helpers
-│
+├── components/     # Componentes genéricos: layout (sidebar, barra inferior) y ui
+├── features/       # Un módulo por dominio, autocontenido
+│   ├── auth/       #   Login, sesión y store del usuario
+│   ├── animales/   #   Ficha, formularios y tableros de animales
+│   ├── rodeo/      #   Pantalla Rodeo (mapa + listado)
+│   ├── lotes/      #   Gestión de lotes
+│   ├── mapa/       #   Mapa con OpenLayers, capas e importación KMZ
+│   ├── sesiones/   #   Sesiones, carga de CC, imágenes y video
+│   ├── servicios/  #   Temporada de servicio y resultados
+│   ├── recomendaciones/
+│   └── landing/    #   Landing pública y etapas del proyecto
+├── pages/          # Una página por ruta; solo compone features
+├── router/         # Rutas, carga diferida y guardas de sesión
+├── services/       # Cliente HTTP base
+├── hooks/, lib/, utils/
+├── test/           # Configuración de Vitest
 ├── App.tsx
 └── main.tsx
 ```
 
-> [Explicación del patron Barrel export en React](https://raul-alhena.medium.com/barrel-exports-en-reactjs-2ed37f30b625)
+Cada feature agrupa sus `components/`, `hooks/`, `services/` (llamadas a la API) y
+`types`. Algo sube a las carpetas globales solo cuando lo usa más de un feature.
 
-### Criterios de organización
+## Tests
 
-- **`components/`** contiene solo componentes verdaderamente genéricos, sin lógica de negocio.
-- **`features/`** Cada feature es autocontenida: sus componentes, hooks, tipos y servicios viven juntos. Esto facilita escalar, testear y eliminar features sin romper el resto.
-- **`pages/`** son componentes delgados: su único rol es componer features y pasar props básicas. No contienen lógica compleja.
-- Siempre que algo sea específico de un feature, va dentro de `features/[nombre]/`. Solo cuando es reutilizado en más de un lugar sube a las carpetas globales (`hooks/`, `utils/`, `types/`).
+- **Unitarios y de componentes:** Vitest + Testing Library sobre jsdom (`pnpm test`).
+- **End-to-end:** Playwright contra frontend, backend y base reales (`pnpm test:e2e`,
+  detalles en `e2e/README.md`).
+- **Video:** pruebas de reglas en Node y una prueba en navegador con las llamadas a
+  `/api/` interceptadas (ver [docs/sesiones-y-video.md](docs/sesiones-y-video.md)).
 
----
+## Despliegue
 
-## Convención de Commits
+Vercel, con build automático desde GitHub. `vercel.json` reescribe todas las rutas a
+`index.html` para que funcione el ruteo del lado del cliente. En producción,
+`VITE_API_BASE_URL` apunta a la API HTTPS del backend.
 
-Usamos el siguiente formato para todos los commits:
+## Documentación adicional
+
+- [Arquitectura del sistema](ARQUITECTURA.md): componentes, diagramas y flujos.
+- [Sesiones y video](docs/sesiones-y-video.md): ingresos ordenados, análisis de video,
+  reintentos y recuperación.
+- [Presentación de la landing](docs/LANDING_PRESENTACION.md).
+
+## Convención de commits
 
 ```
 <tipo>[alcance]: mensaje en imperativo
 ```
 
-El **alcance** es **opcional** y representa el área o módulo afectado (por ejemplo, el nombre de un feature, página o componente).
-
-**Ejemplos:**
+El alcance es opcional (un feature, página o componente). Ejemplos:
 
 ```
 feat[Auth]: Implementar login con Google
-fix[Dashboard]: Corrección de información errónea en gráfico de ventas
-refactor: Reorganizar estructura de carpetas del proyecto
+fix[Dashboard]: Corregir dato erróneo en gráfico de ventas
 docs[README]: Agregar sección de convención de commits
 ```
 
-### Tipos de commits disponibles
+| Tipo | Uso |
+| --- | --- |
+| `feat` | Nueva funcionalidad |
+| `fix` | Corrección de un bug |
+| `refactor` | Cambio interno sin nueva funcionalidad |
+| `style` | Formato, sin cambios de lógica |
+| `docs` | Documentación |
+| `test` | Tests |
+| `chore` | Mantenimiento, dependencias, configuración |
+| `perf` | Rendimiento |
+| `ci` | CI/CD |
+| `revert` | Reversión |
 
-| Tipo       | Descripción                                                                      |
-| ---------- | -------------------------------------------------------------------------------- |
-| `feat`     | Nueva funcionalidad para el usuario                                              |
-| `fix`      | Corrección de un bug                                                             |
-| `refactor` | Cambio de código que no agrega funcionalidad ni corrige un bug                   |
-| `style`    | Cambios de formato, espaciado, punto y coma (no afectan la lógica)               |
-| `docs`     | Cambios en documentación (README, comentarios, etc.)                             |
-| `test`     | Agregar o modificar tests                                                        |
-| `chore`    | Tareas de mantenimiento: actualizar dependencias, configuraciones de build, etc. |
-| `perf`     | Cambio que mejora el rendimiento                                                 |
-| `ci`       | Cambios en la configuración de CI/CD                                             |
-| `revert`   | Reversión de un commit anterior                                                  |
+## Flujo de ramas (Git Flow)
 
-> El mensaje debe estar en **imperativo** y describir **qué hace** el commit, no qué hiciste vos. Ejemplo: `"Agregar validación de formulario"`, no `"Agregué validación de formulario"`.
+| Rama | Origen | Destino | Uso |
+| --- | --- | --- | --- |
+| `main` | | | Producción. Solo recibe merges de `release/*` o `hotfix/*` |
+| `develop` | | | Integración, base de las features |
+| `feature/*` | `develop` | `develop` | Nueva funcionalidad |
+| `release/x.x.x` | `develop` | `main` + `develop` | Pruebas finales antes de salir |
+| `hotfix/*` | `main` | `main` + `develop` | Corrección urgente en producción |
 
----
-
-## Flujo de Ramas (Git Flow)
-
-Seguimos **Git Flow** como estrategia de branching. Referencia completa: [Git Flow Cheatsheet](https://danielkummer.github.io/git-flow-cheatsheet/index.es_ES.html)
-
-### Ramas principales
-
-| Rama      | Descripción                                                              |
-| --------- | ------------------------------------------------------------------------ |
-| `main`    | Código en **producción**. Solo recibe merges desde `release` o `hotfix`. |
-| `develop` | Rama de integración. Base para todas las features nuevas.                |
-
-### Ramas de soporte
-
-| Rama        | Origen    | Destino            | Nomenclatura                 |
-| ----------- | --------- | ------------------ | ---------------------------- |
-| `feature/*` | `develop` | `develop`          | `feature/nombre-descriptivo` |
-| `release/*` | `develop` | `main` + `develop` | `release/x.x.x`              |
-| `hotfix/*`  | `main`    | `main` + `develop` | `hotfix/descripcion-breve`   |
-
-### Flujo de trabajo típico
-
-```
-1. Partís siempre desde develop
-   git checkout develop && git pull
-
-2. Creás tu rama de feature
-   git checkout -b feature/mi-nueva-feature
-
-3. Trabajás y hacés commits siguiendo la convención
-   git commit -m "feat[MiFeature]: Agregar pantalla de detalle"
-
-4. Abrís un Pull Request hacia develop
-   → Code review → Merge
-
-5. Cuando develop está listo para salir a producción,
-   se crea una rama release/x.x.x para pruebas finales
-
-6. Una vez aprobada, se mergea a main y se tagea la versión
-```
-
-> ⚠️ **Nunca** se hace commit directo sobre `main` ni `develop`. Todo cambio entra vía Pull Request.
+Nunca se hace commit directo sobre `main` ni `develop`: todo entra por Pull Request con
+revisión. Referencia: [Git Flow Cheatsheet](https://danielkummer.github.io/git-flow-cheatsheet/index.es_ES.html).
