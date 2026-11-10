@@ -34,13 +34,13 @@ const funciones = [
     icono: IconCalendarHeart,
     titulo: "El seguimiento completo",
     texto:
-      "Evaluaciones, fotos, servicios, nacimientos y recordatorios de manejo, vinculados a la historia de cada animal.",
+      "Evaluaciones con fotos o video, servicios, crías y recordatorios de manejo, vinculados a la historia de cada animal.",
   },
   {
     icono: IconUsers,
     titulo: "El trabajo compartido",
     texto:
-      "Sumá colaboradores al campo y conservá el registro de quién realizó cada carga o movimiento.",
+      "Sumá colaboradores al campo y consultá en el historial quién realizó cada carga o movimiento.",
   },
 ];
 
@@ -158,7 +158,11 @@ export function LandingPage() {
           <div className="landing-container landing-workflow-inner">
             {[
               ["01", "Organizá", "Cargá tus animales y lotes."],
-              ["02", "Evaluá", "Registrá la condición corporal."],
+              [
+                "02",
+                "Evaluá",
+                "Registrá la condición corporal con fotos o video.",
+              ],
               [
                 "03",
                 "Hacé seguimiento",
@@ -316,8 +320,8 @@ export function LandingPage() {
             <div className="landing-evolution">
               <h3>Cómo fue creciendo</h3>
               <p>
-                Desde los primeros registros hasta la gestión del campo y el
-                análisis visual.
+                Desde los primeros registros hasta la carga masiva, el análisis
+                de video y el trabajo en equipo.
               </p>
               <details>
                 <summary>

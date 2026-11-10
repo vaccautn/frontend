@@ -47,5 +47,11 @@ Guarda las vistas de revisión de la landing en `.local/landing`, fuera de Git.
 
 La landing funciona sin autenticación y carga las capturas secundarias de
 forma diferida. Respeta la preferencia de movimiento reducido y permite
-navegar por teclado. Sigue pendiente únicamente la publicación, que no fue
-solicitada; el trabajo queda en la rama local `recta-final`, sin push.
+navegar por teclado.
+
+## Etapas
+
+Las etapas del proyecto salen de `src/features/landing/releases.ts`. La
+última, de noviembre de 2026, suma la importación desde planilla, la carga en
+tabla, las sesiones con video, los colaboradores del campo, el historial de
+actividad y los filtros de fecha.
