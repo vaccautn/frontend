@@ -1,6 +1,5 @@
+import { AuthContext } from "./useAuth";
 import {
-  createContext,
-  useContext,
   useState,
   useEffect,
   type ReactNode,
@@ -15,15 +14,6 @@ import {
 } from "./authSession";
 import { logoutProducer } from "../services/authService";
 import { SESION_VENCIDA_EVENT } from "@/services/httpClient";
-
-interface AuthContextValue {
-  user: AuthUser | null;
-  isAuthenticated: boolean;
-  refreshSession: () => void;
-  logout: () => Promise<void>;
-}
-
-const AuthContext = createContext<AuthContextValue | null>(null);
 
 export function AuthProvider({ children }: { children: ReactNode }) {
   // La sesión se lee al crear el estado (localStorage es sincrónico), así el
@@ -72,10 +62,4 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       {children}
     </AuthContext.Provider>
   );
-}
-
-export function useAuth() {
-  const ctx = useContext(AuthContext);
-  if (!ctx) throw new Error("useAuth debe usarse dentro de AuthProvider");
-  return ctx;
 }

@@ -12,7 +12,8 @@ export {
   saveSession,
 } from "./store/authSession";
 
-export { AuthProvider, useAuth } from "./store/AuthContext";
+export { AuthProvider } from "./store/AuthContext";
+export { useAuth } from "./store/useAuth";
 
 export type { AuthUser } from "./types/authTypes";
 
